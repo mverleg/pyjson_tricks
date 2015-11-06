@@ -1,0 +1,9 @@
+*~
+*.pyc
+*.egg-info
+.idea/
+*.sqlite3
+/.pypirc
+/dist/
+/build/
+/MANIFEST
