@@ -65,9 +65,7 @@ As a note on performance_, both dicts and OrderedDicts have the same scaling for
 Comments
 +++++++++++++++++++++++++++++++++++++++
 
-This package uses `#` for comments, which seems to be the most common convention. For example, you could call `loads` on the following string:
-
-.. code-block:: 
+This package uses `#` for comments, which seems to be the most common convention. For example, you could call `loads` on the following string::
 
 	{ # "comment 1
 		"hello": "Wor#d", "Bye": "\"M#rk\"", "yes\\\"": 5,# comment" 2
