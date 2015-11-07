@@ -11,7 +11,7 @@ It also allows for gzip compression using the ``compress=True`` argument (off by
 
 * Code: https://github.com/mverleg/pyjson_tricks
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
-* PIP:
+* PIP: https://pypi.python.org/pypi/json_tricks/1.0
 
 You can install using
 
