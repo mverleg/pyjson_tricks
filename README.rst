@@ -13,9 +13,13 @@ It also allows for gzip compression using the ``compress=True`` argument (off by
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
 * PIP:
 
+You can install using
+
 .. code-block:: bash
 
 	pip install json-tricks
+
+which will also install ``numpy`` if you don't have it yet.
 
 Numpy arrays
 +++++++++++++++++++++++++++++++++++++++

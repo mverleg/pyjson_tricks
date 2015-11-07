@@ -42,6 +42,7 @@ setup(
 		'Topic :: Software Development :: Libraries :: Python Modules',
 	],
 	install_requires=[
+		'numpy',
 		# pytest for tests
 		# sphinx for dodumentation
 	],

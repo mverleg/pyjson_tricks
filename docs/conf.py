@@ -18,7 +18,6 @@ import shlex
 from os.path import abspath
 
 
-print abspath('..')
 sys.path.insert(0, abspath('..'))
 
 # If extensions (or modules to document with autodoc) are in another directory,
