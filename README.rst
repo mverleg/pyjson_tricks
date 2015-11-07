@@ -9,6 +9,10 @@ At this time, the `pyjson-tricks` package brings three pieces of functionality t
 
 It also allows for gzip compression using the `compress=True` argument (off by default).
 
+* Code: https://github.com/mverleg/pyjson_tricks
+* PIP:
+* Documentation: http://json-tricks.readthedocs.org/en/latest/
+
 Numpy arrays
 +++++++++++++++++++++++++++++++++++++++
 
