@@ -7,11 +7,15 @@ At this time, the `pyjson-tricks` package brings three pieces of functionality t
 2. **Preserve map order** `{}` using `OrderedDict`.
 3. **Allow for comments** in json files by starting lines with `#`.
 
-It also allows for gzip compression using the `compress=True` argument (off by default).
+It also allows for gzip compression using the ``compress=True`` argument (off by default).
 
 * Code: https://github.com/mverleg/pyjson_tricks
-* PIP:
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
+* PIP:
+
+.. code-block:: bash
+
+	pip install json-tricks
 
 Numpy arrays
 +++++++++++++++++++++++++++++++++++++++

@@ -35,7 +35,7 @@ strip_hash_comments
 NumpyEncoder
 +++++++++++++++++++++++++++++++++++++++
 
-.. autofunction:: json_tricks.NumpyEncoder
+.. autoclass:: json_tricks.NumpyEncoder
 
 json_numpy_obj_hook
 +++++++++++++++++++++++++++++++++++++++
@@ -45,7 +45,7 @@ json_numpy_obj_hook
 TricksPairHook
 +++++++++++++++++++++++++++++++++++++++
 
-.. autofunction:: json_tricks.TricksPairHook
+.. autoclass:: json_tricks.TricksPairHook
 
 
 Table of content
