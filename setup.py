@@ -20,7 +20,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments',],
-	version='1.0',
+	version='1.1',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
@@ -42,7 +42,6 @@ setup(
 		'Topic :: Software Development :: Libraries :: Python Modules',
 	],
 	install_requires=[
-		'numpy',
 		# pytest for tests
 		# sphinx for dodumentation
 	],

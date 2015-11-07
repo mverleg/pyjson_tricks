@@ -11,7 +11,10 @@ It also allows for gzip compression using the ``compress=True`` argument (off by
 
 * Code: https://github.com/mverleg/pyjson_tricks
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
-* PIP: https://pypi.python.org/pypi/json_tricks/1.0
+* PIP: https://pypi.python.org/pypi/json_tricks
+
+Installation and use
+---------------------------------------
 
 You can install using
 
@@ -19,7 +22,20 @@ You can install using
 
 	pip install json-tricks
 
-which will also install ``numpy`` if you don't have it yet.
+If you want to use numpy features, you should install numpy as well. If you don't, then numpy is not required.
+
+You can import the usual json functions dump(s) and load(s), as well as a separate comment removal function, as follows:
+
+.. code-block:: bash
+
+	from json_tricks.np import dump, dumps, load, loads, strip_hash_comments
+
+If you do not have numpy and want to use only order preservation and commented json reading, you should **import from json_tricks.nonp`` instead**.
+
+The exact signatures of these functions are in the documentation_. In many cases, keeping the arguments of the standard json functions but changing the import will be enough to use the extra features.
+
+Features
+---------------------------------------
 
 Numpy arrays
 +++++++++++++++++++++++++++++++++++++++
@@ -96,6 +112,8 @@ And it would return the de-commented version:
 		"list": [1, 1, "#", "\"", "\\", 8], "dict": {"q": 7}
 	}
 
+Since comments aren't stored in the Python representation of the data, loading and then saving a json file will remove the comments (it also likely changes the indentation).
+
 There is already a `commentjson` package_ for Python. However, as of November 2015, it doesn't support Python 3.x, and a pull_ request to add support has been left pending for five months.
 
 The implementation of comments is not particularly efficient, but it does handle all the special cases I tested. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`strip_comments=False`).
@@ -105,8 +123,10 @@ License
 
 Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
 
+.. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array
 .. _package: https://pypi.python.org/pypi/commentjson/
 .. _pull: https://github.com/vaidik/commentjson/pull/11
 .. _performance: http://stackoverflow.com/a/8177061/723090
+
 

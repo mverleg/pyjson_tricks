@@ -1,9 +1,21 @@
 
 from collections import OrderedDict
-from tempfile import mkdtemp
-from numpy import arange, ones, uint8, float64
-from os.path import join
-from json_tricks import strip_hash_comments, dumps, loads, dump, load
+from .nonp import strip_hash_comments, dumps, loads
+
+
+nonpdata = {
+	'my_array': list(range(20)),
+	'my_map': {chr(k): k for k in range(97, 123)},
+	'my_string': 'Hello world!',
+	'my_float': 3.1415,
+	'my_int': 42
+}
+
+
+def test_dumps_loads():
+	json = dumps(nonpdata)
+	data2 = loads(json)
+	assert nonpdata == data2
 
 
 test_json_with_comments = """{ # "comment 1
@@ -24,35 +36,6 @@ test_json_without_comments = """{
 def test_strip_comments():
 	valid = strip_hash_comments(test_json_with_comments)
 	assert valid == test_json_without_comments
-
-
-npdata = {
-	'vector': arange(15, 70, 3, dtype=uint8),
-	'matrix': ones((15, 10), dtype=float64),
-}
-
-
-def test_dumps_loads_numpy():
-	json = dumps(npdata)
-	data2 = loads(json)
-	assert npdata.keys() == data2.keys()
-	assert (npdata['vector'] == data2['vector']).all()
-	assert (npdata['matrix'] == data2['matrix']).all()
-	assert npdata['vector'].dtype == data2['vector'].dtype
-	assert npdata['matrix'].dtype == data2['matrix'].dtype
-
-
-def test_dump_load_numpy():
-	path = join(mkdtemp(), 'pytest.json')
-	with open(path, 'wb+') as fh:
-		dump(npdata, fh, compression=9)
-	with open(path, 'rb') as fh:
-		data2 = load(fh, decompression=True)
-	assert npdata.keys() == data2.keys()
-	assert (npdata['vector'] == data2['vector']).all()
-	assert (npdata['matrix'] == data2['matrix']).all()
-	assert npdata['vector'].dtype == data2['vector'].dtype
-	assert npdata['matrix'].dtype == data2['matrix'].dtype
 
 
 ordered_map = OrderedDict((

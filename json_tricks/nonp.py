@@ -2,12 +2,15 @@
 from collections import OrderedDict
 from gzip import GzipFile
 from io import BytesIO
-from numpy import ndarray, asarray
 from json import JSONEncoder, loads as json_loads, dumps as json_dumps
 from re import findall
 from sys import version, exc_info
 
 py3 = (version[0] == '3')
+
+
+class NoNumpyException(Exception):
+	""" Trying to use numpy features, but numpy cannot be found. """
 
 
 def strip_hash_comments(string):
@@ -28,33 +31,6 @@ def strip_hash_comments(string):
 		else:
 			lines[k] = line.rstrip()
 	return '\n'.join(lines)
-
-
-class NumpyEncoder(JSONEncoder):
-	"""
-	JSON encoder for numpy arrays.
-	"""
-	def default(self, obj):
-		"""
-		If input object is a ndarray it will be converted into a dict holding
-		data type, shape and the data. The object can be restored using json_numpy_obj_hook.
-		"""
-		if isinstance(obj, ndarray):
-			return dict(__ndarray__ = obj.tolist(), dtype = str(obj.dtype), shape = obj.shape)
-		return JSONEncoder(self, obj)
-
-
-def json_numpy_obj_hook(dct):
-	"""
-	Replace any numpy arrays previously encoded by NumpyEncoder to their proper
-	shape, data type and data.
-
-	:param dct: (dict) json encoded ndarray
-	:return: (ndarray) if input was an encoded ndarray
-	"""
-	if isinstance(dct, dict) and '__ndarray__' in dct:
-		return asarray(dct['__ndarray__'], dtype = dct['dtype'])#.reshape(dct['shape'])
-	return dct
 
 
 class TricksPairHook:
@@ -82,24 +58,49 @@ class TricksPairHook:
 		return map
 
 
-def dumps(obj, preserve_order=True, json_func=json_dumps, cls=NumpyEncoder, sort_keys=None, **jsonkwargs):
+class NoNumpyEncoder(JSONEncoder):
+	"""
+	The standard JSONEncoder but with a warning for numpy arrays.
+	"""
+	def default(self, obj):
+		if 'ndarray' in str(type(obj)):
+			raise NoNumpyException(('Trying to encode {0:} which appears to be a numpy array ({1:}), but numpy ' +
+				'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
+				.format(obj, type(obj)))
+		return JSONEncoder(self, obj)
+
+
+def json_nonumpy_obj_hook(dct):
+	"""
+	This hook has no effect except to check if you're trying to decode numpy arrays without support, and give you a useful message.
+	"""
+	if isinstance(dct, dict) and '__ndarray__' in dct:
+		raise NoNumpyException(('Trying to decode dictionary ({0:}) which appears to be a numpy array, but numpy ' +
+			'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
+			.format(', '.join(dct.keys()[:10])))
+	return dct
+
+
+def dumps(obj, preserve_order=True, json_func=json_dumps, cls=NoNumpyEncoder, sort_keys=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
 	:param obj: The Python object to convert.
 	:param preserve_order: Whether to preserve order by using OrderedDicts or not.
 	:param json_func: The underlying dumps function to use (defaults to json.dumps in python >=2.6).
-	:param cls: The json encoder class to use, defaults to NumpyEncoder for handing numpy arrays.
+	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which is like JSONEncoder (so doesn't encode numpy arrays).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
+
+	Use json_tricks.np.dumps instead if you want encoding of numpy arrays.
 	"""
 	assert not (preserve_order and sort_keys), \
 		'sort_keys cannot be True if preserve_order is also True as that would bot preserve the order of maps'
 	return json_func(obj=obj, cls=cls, sort_keys=sort_keys, **jsonkwargs)
 
 
-def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, cls=NumpyEncoder, sort_keys=None, **jsonkwargs):
+def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, cls=NoNumpyEncoder, sort_keys=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -107,6 +108,8 @@ def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, c
 	:param compression: The gzip compression level, or None for no compression.
 
 	The other arguments are identical to dumps.
+
+	Use json_tricks.np.dump instead if you want encoding of numpy arrays.
 	"""
 	string = dumps(obj=obj, preserve_order=preserve_order, json_func=json_func, cls=cls, sort_keys=sort_keys, **jsonkwargs)
 	if compression:
@@ -122,7 +125,7 @@ def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, c
 		fp.write(string)
 
 
-def loads(string, preserve_order=True, decompression=None, obj_hooks=(json_numpy_obj_hook,), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
+def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -136,6 +139,8 @@ def loads(string, preserve_order=True, decompression=None, obj_hooks=(json_numpy
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
+
+	Use json_tricks.np.loads instead if you want decoding of numpy arrays.
 	"""
 	if decompression:
 		with GzipFile(fileobj=BytesIO(string), mode='rb') as zh:
@@ -151,19 +156,21 @@ def loads(string, preserve_order=True, decompression=None, obj_hooks=(json_numpy
 	return json_func(string, object_pairs_hook=hook, **jsonkwargs)
 
 
-def load(fp, preserve_order=True, decompression=None, obj_hooks=(json_numpy_obj_hook,), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
+def load(fp, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
 	:param fp: File handle to load from.
 
 	The other arguments are identical to loads.
+
+	Use json_tricks.np.load instead if you want decoding of numpy arrays.
 	"""
 	try:
 		string = fp.read()
 	except UnicodeDecodeError as err:
 		raise Exception('There was a problem decoding the file content. A posible reason is that the file is not opened ' +
-		    'in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
+			'in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
 	return loads(string, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, strip_comments=strip_comments, json_func=json_func, **jsonkwargs)
 
 
