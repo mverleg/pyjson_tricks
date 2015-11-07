@@ -13,23 +13,27 @@ class NoNumpyException(Exception):
 	""" Trying to use numpy features, but numpy cannot be found. """
 
 
-def strip_hash_comments(string):
+def strip_comment_line_with_symbol(line, start):
+	parts = line.split(start)
+	counts = [len(findall(r'(?:^|[^"\\]|(?:\\\\|\\")+)(")', part)) for part in parts]
+	total = 0
+	for nr, count in enumerate(counts):
+		total += count
+		if total % 2 == 0:
+			return start.join(parts[:nr+1]).rstrip()
+	else:
+		return line.rstrip()
+
+
+def strip_comments(string):
 	"""
-	:param string: A string containing json with comments started by a #.
+	:param string: A string containing json with comments started by a # or //.
 	:return: The string with the comments removed.
 	"""
 	lines = string.splitlines()
-	for k, line in enumerate(lines):
-		parts = line.split('#')
-		counts = [len(findall(r'(?:^|[^"\\]|(?:\\\\|\\")+)(")', part)) for part in parts]
-		total = 0
-		for nr, count in enumerate(counts):
-			total += count
-			if total % 2 == 0:
-				lines[k] = '#'.join(parts[:nr+1]).rstrip()
-				break
-		else:
-			lines[k] = line.rstrip()
+	for k in range(len(lines)):
+		lines[k] = strip_comment_line_with_symbol(lines[k], start='#')
+		lines[k] = strip_comment_line_with_symbol(lines[k], start='//')
 	return '\n'.join(lines)
 
 
@@ -125,7 +129,7 @@ def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, c
 		fp.write(string)
 
 
-def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
+def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, ignore_comments=True, json_func=json_loads, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -134,7 +138,7 @@ def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hoo
 	:param decompression: True if gzip decompression should be used, False otherwise.
 	:param obj_hooks: A list of object hooks to apply.
 	:param obj_hook: Ab object hook to apply, for compatibility with default json dumps function.
-	:param strip_comments: Remove lines starting with a # sign.
+	:param ignore_comments: Remove comments (starting with # or //).
 	:param json_func: The underlying dumps function to use (defaults to json.loads in python >=2.6).
 	:return: The string containing the json-encoded version of obj.
 
@@ -147,8 +151,8 @@ def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hoo
 			string = zh.read()
 			if py3:
 				string = string.decode('UTF-8')
-	if strip_comments:
-		string = strip_hash_comments(string)
+	if ignore_comments:
+		string = strip_comments(string)
 	obj_hooks = obj_hooks or []
 	if obj_hook is not None:
 		obj_hooks.append(obj_hook)
@@ -156,7 +160,7 @@ def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hoo
 	return json_func(string, object_pairs_hook=hook, **jsonkwargs)
 
 
-def load(fp, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
+def load(fp, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, ignore_comments=True, json_func=json_loads, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -171,6 +175,6 @@ def load(fp, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=Non
 	except UnicodeDecodeError as err:
 		raise Exception('There was a problem decoding the file content. A posible reason is that the file is not opened ' +
 			'in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
-	return loads(string, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, strip_comments=strip_comments, json_func=json_func, **jsonkwargs)
+	return loads(string, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, ignore_comments=ignore_comments, json_func=json_func, **jsonkwargs)
 
 

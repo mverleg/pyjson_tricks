@@ -1,6 +1,6 @@
 
 from collections import OrderedDict
-from .nonp import strip_hash_comments, dumps, loads
+from .nonp import strip_comments, dumps, loads
 
 
 nonpdata = {
@@ -34,8 +34,10 @@ test_json_without_comments = """{
 
 
 def test_strip_comments():
-	valid = strip_hash_comments(test_json_with_comments)
+	valid = strip_comments(test_json_with_comments)
 	assert valid == test_json_without_comments
+	valid = strip_comments(test_json_with_comments.replace('#', '//'))
+	assert valid == test_json_without_comments.replace('#', '//')
 
 
 ordered_map = OrderedDict((

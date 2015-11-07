@@ -28,7 +28,7 @@ You can import the usual json functions dump(s) and load(s), as well as a separa
 
 .. code-block:: bash
 
-	from json_tricks.np import dump, dumps, load, loads, strip_hash_comments
+	from json_tricks.np import dump, dumps, load, loads, strip_comments
 
 If you do not have numpy and want to use only order preservation and commented json reading, you should **import from json_tricks.nonp`` instead**.
 
@@ -116,7 +116,7 @@ Since comments aren't stored in the Python representation of the data, loading a
 
 There is already a `commentjson` package_ for Python. However, as of November 2015, it doesn't support Python 3.x, and a pull_ request to add support has been left pending for five months.
 
-The implementation of comments is not particularly efficient, but it does handle all the special cases I tested. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`strip_comments=False`).
+The implementation of comments is not particularly efficient, but it does handle all the special cases I tested. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`ignore_comments=False`).
 
 License
 ---------------------------------------

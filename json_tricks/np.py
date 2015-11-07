@@ -1,5 +1,5 @@
 
-from .nonp import NoNumpyException, strip_hash_comments, TricksPairHook  # keep these 'unused' imports
+from .nonp import NoNumpyException, strip_comments, TricksPairHook  # keep these 'unused' imports
 from json_tricks import nonp
 from json import JSONEncoder, loads as json_loads, dumps as json_dumps
 
@@ -55,17 +55,17 @@ def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, c
 	return nonp.dump(obj, fp, compression=compression, preserve_order=preserve_order, json_func=json_func, cls=cls, sort_keys=sort_keys, **jsonkwargs)
 
 
-def loads(string, preserve_order=True, decompression=None, obj_hooks=(json_numpy_obj_hook,), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
+def loads(string, preserve_order=True, decompression=None, obj_hooks=(json_numpy_obj_hook,), obj_hook=None, ignore_comments=True, json_func=json_loads, **jsonkwargs):
 	"""
 	Like nonp.loads, but obj_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
 	"""
-	return nonp.loads(string, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, strip_comments=strip_comments, json_func=json_func, **jsonkwargs)
+	return nonp.loads(string, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, ignore_comments=ignore_comments, json_func=json_func, **jsonkwargs)
 
 
-def load(fp, preserve_order=True, decompression=None, obj_hooks=(json_numpy_obj_hook,), obj_hook=None, strip_comments=True, json_func=json_loads, **jsonkwargs):
+def load(fp, preserve_order=True, decompression=None, obj_hooks=(json_numpy_obj_hook,), obj_hook=None, ignore_comments=True, json_func=json_loads, **jsonkwargs):
 	"""
 	Like nonp.load, but obj_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
 	"""
-	return nonp.load(fp, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, strip_comments=strip_comments, json_func=json_func, **jsonkwargs)
+	return nonp.load(fp, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, ignore_comments=ignore_comments, json_func=json_func, **jsonkwargs)
 
 

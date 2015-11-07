@@ -41,10 +41,10 @@ load
 Utilities
 ---------------------------------------
 
-strip_hash_comments
+strip_comments
 +++++++++++++++++++++++++++++++++++++++
 
-.. autofunction:: json_tricks.nonp.strip_hash_comments
+.. autofunction:: json_tricks.nonp.strip_comments
 
 NumpyEncoder
 +++++++++++++++++++++++++++++++++++++++
