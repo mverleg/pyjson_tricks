@@ -25,15 +25,15 @@ def strip_comment_line_with_symbol(line, start):
 		return line.rstrip()
 
 
-def strip_comments(string):
+def strip_comments(string, comment_symbols=('#', '//')):
 	"""
 	:param string: A string containing json with comments started by a # or //.
 	:return: The string with the comments removed.
 	"""
 	lines = string.splitlines()
 	for k in range(len(lines)):
-		lines[k] = strip_comment_line_with_symbol(lines[k], start='#')
-		lines[k] = strip_comment_line_with_symbol(lines[k], start='//')
+		for symbol in comment_symbols:
+			lines[k] = strip_comment_line_with_symbol(lines[k], start=symbol)
 	return '\n'.join(lines)
 
 
