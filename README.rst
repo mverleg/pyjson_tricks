@@ -1,13 +1,14 @@
 JSON tricks (python)
 ---------------------------------------
 
-At this time, the `pyjson-tricks` package brings three pieces of functionality to python handling of json files:
+Since the backward-incompatible 2.0 series, the `pyjson-tricks` package brings four pieces of functionality to python handling of json files:
 
 1. **Store and load numpy arrays** in human-readable format.
+4. **Store and load class instances**, both generic and customized.
 2. **Preserve map order** `{}` using `OrderedDict`.
 3. **Allow for comments** in json files by starting lines with `#`.
 
-It also allows for gzip compression using the ``compress=True`` argument (off by default).
+It also allows for gzip compression using the ``compression=True`` argument (off by default).
 
 * Code: https://github.com/mverleg/pyjson_tricks
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
@@ -22,6 +23,12 @@ You can install using
 
 	pip install json-tricks
 
+If your code relies on the old version, make sure to install
+
+.. code-block:: bash
+
+	pip install `json-tricks<2.0`
+
 If you want to use numpy features, you should install numpy as well. If you don't, then numpy is not required.
 
 You can import the usual json functions dump(s) and load(s), as well as a separate comment removal function, as follows:
@@ -30,9 +37,9 @@ You can import the usual json functions dump(s) and load(s), as well as a separa
 
 	from json_tricks.np import dump, dumps, load, loads, strip_comments
 
-If you do not have numpy and want to use only order preservation and commented json reading, you should **import from json_tricks.nonp`` instead**.
+If you do not have numpy and want to use only order preservation and commented json reading, you should **``import from json_tricks.nonp`` instead**.
 
-The exact signatures of these functions are in the documentation_. In many cases, keeping the arguments of the standard json functions but changing the import will be enough to use the extra features.
+The exact signatures of these functions are in the documentation_.
 
 Features
 ---------------------------------------
@@ -65,6 +72,67 @@ which will be converted back to a numpy array when using `json_tricks.loads`.
 
 As you've seen, this uses the magic key `__ndarray__`. Don't use `__ndarray__` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
 
+Class instances
++++++++++++++++++++++++++++++++++++++++
+
+``json_tricks`` can serialize class instances.
+
+If the class behaves normally (not generated dynamic, no ``__new__`` or ``__metaclass__`` magic, etc) *and* all it's attributes are serializable, then this should work by default.
+
+.. code-block:: python
+
+	# json_tricks/test_class.py
+	class MyTestCls:
+		def __init__(self, **kwargs):
+			for k, v in kwargs.items():
+				setattr(self, k, v)
+
+	cls_instance = MyTestCls(s='ub', dct={'7': 7})
+
+	json = dumps(cls_instance, indent=4)
+	cls_instance_again = loads(json)
+
+You'll get your instance back. Here the json looks like this:
+
+.. code-block:: javascript
+
+	{
+		"__instance_type__": [
+			"json_tricks.test_class",
+			"MyTestCls"
+		],
+		"attributes": {
+			"s": "ub",
+			"dct": {
+				"7": 7
+			}
+		}
+	}
+
+As you can see, this stores the module and class name. The class must be importable from the same module when decoding (and should not have changed).
+If it isn't, you have to manually provide a dictionary to ``cls_lookup_map`` when loading in which the class name can be looked up. Note that if the class is imported, then ``globals()`` is such a dictionary (so try ``loads(json, cls_lookup_map=glboals())``).
+Also note that if the class is defined in the 'top' script (that you're calling directly), then this isn't a module and the import part cannot be extracted. Only the class name will be stored; it can then only be deserialized in the same script, or if you provide ``cls_lookup_map``.
+
+If the instance doesn't serialize automatically, or if you want custom behaviour, then you can implement ``__json__encode__(self)`` and ``__json_decode__(self, **attributes)`` methods, like so:
+
+.. code-block:: python
+
+	class CustomEncodeCls:
+		def __init__(self):
+			self.relevant = 42
+			self.irrelevant = 37
+
+		def __json_encode__(self):
+			# should return primitive, serializable types like dict, list, int, string, float...
+			return {'relevant': self.relevant}
+
+		def __json_decode__(self, **attrs):
+			# should initialize all properties; note that __init__ is not called implicitly
+			self.relevant = attrs['relevant']
+			self.irrelevant = 12
+
+As you've seen, this uses the magic key `__instance_type__`. Don't use `__instance_type__` as a dictionary key unless you know what you're doing.
+
 Order
 +++++++++++++++++++++++++++++++++++++++
 
@@ -83,7 +151,7 @@ Converting to json and back will preserve the order:
 .. code-block:: python
 
 	from json_tricks import dumps, loads
-	json = dumps(ordered, preserve_order=True)
+	json = dumps(ordered)
 	ordered = loads(json, preserve_order=True)
 
 where `preserve_order=True` is added for emphasis; it can be left out since it's the default.
@@ -118,10 +186,12 @@ There is already a `commentjson` package_ for Python. However, as of November 20
 
 The implementation of comments is not particularly efficient, but it does handle all the special cases I tested. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`ignore_comments=False`).
 
-License
+Usage & contributions
 ---------------------------------------
 
 Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
+
+Contributions are welcome! Please test that the ``py.test`` tests still pass when sending a pull request.
 
 .. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array

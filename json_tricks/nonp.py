@@ -1,12 +1,16 @@
+from logging import warning
 
+from importlib import import_module
 from collections import OrderedDict
+from functools import partial
 from gzip import GzipFile
 from io import BytesIO
-from json import JSONEncoder, loads as json_loads, dumps as json_dumps
+from json import JSONEncoder, loads as json_loads
 from re import findall
 from sys import version, exc_info
 
-py3 = (version[0] == '3')
+
+py3 = (version[:2] == '3.')
 
 
 class NoNumpyException(Exception):
@@ -42,36 +46,24 @@ class TricksPairHook:
 	Hook that converts json maps to the appropriate python type (dict or OrderedDict)
 	and then runs any number of hooks on the individual maps.
 	"""
-	def __init__(self, ordered=True, obj_hooks=None):
+	def __init__(self, ordered=True, obj_pairs_hooks=None):
 		"""
 		:param ordered: True if maps should retain their ordering.
-		:param obj_hooks: An iterable of hooks to apply to elements.
+		:param obj_pairs_hooks: An iterable of hooks to apply to elements.
 		:return:
 		"""
 		self.map_type = OrderedDict
 		if not ordered:
 			self.map_type = dict
-		self.obj_hooks = []
-		if obj_hooks:
-			self.obj_hooks = list(obj_hooks)
+		self.obj_pairs_hooks = []
+		if obj_pairs_hooks:
+			self.obj_pairs_hooks = list(obj_pairs_hooks)
 
 	def __call__(self, pairs):
 		map = self.map_type(pairs)
-		for hook in self.obj_hooks:
+		for hook in self.obj_pairs_hooks:
 			map = hook(map)
 		return map
-
-
-class NoNumpyEncoder(JSONEncoder):
-	"""
-	The standard JSONEncoder but with a warning for numpy arrays.
-	"""
-	def default(self, obj):
-		if 'ndarray' in str(type(obj)):
-			raise NoNumpyException(('Trying to encode {0:} which appears to be a numpy array ({1:}), but numpy ' +
-				'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
-				.format(obj, type(obj)))
-		return JSONEncoder(self, obj)
 
 
 def json_nonumpy_obj_hook(dct):
@@ -85,26 +77,109 @@ def json_nonumpy_obj_hook(dct):
 	return dct
 
 
-def dumps(obj, preserve_order=True, json_func=json_dumps, cls=NoNumpyEncoder, sort_keys=None, **jsonkwargs):
+class ClassInstanceHook:
+	"""
+	This hook tries to convert json encoded by class_instance_encoder back to it's original instance.
+	It only works if the environment is the same, e.g. the class is similarly importable and hasn't changed.
+	"""
+	def __init__(self, cls_lookup_map=None):
+		self.cls_lookup_map = cls_lookup_map or {}
+
+	def __call__(self, dct):
+		if isinstance(dct, dict) and '__instance_type__' in dct:
+			mod, name = dct['__instance_type__']
+			attrs = dct['attributes']
+			if mod is None:
+				try:
+					Cls = getattr((__import__('__main__')), name)
+				except (ImportError, AttributeError) as err:
+					if not name in self.cls_lookup_map:
+						raise ImportError(('class {0:s} seems to have been exported from the main file, which means '
+							'it has no module/import path set; you need to provide cls_lookup_map which maps names '
+							'to classes').format(name))
+					Cls = self.cls_lookup_map[name]
+			else:
+				imp_err = None
+				try:
+					module = import_module('{0:}'.format(mod, name))
+				except ImportError as err:
+					imp_err = ('encountered import error "{0:}" while importing "{1:}" to decode a json file; perhaps '
+						'it was encoded in a different environment where {1:}.{2:} was available').format(err, mod, name)
+				else:
+					if not hasattr(module, name):
+						imp_err = 'imported "{0:}" but could find "{1:}" inside while decoding a json file (found {2:}'.format(
+							module, name, ', '.join(attr for attr in dir(module) if not attr.startswith('_')))
+					Cls = getattr(module, name)
+				if imp_err:
+					if 'name' in self.cls_lookup_map:
+						Cls = self.cls_lookup_map[name]
+					else:
+						raise ImportError(imp_err)
+			obj = Cls.__new__(Cls)
+			if hasattr(obj, '__json_decode__'):
+				obj.__json_decode__(**attrs)
+			else:
+				obj.__dict__ = dict(attrs)
+			return  obj
+		return dct
+
+
+class ClassInstanceEncoder(JSONEncoder):
+	"""
+	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
+	imported in the same way.
+	"""
+	def __init__(self, *args, encode_cls_instances=True, **kwargs):
+		self.encode_cls_instances = encode_cls_instances
+		super(ClassInstanceEncoder, self).__init__(*args, **kwargs)
+
+	def default(self, obj, *args, **kwargs):
+		if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
+			mod = obj.__class__.__module__
+			if mod == '__main__':
+				mod = None
+				warning(('class {0:} seems to have been defined in the main file; unfortunately this means'
+					' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
+					'decoding').format(obj.__class__))
+			name = obj.__class__.__name__
+			if hasattr(obj, '__json_encode__'):
+				attrs = obj.__json_encode__()
+			else:
+				attrs = dict(obj.__dict__.items())
+			return dict(__instance_type__=(mod, name), attributes=attrs)
+		super(ClassInstanceEncoder, self).default(obj, *args, **kwargs)
+
+
+class NoNumpyEncoder(ClassInstanceEncoder):
+	"""
+	If the object has a .to_primitives() method, this will be called. Emits a warning for numpy arrays.
+	"""
+	def default(self, obj, *args, **kwargs):
+		if 'ndarray' in str(type(obj)):
+			raise NoNumpyException(('Trying to encode {0:} which appears to be a numpy array ({1:}), but numpy ' +
+				'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
+				.format(obj, type(obj)))
+		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)
+
+
+def dumps(obj, encode_cls_instances=True, sort_keys=None, cls=NoNumpyEncoder, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
 	:param obj: The Python object to convert.
-	:param preserve_order: Whether to preserve order by using OrderedDicts or not.
-	:param json_func: The underlying dumps function to use (defaults to json.dumps in python >=2.6).
-	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which is like JSONEncoder (so doesn't encode numpy arrays).
+	:param encode_cls_instances: True to attempt to encode class instances (decoding requires a similar environment).
+	:param sort_keys: Keep this False if you want order to be preserved.
+	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which gives a warning for numpy arrays.
 	:return: The string containing the json-encoded version of obj.
 
-	Other arguments are passed on to json_func.
+	Other arguments are passed on to json_func. Note that sort_keys should be false if you want to preserve order.
 
 	Use json_tricks.np.dumps instead if you want encoding of numpy arrays.
 	"""
-	assert not (preserve_order and sort_keys), \
-		'sort_keys cannot be True if preserve_order is also True as that would bot preserve the order of maps'
-	return json_func(obj=obj, cls=cls, sort_keys=sort_keys, **jsonkwargs)
+	return cls(obj, sort_keys=sort_keys, encode_cls_instances=encode_cls_instances, **jsonkwargs).encode(obj)
 
 
-def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, cls=NoNumpyEncoder, sort_keys=None, **jsonkwargs):
+def dump(obj, fp, encode_cls_instances=True, sort_keys=None, compression=None, cls=NoNumpyEncoder, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -115,31 +190,35 @@ def dump(obj, fp, compression=None, preserve_order=True, json_func=json_dumps, c
 
 	Use json_tricks.np.dump instead if you want encoding of numpy arrays.
 	"""
-	string = dumps(obj=obj, preserve_order=preserve_order, json_func=json_func, cls=cls, sort_keys=sort_keys, **jsonkwargs)
+	string = dumps(obj=obj, encode_cls_instances=encode_cls_instances, sort_keys=sort_keys, cls=cls, **jsonkwargs)
 	if compression:
+		if compression is True:
+			compression = 5
 		try:
 			with GzipFile(fileobj=fp, mode='wb+', compresslevel=int(compression)) as zh:
 				if py3:
 					string = bytes(string, 'UTF-8')
 				zh.write(string)
 		except TypeError as err:
-			err.args = (err.args[0] + '. A posible reason is that the file is not opened in binary mode; be sure to set file mode to something like "wb".',)
+			err.args = (err.args[0] + '. A posible reason is that the file is not opened in binary mode; '
+				'be sure to set file mode to something like "wb".',)
 			raise
 	else:
 		fp.write(string)
 
 
-def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, ignore_comments=True, json_func=json_loads, **jsonkwargs):
+def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
+		obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, obj_hook=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
 	:param string: The string containing a json encoded data structure.
+	:param decode_cls_instances: True to attempt to decode class instances (requires the environment to be similar the the encoding one).
 	:param preserve_order: Whether to preserve order by using OrderedDicts or not.
-	:param decompression: True if gzip decompression should be used, False otherwise.
-	:param obj_hooks: A list of object hooks to apply.
-	:param obj_hook: Ab object hook to apply, for compatibility with default json dumps function.
 	:param ignore_comments: Remove comments (starting with # or //).
-	:param json_func: The underlying dumps function to use (defaults to json.loads in python >=2.6).
+	:param decompression: True if gzip decompression should be used, False otherwise.
+	:param obj_pairs_hooks: A list of dictionary hooks to apply.
+	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
@@ -153,14 +232,18 @@ def loads(string, preserve_order=True, decompression=None, obj_hooks=(), obj_hoo
 				string = string.decode('UTF-8')
 	if ignore_comments:
 		string = strip_comments(string)
-	obj_hooks = obj_hooks or []
+	obj_pairs_hooks = list(obj_pairs_hooks)
+	if decode_cls_instances:
+		obj_pairs_hooks.append(ClassInstanceHook(cls_lookup_map=cls_lookup_map))
 	if obj_hook is not None:
-		obj_hooks.append(obj_hook)
-	hook=TricksPairHook(ordered=preserve_order, obj_hooks=obj_hooks)
-	return json_func(string, object_pairs_hook=hook, **jsonkwargs)
+		obj_pairs_hooks.append(obj_hook)
+	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=obj_pairs_hooks)
+	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
+	# return json_func(string, object_pairs_hook=hook, **jsonkwargs)
 
 
-def load(fp, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=None, ignore_comments=True, json_func=json_loads, **jsonkwargs):
+def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
+		 obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -175,6 +258,8 @@ def load(fp, preserve_order=True, decompression=None, obj_hooks=(), obj_hook=Non
 	except UnicodeDecodeError as err:
 		raise Exception('There was a problem decoding the file content. A posible reason is that the file is not opened ' +
 			'in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
-	return loads(string, preserve_order=preserve_order, decompression=decompression, obj_hooks=obj_hooks, obj_hook=obj_hook, ignore_comments=ignore_comments, json_func=json_func, **jsonkwargs)
+	return loads(string, decode_cls_instances=decode_cls_instances, preserve_order=preserve_order,
+		ignore_comments=ignore_comments, decompression=decompression, obj_pairs_hooks=obj_pairs_hooks,
+		cls_lookup_map=cls_lookup_map, **jsonkwargs)
 
 

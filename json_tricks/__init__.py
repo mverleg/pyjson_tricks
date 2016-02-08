@@ -1,6 +1,6 @@
 
 try:
-	# find_module takes just as long as importing, so optimization possible
+	# find_module takes just as long as importing, so no optimization possible
 	import numpy
 except ImportError:
 	NUMPY_MODE = False

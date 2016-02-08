@@ -20,7 +20,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments',],
-	version='1.2',
+	version='2.0',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,

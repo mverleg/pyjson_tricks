@@ -1,8 +1,10 @@
 
 from tempfile import mkdtemp
-from numpy import arange, ones, uint8, float64
+from numpy import arange, ones, uint8, float64, array
 from os.path import join
-from .np import dump, dumps, load, loads
+from json_tricks.np import dump, dumps, load, loads
+from json_tricks.test_class import MyTestCls
+from json_tricks.test_nonp import cls_instance
 
 
 npdata = {
@@ -11,14 +13,19 @@ npdata = {
 }
 
 
+def _numpy_equality(d2):
+	assert npdata.keys() == d2.keys()
+	assert (npdata['vector'] == d2['vector']).all()
+	assert (npdata['matrix'] == d2['matrix']).all()
+	assert npdata['vector'].dtype == d2['vector'].dtype
+	assert npdata['matrix'].dtype == d2['matrix'].dtype
+
+
+
 def test_dumps_loads_numpy():
 	json = dumps(npdata)
 	data2 = loads(json)
-	assert npdata.keys() == data2.keys()
-	assert (npdata['vector'] == data2['vector']).all()
-	assert (npdata['matrix'] == data2['matrix']).all()
-	assert npdata['vector'].dtype == data2['vector'].dtype
-	assert npdata['matrix'].dtype == data2['matrix'].dtype
+	_numpy_equality(data2)
 
 
 def test_dump_load_numpy():
@@ -27,10 +34,29 @@ def test_dump_load_numpy():
 		dump(npdata, fh, compression=9)
 	with open(path, 'rb') as fh:
 		data2 = load(fh, decompression=True)
-	assert npdata.keys() == data2.keys()
-	assert (npdata['vector'] == data2['vector']).all()
-	assert (npdata['matrix'] == data2['matrix']).all()
-	assert npdata['vector'].dtype == data2['vector'].dtype
-	assert npdata['matrix'].dtype == data2['matrix'].dtype
+	_numpy_equality(data2)
+
+
+mixed_data = {
+	'vec': array(range(10)),
+	'inst': MyTestCls(
+		nr=7, txt='yolo',
+		li=[1,1,2,3,5,8,12],
+		vec=array(range(7,16,2)),
+		inst=cls_instance
+	),
+}
+
+
+def test_mixed_cls_arr():
+	json = dumps(mixed_data)
+	back = dict(loads(json))
+	assert mixed_data.keys() == back.keys()
+	assert (mixed_data['vec'] == back['vec']).all()
+	assert (mixed_data['inst'].vec == back['inst'].vec).all()
+	assert (mixed_data['inst'].nr == back['inst'].nr)
+	assert (mixed_data['inst'].li == back['inst'].li)
+	assert (mixed_data['inst'].inst.s == back['inst'].inst.s)
+	assert (mixed_data['inst'].inst.dct == dict(back['inst'].inst.dct))
 
 
