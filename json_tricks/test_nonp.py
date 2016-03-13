@@ -1,8 +1,8 @@
 
 from collections import OrderedDict
+from pytest import raises
 from json_tricks.test_class import MyTestCls, CustomEncodeCls
-from json_tricks.nonp import strip_comments, dumps, loads
-
+from json_tricks.nonp import strip_comments, dumps, loads, DuplicateJsonKeyException
 
 nonpdata = {
 	'my_array': list(range(20)),
@@ -32,6 +32,8 @@ test_json_without_comments = """{
 	"list": [1, 1, "#", "\\"", "\\\\", 8], "dict": {"q": 7}
 }
 """
+
+test_json_duplicates = """{"test": 42, "test": 37}"""
 
 
 def test_strip_comments():
@@ -88,5 +90,11 @@ def test_cls_instance_custom():
 def test_cls_instance_local():
 	json = '{"__instance_type__": [null, "CustomEncodeCls"], "attributes": {"relevant": 137}}'
 	loads(json, cls_lookup_map=globals())
+
+
+def test_duplicates():
+	loads(test_json_duplicates, allow_duplicates=True)
+	with raises(DuplicateJsonKeyException):
+		loads(test_json_duplicates, allow_duplicates=False)
 
 

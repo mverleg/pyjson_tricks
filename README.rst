@@ -8,7 +8,7 @@ Since the backward-incompatible 2.0 series, the `pyjson-tricks` package brings f
 3. **Preserve map order** `{}` using `OrderedDict`.
 4. **Allow for comments** in json files by starting lines with `#`.
 
-It also allows for gzip compression using the ``compression=True`` argument (off by default).
+As well as compression and disallowing duplicate keys.
 
 * Code: https://github.com/mverleg/pyjson_tricks
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
@@ -186,6 +186,12 @@ There is already a `commentjson` package_ for Python. However, as of November 20
 
 The implementation of comments is not particularly efficient, but it does handle all the special cases I tested. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`ignore_comments=False`).
 
+Other features
++++++++++++++++++++++++++++++++++++++++
+
+* ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
+* ``json_tricks`` can check for duplicate keys in maps by setting ``allow_duplicates`` to False. These are `kind of allowed`_, but are handled inconsistently between json implementations. In Python, for ``dict`` and ``OrderedDict``, duplicate keys are silently overwritten.
+
 Usage & contributions
 ---------------------------------------
 
@@ -198,5 +204,6 @@ Contributions are welcome! Please test that the ``py.test`` tests still pass whe
 .. _package: https://pypi.python.org/pypi/commentjson/
 .. _pull: https://github.com/vaidik/commentjson/pull/11
 .. _performance: http://stackoverflow.com/a/8177061/723090
+.. _`_kind of allowed:` http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object
 
 

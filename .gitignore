@@ -1,10 +1,10 @@
 *~
 *.pyc
 *.egg-info
-.idea/
+/.idea/
 *.sqlite3
 /.pypirc
 /dist/
 /build/
 /MANIFEST
-.cache/
+/.cache/

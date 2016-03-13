@@ -12,7 +12,8 @@ with open('README.rst', 'r') as fh:
 
 setup(
 	name='json_tricks',
-	description='Add features to json: en/decoding of numpy arrays, preservation of ordering and ignoring of comments in input',
+	description='Add features to json: en/decoding of numpy arrays, ' +
+		'preservation of ordering and ignoring of comments in input',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
@@ -20,7 +21,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments',],
-	version='2.0',
+	version='2.1',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,

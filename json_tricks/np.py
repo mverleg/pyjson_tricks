@@ -56,22 +56,22 @@ def dump(obj, fp, sort_keys=None, compression=None, cls=NumpyEncoder, **jsonkwar
 
 
 def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_numpy_obj_hook,), cls_lookup_map=None, **jsonkwargs):
+		obj_pairs_hooks=(json_numpy_obj_hook,), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
 	"""
 	Like nonp.loads, but obj_pairs_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
 	"""
 	return nonp.loads(string, decode_cls_instances=decode_cls_instances, preserve_order=preserve_order,
 		decompression=decompression, obj_pairs_hooks=obj_pairs_hooks, ignore_comments=ignore_comments,
-		cls_lookup_map=None, **jsonkwargs)
+		cls_lookup_map=None, allow_duplicates=allow_duplicates, **jsonkwargs)
 
 
 def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_numpy_obj_hook,), cls_lookup_map=None, **jsonkwargs):
+		obj_pairs_hooks=(json_numpy_obj_hook,), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
 	"""
 	Like nonp.load, but obj_pairs_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
 	"""
 	return nonp.load(fp, decode_cls_instances=decode_cls_instances, preserve_order=preserve_order,
 		ignore_comments=ignore_comments, decompression=decompression, obj_pairs_hooks=obj_pairs_hooks,
-		cls_lookup_map=cls_lookup_map, **jsonkwargs)
+		cls_lookup_map=cls_lookup_map, allow_duplicates=allow_duplicates, **jsonkwargs)
 
 

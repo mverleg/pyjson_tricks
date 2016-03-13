@@ -1,8 +1,7 @@
-from logging import warning
 
+from logging import warning
 from importlib import import_module
 from collections import OrderedDict
-from functools import partial
 from gzip import GzipFile
 from io import BytesIO
 from json import JSONEncoder, loads as json_loads
@@ -17,6 +16,10 @@ class NoNumpyException(Exception):
 	""" Trying to use numpy features, but numpy cannot be found. """
 
 
+class DuplicateJsonKeyException(Exception):
+	""" Trying to load a json map which contains duplicate keys, but allow_duplicates is False """
+
+
 def strip_comment_line_with_symbol(line, start):
 	parts = line.split(start)
 	counts = [len(findall(r'(?:^|[^"\\]|(?:\\\\|\\")+)(")', part)) for part in parts]
@@ -29,9 +32,10 @@ def strip_comment_line_with_symbol(line, start):
 		return line.rstrip()
 
 
-def strip_comments(string, comment_symbols=('#', '//')):
+def strip_comments(string, comment_symbols=frozenset(('#', '//'))):
 	"""
-	:param string: A string containing json with comments started by a # or //.
+	:param string: A string containing json with comments started by comment_symbols.
+	:param comment_symbols: Iterable of symbols that start a line comment (default # or //).
 	:return: The string with the comments removed.
 	"""
 	lines = string.splitlines()
@@ -41,12 +45,12 @@ def strip_comments(string, comment_symbols=('#', '//')):
 	return '\n'.join(lines)
 
 
-class TricksPairHook:
+class TricksPairHook(object):
 	"""
 	Hook that converts json maps to the appropriate python type (dict or OrderedDict)
 	and then runs any number of hooks on the individual maps.
 	"""
-	def __init__(self, ordered=True, obj_pairs_hooks=None):
+	def __init__(self, ordered=True, obj_pairs_hooks=None, allow_duplicates=True):
 		"""
 		:param ordered: True if maps should retain their ordering.
 		:param obj_pairs_hooks: An iterable of hooks to apply to elements.
@@ -58,8 +62,16 @@ class TricksPairHook:
 		self.obj_pairs_hooks = []
 		if obj_pairs_hooks:
 			self.obj_pairs_hooks = list(obj_pairs_hooks)
+		self.allow_duplicates = allow_duplicates
 
 	def __call__(self, pairs):
+		if not self.allow_duplicates:
+			found = set()
+			for key, value in pairs:
+				if key in found:
+					raise DuplicateJsonKeyException(('Trying to load a json map which contains a duplicate key "{0:}"' +
+						' (but allow_duplicates is False)').format(key))
+				found.add(key)
 		map = self.map_type(pairs)
 		for hook in self.obj_pairs_hooks:
 			map = hook(map)
@@ -77,7 +89,7 @@ def json_nonumpy_obj_hook(dct):
 	return dct
 
 
-class ClassInstanceHook:
+class ClassInstanceHook(object):
 	"""
 	This hook tries to convert json encoded by class_instance_encoder back to it's original instance.
 	It only works if the environment is the same, e.g. the class is similarly importable and hasn't changed.
@@ -129,9 +141,9 @@ class ClassInstanceEncoder(JSONEncoder):
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
 	imported in the same way.
 	"""
-	def __init__(self, *args, encode_cls_instances=True, **kwargs):
+	def __init__(self, obj, encode_cls_instances=True, **kwargs):
 		self.encode_cls_instances = encode_cls_instances
-		super(ClassInstanceEncoder, self).__init__(*args, **kwargs)
+		super(ClassInstanceEncoder, self).__init__(obj, **kwargs)
 
 	def default(self, obj, *args, **kwargs):
 		if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
@@ -208,7 +220,8 @@ def dump(obj, fp, encode_cls_instances=True, sort_keys=None, compression=None, c
 
 
 def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, obj_hook=None, **jsonkwargs):
+		obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, obj_hook=None, allow_duplicates=True,
+		**jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -219,6 +232,7 @@ def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comment
 	:param decompression: True if gzip decompression should be used, False otherwise.
 	:param obj_pairs_hooks: A list of dictionary hooks to apply.
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
+	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
@@ -237,13 +251,13 @@ def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comment
 		obj_pairs_hooks.append(ClassInstanceHook(cls_lookup_map=cls_lookup_map))
 	if obj_hook is not None:
 		obj_pairs_hooks.append(obj_hook)
-	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=obj_pairs_hooks)
+	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=obj_pairs_hooks, allow_duplicates=allow_duplicates)
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 	# return json_func(string, object_pairs_hook=hook, **jsonkwargs)
 
 
 def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		 obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, **jsonkwargs):
+		 obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -260,6 +274,6 @@ def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=Tru
 			'in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
 	return loads(string, decode_cls_instances=decode_cls_instances, preserve_order=preserve_order,
 		ignore_comments=ignore_comments, decompression=decompression, obj_pairs_hooks=obj_pairs_hooks,
-		cls_lookup_map=cls_lookup_map, **jsonkwargs)
+		cls_lookup_map=cls_lookup_map, allow_duplicates=allow_duplicates, **jsonkwargs)
 
 
