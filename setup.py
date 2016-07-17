@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""
-	Adapted from https://hynek.me/articles/sharing-your-labor-of-love-pypi-quick-and-dirty/
-"""
-
 from setuptools import setup
 
 
@@ -21,7 +17,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments',],
-	version='2.2',
+	version='3.0',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
@@ -43,7 +39,6 @@ setup(
 	],
 	install_requires=[
 		# pytz for timezones (and tests)
-		# dateutil for timezones (and tests)
 		# pytest for tests
 		# sphinx for dodumentation
 		# numpy for numpy functionality

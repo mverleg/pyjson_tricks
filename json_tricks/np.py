@@ -1,13 +1,22 @@
 
-from json_tricks.nonp import NoNumpyException, strip_comments, TricksPairHook, \
-	ClassInstanceHook, ClassInstanceEncoder, json_date_time_encoder, json_date_time_hook  # keep these 'unused' imports
-from json_tricks import nonp
+from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
+from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder  # keep 'unused' imports
+from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook  # keep 'unused' imports
+from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance
+from . import nonp
+
 
 try:
 	from numpy import ndarray, asarray
 except ImportError:
 	raise NoNumpyException('Could not load numpy, maybe it is not installed? If you do not want to use numpy encoding '
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
+
+
+def numpy_encode(obj):
+	if isinstance(obj, ndarray):
+		return dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
+	return obj
 
 
 class NumpyEncoder(ClassInstanceEncoder):
@@ -19,9 +28,7 @@ class NumpyEncoder(ClassInstanceEncoder):
 		If input object is a ndarray it will be converted into a dict holding
 		data type, shape and the data. The object can be restored using json_numpy_obj_hook.
 		"""
-		if isinstance(obj, ndarray):
-			return dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
-		obj = json_date_time_encoder(obj)
+		obj = numpy_encode(obj)
 		return super(NumpyEncoder, self).default(obj, *args, **kwargs)
 
 
@@ -38,43 +45,45 @@ def json_numpy_obj_hook(dct):
 	return dct
 
 
-def dumps(obj, sort_keys=None, cls=NumpyEncoder, **jsonkwargs):
-	"""
-	Like nonp.dumps, but uses NumpyEncoder as default, for handling of numpy arrays.
-
-	:param cls: The json encoder class to use, defaults to NumpyEncoder for handing numpy arrays.
-	"""
-	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, **jsonkwargs)
+DEFAULT_NP_ENCODERS = DEFAULT_ENCODERS + (numpy_encode,)
+DEFAULT_NP_HOOKS = (json_numpy_obj_hook, json_date_time_hook, _cih_instance,)
 
 
-def dump(obj, fp, sort_keys=None, compression=None, cls=NumpyEncoder, **jsonkwargs):
-	"""
-	Like nonp.dump, but uses NumpyEncoder as default, for handling of numpy arrays.
-
-	:param cls: The json encoder class to use, defaults to NumpyEncoder for handing numpy arrays.
-	"""
-	return nonp.dump(obj, fp, sort_keys=sort_keys, compression=compression, cls=cls, **jsonkwargs)
-
-
-def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_numpy_obj_hook, json_date_time_hook,), cls_lookup_map=None, allow_duplicates=True,
+def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
 		**jsonkwargs):
 	"""
-	Like nonp.loads, but obj_pairs_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
+	Just like `nonp.dumps` but with numpy functionality enabled.
 	"""
-	return nonp.loads(string, decode_cls_instances=decode_cls_instances, preserve_order=preserve_order,
-		decompression=decompression, obj_pairs_hooks=obj_pairs_hooks, ignore_comments=ignore_comments,
-		cls_lookup_map=None, allow_duplicates=allow_duplicates, **jsonkwargs)
+	return dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
+		**jsonkwargs)
 
 
-def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_numpy_obj_hook, json_date_time_hook,), cls_lookup_map=None,
-		allow_duplicates=True, **jsonkwargs):
+def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
+		compression=None, **jsonkwargs):
 	"""
-	Like nonp.load, but obj_pairs_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
+	Just like `nonp.dump` but with numpy functionality enabled.
 	"""
-	return nonp.load(fp, decode_cls_instances=decode_cls_instances, preserve_order=preserve_order,
-		ignore_comments=ignore_comments, decompression=decompression, obj_pairs_hooks=obj_pairs_hooks,
-		cls_lookup_map=cls_lookup_map, allow_duplicates=allow_duplicates, **jsonkwargs)
+	return nonp.dump(obj, fp, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
+		extra_obj_encoders=extra_obj_encoders, compression=compression, **jsonkwargs)
+
+
+def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_NP_HOOKS,
+		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+	"""
+	Just like `nonp.loads` but with numpy functionality enabled.
+	"""
+	return nonp.loads(string, preserve_order=preserve_order, ignore_comments=ignore_comments, decompression=decompression,
+		obj_pairs_hooks=obj_pairs_hooks, extra_obj_pairs_hooks=extra_obj_pairs_hooks, cls_lookup_map=cls_lookup_map,
+		allow_duplicates=allow_duplicates, **jsonkwargs)
+
+
+def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_NP_HOOKS,
+		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+	"""
+	Just like `nonp.load` but with numpy functionality enabled.
+	"""
+	return nonp.load(fp, preserve_order=preserve_order, ignore_comments=ignore_comments, decompression=decompression,
+		obj_pairs_hooks=obj_pairs_hooks, extra_obj_pairs_hooks=extra_obj_pairs_hooks, cls_lookup_map=cls_lookup_map,
+		allow_duplicates=allow_duplicates, **jsonkwargs)
 
 
