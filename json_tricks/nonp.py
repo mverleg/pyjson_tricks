@@ -1,4 +1,5 @@
 
+from datetime import datetime, date, time, timedelta
 from logging import warning
 from importlib import import_module
 from collections import OrderedDict
@@ -66,16 +67,78 @@ class TricksPairHook(object):
 
 	def __call__(self, pairs):
 		if not self.allow_duplicates:
-			found = set()
+			known = set()
 			for key, value in pairs:
-				if key in found:
+				if key in known:
 					raise DuplicateJsonKeyException(('Trying to load a json map which contains a duplicate key "{0:}"' +
 						' (but allow_duplicates is False)').format(key))
-				found.add(key)
+				known.add(key)
 		map = self.map_type(pairs)
 		for hook in self.obj_pairs_hooks:
 			map = hook(map)
 		return map
+
+
+def json_date_time_hook(dct):
+	"""
+	Return an encoded date, time, datetime or timedelta to it's python representation, including optional timezone.
+
+	:param dct: (dict) json encoded date, time, datetime or timedelta
+	:return: (date/time/datetime/timedelta obj) python representation of the above
+	"""
+	#todo: work without pytz if no timezones
+	if isinstance(dct, dict):
+		tzinfo = None
+		if '__date__' in dct:
+			return date(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0))
+		elif '__time__' in dct:
+			if 'tzinfo' in dct:
+				import pytz
+				tzinfo = pytz.timezone(dct['tzinfo'])
+			return time(hour=dct.get('hour', 0), minute=dct.get('minute', 0), second=dct.get('second', 0),
+				microsecond=dct.get('microsecond', 0), tzinfo=tzinfo)
+		elif '__datetime__' in dct:
+			if 'tzinfo' in dct:
+				import pytz
+				tzinfo = pytz.timezone(dct['tzinfo'])
+			return datetime(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0),
+				hour=dct.get('hour', 0), minute=dct.get('minute', 0), second=dct.get('second', 0),
+				microsecond=dct.get('microsecond', 0), tzinfo=tzinfo)
+		elif '__timedelta__' in dct:
+			return timedelta(days=dct.get('days', 0), seconds=dct.get('seconds', 0),
+				microseconds=dct.get('microseconds', 0))
+	return dct
+
+
+def json_date_time_encoder(obj):
+	"""
+	Encode a date, time, datetime or timedelta to a string of a json dictionary, including optional timezone.
+
+	:param obj: date/time/datetime/timedelta obj
+	:return: (dict) json primitives representation of date, time, datetime or timedelta
+	"""
+	if isinstance(obj, datetime):
+		dct = OrderedDict([('__datetime__', None), ('year', obj.year), ('month', obj.month),
+			('day', obj.day), ('hour', obj.hour), ('minute', obj.minute),
+			('second', obj.second), ('microsecond', obj.microsecond)])
+		if obj.tzinfo:
+			dct['tzinfo'] = obj.tzinfo.zone
+	elif isinstance(obj, date):
+		dct = OrderedDict([('__date__', None), ('year', obj.year), ('month', obj.month), ('day', obj.day)])
+	elif isinstance(obj, time):
+		dct = OrderedDict([('__time__', None), ('hour', obj.hour), ('minute', obj.minute),
+			('second', obj.second), ('microsecond', obj.microsecond)])
+		if obj.tzinfo:
+			dct['tzinfo'] = obj.tzinfo.zone
+	elif isinstance(obj, timedelta):
+		dct = OrderedDict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
+			('microseconds', obj.microseconds)])
+	else:
+		return obj
+	for key, val in tuple(dct.items()):
+		if val == 0:
+			del dct[key]
+	return dct
 
 
 def json_nonumpy_obj_hook(dct):
@@ -141,11 +204,14 @@ class ClassInstanceEncoder(JSONEncoder):
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
 	imported in the same way.
 	"""
-	def __init__(self, obj, encode_cls_instances=True, **kwargs):
+	def __init__(self, obj, encode_cls_instances=True, encode_date_time=True, **kwargs):
 		self.encode_cls_instances = encode_cls_instances
+		self.encode_date_time = encode_date_time
 		super(ClassInstanceEncoder, self).__init__(obj, **kwargs)
 
 	def default(self, obj, *args, **kwargs):
+		if isinstance(obj, list) or isinstance(obj, dict):
+			return obj
 		if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
 			mod = obj.__class__.__module__
 			if mod == '__main__':
@@ -171,6 +237,9 @@ class NoNumpyEncoder(ClassInstanceEncoder):
 			raise NoNumpyException(('Trying to encode {0:} which appears to be a numpy array ({1:}), but numpy ' +
 				'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
 				.format(obj, type(obj)))
+		print('before:', obj, type(obj))
+		obj = json_date_time_encoder(obj)
+		print('after:', obj, type(obj))
 		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)
 
 
@@ -220,7 +289,7 @@ def dump(obj, fp, encode_cls_instances=True, sort_keys=None, compression=None, c
 
 
 def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, obj_hook=None, allow_duplicates=True,
+		obj_pairs_hooks=(json_nonumpy_obj_hook, json_date_time_hook,), cls_lookup_map=None, obj_hook=None, allow_duplicates=True,
 		**jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
@@ -257,7 +326,8 @@ def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comment
 
 
 def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		 obj_pairs_hooks=(json_nonumpy_obj_hook,), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+		 obj_pairs_hooks=(json_nonumpy_obj_hook, json_date_time_hook,), cls_lookup_map=None,
+		 allow_duplicates=True, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 

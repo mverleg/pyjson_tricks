@@ -5,6 +5,7 @@ Since the backward-incompatible 2.0 series, the `pyjson-tricks` package brings f
 
 1. **Store and load numpy arrays** in human-readable format.
 2. **Store and load class instances**, both generic and customized.
+3. **Store and load date/times** as a dictionary (including timezone).
 3. **Preserve map order** `{}` using `OrderedDict`.
 4. **Allow for comments** in json files by starting lines with `#`.
 
@@ -13,6 +14,8 @@ As well as compression and disallowing duplicate keys.
 * Code: https://github.com/mverleg/pyjson_tricks
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
 * PIP: https://pypi.python.org/pypi/json_tricks
+
+Several keys of the format `__keyname__` have special meanings, and more might be added in future releases.
 
 Installation and use
 ---------------------------------------
@@ -132,6 +135,21 @@ If the instance doesn't serialize automatically, or if you want custom behaviour
 			self.irrelevant = 12
 
 As you've seen, this uses the magic key `__instance_type__`. Don't use `__instance_type__` as a dictionary key unless you know what you're doing.
+
+Date, time, datetime and timedelta
++++++++++++++++++++++++++++++++++++++++
+
+Date, time, datetime and timedelta objects are stored as dictionaries of "day", "hour", "millisecond" etc keys, for each nonzero property. Timezone name is also stored in case it's set.
+
+.. code-block:: javascript
+
+	#TODO
+
+This approach was chosen over timestamps for readability and consistency between date/time, and over a single string to prevent parsing problems and dependencies.
+
+To use timezones, `pytz` should be installed. If you try to decode a timezone-aware time or datetime without pytz, you will get an error.
+
+Don't use `__date__`, `__time__`, `__datetime__`, `__timedelta__` or `__tzinfo__` as dictionary keys unless you know what you're doing, as they have special meaning.
 
 Order
 +++++++++++++++++++++++++++++++++++++++

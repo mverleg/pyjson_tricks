@@ -1,6 +1,8 @@
 
-from collections import OrderedDict
+import pytz
 from pytest import raises
+from collections import OrderedDict
+from datetime import datetime, date, time, timedelta
 from json_tricks.test_class import MyTestCls, CustomEncodeCls
 from json_tricks.nonp import strip_comments, dumps, loads, DuplicateJsonKeyException
 
@@ -96,5 +98,23 @@ def test_duplicates():
 	loads(test_json_duplicates, allow_duplicates=True)
 	with raises(DuplicateJsonKeyException):
 		loads(test_json_duplicates, allow_duplicates=False)
+
+
+def test_date_time():
+	objs = (
+		datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7),
+		datetime(year=1988, month=3, day=15, minute=3, second=59, microsecond=7, tzinfo=pytz.UTC),
+		datetime(year=1988, month=3, day=15, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam')),
+		date(year=1988, month=3, day=15),
+		time(hour=8, minute=3, second=59, microsecond=123),
+		time(hour=8, second=59, microsecond=123, tzinfo=pytz.timezone('Europe/Amsterdam')),
+		timedelta(days=2, seconds=3599),
+		timedelta(days=0, seconds=-42, microseconds=123),
+		[{'obj': [datetime(year=1988, month=3, day=15, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))]}],
+	)
+	for obj in objs:
+		json = dumps(obj)
+		back = loads(json)
+		assert obj == back, 'json en/decoding failed for date/time object {0:}'.format(obj)
 
 

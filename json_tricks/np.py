@@ -1,6 +1,6 @@
 
 from json_tricks.nonp import NoNumpyException, strip_comments, TricksPairHook, \
-	ClassInstanceHook, ClassInstanceEncoder  # keep these 'unused' imports
+	ClassInstanceHook, ClassInstanceEncoder, json_date_time_encoder, json_date_time_hook  # keep these 'unused' imports
 from json_tricks import nonp
 
 try:
@@ -21,6 +21,7 @@ class NumpyEncoder(ClassInstanceEncoder):
 		"""
 		if isinstance(obj, ndarray):
 			return dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
+		obj = json_date_time_encoder(obj)
 		return super(NumpyEncoder, self).default(obj, *args, **kwargs)
 
 
@@ -56,7 +57,8 @@ def dump(obj, fp, sort_keys=None, compression=None, cls=NumpyEncoder, **jsonkwar
 
 
 def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_numpy_obj_hook,), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+		obj_pairs_hooks=(json_numpy_obj_hook, json_date_time_hook,), cls_lookup_map=None, allow_duplicates=True,
+		**jsonkwargs):
 	"""
 	Like nonp.loads, but obj_pairs_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
 	"""
@@ -66,7 +68,8 @@ def loads(string, decode_cls_instances=True, preserve_order=True, ignore_comment
 
 
 def load(fp, decode_cls_instances=True, preserve_order=True, ignore_comments=True, decompression=None,
-		obj_pairs_hooks=(json_numpy_obj_hook,), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+		obj_pairs_hooks=(json_numpy_obj_hook, json_date_time_hook,), cls_lookup_map=None,
+		allow_duplicates=True, **jsonkwargs):
 	"""
 	Like nonp.load, but obj_pairs_hooks include json_numpy_obj_hook by default, for handling of numpy arrays.
 	"""
