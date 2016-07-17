@@ -86,21 +86,26 @@ def json_date_time_hook(dct):
 	:param dct: (dict) json encoded date, time, datetime or timedelta
 	:return: (date/time/datetime/timedelta obj) python representation of the above
 	"""
-	#todo: work without pytz if no timezones
+	def get_tz(dct):
+		if not 'tzinfo' in dct:
+			return None
+		try:
+			import pytz
+		except ImportError as err:
+			raise ImportError(('Tried to load a json object which has a timezone-aware (date)time. '
+				'However, `pytz` could not be imported, so the object could not be loaded. '
+				'Error: {0:}').format(str(err)))
+		return pytz.timezone(dct['tzinfo'])
+
 	if isinstance(dct, dict):
-		tzinfo = None
 		if '__date__' in dct:
 			return date(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0))
 		elif '__time__' in dct:
-			if 'tzinfo' in dct:
-				import pytz
-				tzinfo = pytz.timezone(dct['tzinfo'])
+			tzinfo = get_tz(dct)
 			return time(hour=dct.get('hour', 0), minute=dct.get('minute', 0), second=dct.get('second', 0),
 				microsecond=dct.get('microsecond', 0), tzinfo=tzinfo)
 		elif '__datetime__' in dct:
-			if 'tzinfo' in dct:
-				import pytz
-				tzinfo = pytz.timezone(dct['tzinfo'])
+			tzinfo = get_tz(dct)
 			return datetime(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0),
 				hour=dct.get('hour', 0), minute=dct.get('minute', 0), second=dct.get('second', 0),
 				microsecond=dct.get('microsecond', 0), tzinfo=tzinfo)
@@ -136,7 +141,7 @@ def json_date_time_encoder(obj):
 	else:
 		return obj
 	for key, val in tuple(dct.items()):
-		if val == 0:
+		if not key.startswith('__') and not val:
 			del dct[key]
 	return dct
 

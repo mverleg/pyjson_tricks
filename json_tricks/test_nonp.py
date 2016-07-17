@@ -116,5 +116,9 @@ def test_date_time():
 		json = dumps(obj)
 		back = loads(json)
 		assert obj == back, 'json en/decoding failed for date/time object {0:}'.format(obj)
+	txt = '{"__datetime__": null, "year": 1988, "month": 3, "day": 15, "hour": 8, "minute": 3, ' \
+		'"second": 59, "microsecond": 7, "tzinfo": "Europe/Amsterdam"}'
+	obj = loads(txt)
+	assert obj == datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
 
 

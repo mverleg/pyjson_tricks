@@ -139,13 +139,23 @@ As you've seen, this uses the magic key `__instance_type__`. Don't use `__instan
 Date, time, datetime and timedelta
 +++++++++++++++++++++++++++++++++++++++
 
-Date, time, datetime and timedelta objects are stored as dictionaries of "day", "hour", "millisecond" etc keys, for each nonzero property. Timezone name is also stored in case it's set.
+Date, time, datetime and timedelta objects are stored as dictionaries of "day", "hour", "millisecond" etc keys, for each nonzero property. Timezone name is also stored in case it is set.
 
 .. code-block:: javascript
 
-	#TODO
+	{
+		"__datetime__": null,
+		"year": 1988,
+		"month": 3,
+		"day": 15,
+		"hour": 8,
+		"minute": 3,
+		"second": 59,
+		"microsecond": 7,
+		"tzinfo": "Europe/Amsterdam"
+	}
 
-This approach was chosen over timestamps for readability and consistency between date/time, and over a single string to prevent parsing problems and dependencies.
+This approach was chosen over timestamps for readability and consistency between date and time, and over a single string to prevent parsing problems and reduce dependencies.
 
 To use timezones, `pytz` should be installed. If you try to decode a timezone-aware time or datetime without pytz, you will get an error.
 
