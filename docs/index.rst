@@ -41,26 +41,31 @@ load
 Utilities
 ---------------------------------------
 
-strip_comments
+strip comments
 +++++++++++++++++++++++++++++++++++++++
 
-.. autofunction:: json_tricks.nonp.strip_comments
+.. autofunction:: json_tricks.comment.strip_comments
 
-NumpyEncoder
+numpy
 +++++++++++++++++++++++++++++++++++++++
 
-.. autoclass:: json_tricks.np.NumpyEncoder
-
-json_numpy_obj_hook
-+++++++++++++++++++++++++++++++++++++++
+.. autofunction:: json_tricks.np.numpy_encode
 
 .. autofunction:: json_tricks.np.json_numpy_obj_hook
 
-TricksPairHook
+class instances
 +++++++++++++++++++++++++++++++++++++++
 
-.. autoclass:: json_tricks.nonp.TricksPairHook
+.. autofunction:: json_tricks.encoders.class_instance_encode
 
+.. autoclass:: json_tricks.decoders.ClassInstanceHook
+
+date/time
++++++++++++++++++++++++++++++++++++++++
+
+.. autofunction:: json_tricks.encoders.json_date_time_encode
+
+.. autofunction:: json_tricks.decoders.json_date_time_hook
 
 Table of content
 ---------------------------------------

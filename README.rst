@@ -4,10 +4,10 @@ JSON tricks (python)
 Since the backward-incompatible 2.0 series, the `pyjson-tricks` package brings four pieces of functionality to python handling of json files:
 
 1. **Store and load numpy arrays** in human-readable format.
-2. **Store and load class instances**, both generic and customized.
+2. **Store and load class instances** both generic and customized.
 3. **Store and load date/times** as a dictionary (including timezone).
-3. **Preserve map order** `{}` using `OrderedDict`.
-4. **Allow for comments** in json files by starting lines with `#`.
+4. **Preserve map order** `{}` using `OrderedDict`.
+5. **Allow for comments** in json files by starting lines with `#`.
 
 As well as compression and disallowing duplicate keys.
 
@@ -232,6 +232,6 @@ Contributions are welcome! Please test that the ``py.test`` tests still pass whe
 .. _package: https://pypi.python.org/pypi/commentjson/
 .. _pull: https://github.com/vaidik/commentjson/pull/11
 .. _performance: http://stackoverflow.com/a/8177061/723090
-.. _`_kind of allowed:` http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object
+.. _`kind of allowed`: http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object
 
 

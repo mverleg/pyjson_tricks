@@ -16,17 +16,6 @@ class NoNumpyException(Exception):
 		""" Trying to use numpy features, but numpy cannot be found. """
 
 
-def json_nonumpy_obj_hook(dct):
-	"""
-	This hook has no effect except to check if you're trying to decode numpy arrays without support, and give you a useful message.
-	"""
-	if isinstance(dct, dict) and '__ndarray__' in dct:
-		raise NoNumpyException(('Trying to decode dictionary ({0:}) which appears to be a numpy array, but numpy ' +
-			'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
-			.format(', '.join(dct.keys()[:10])))
-	return dct
-
-
 def nonumpy_encode(obj):
 	"""
 	Emits a warning for numpy arrays, no other effect.
@@ -45,6 +34,17 @@ class NoNumpyEncoder(JSONEncoder):
 	def default(self, obj, *args, **kwargs):
 		obj = nonumpy_encode(obj)
 		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)
+
+
+def json_nonumpy_obj_hook(dct):
+	"""
+	This hook has no effect except to check if you're trying to decode numpy arrays without support, and give you a useful message.
+	"""
+	if isinstance(dct, dict) and '__ndarray__' in dct:
+		raise NoNumpyException(('Trying to decode dictionary ({0:}) which appears to be a numpy array, but numpy ' +
+			'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
+			.format(', '.join(dct.keys()[:10])))
+	return dct
 
 
 _cih_instance = ClassInstanceHook()
