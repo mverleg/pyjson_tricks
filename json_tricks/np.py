@@ -5,7 +5,6 @@ from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_
 from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance
 from . import nonp
 
-
 try:
 	from numpy import ndarray, asarray
 except ImportError:
@@ -54,7 +53,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODE
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
 	"""
-	return dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
+	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
 		**jsonkwargs)
 
 
