@@ -1,7 +1,7 @@
 
-from json_tricks.nonp import NoNumpyException, strip_comments, TricksPairHook, \
+from .nonp import NoNumpyException, strip_comments, TricksPairHook, \
 	ClassInstanceHook, ClassInstanceEncoder, json_date_time_encoder, json_date_time_hook  # keep these 'unused' imports
-from json_tricks import nonp
+from . import nonp
 
 try:
 	from numpy import ndarray, asarray

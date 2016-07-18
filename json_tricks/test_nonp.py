@@ -3,8 +3,8 @@ import pytz
 from pytest import raises
 from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
-from json_tricks.test_class import MyTestCls, CustomEncodeCls
-from json_tricks.nonp import strip_comments, dumps, loads, DuplicateJsonKeyException
+from .test_class import MyTestCls, CustomEncodeCls
+from .nonp import strip_comments, dumps, loads, DuplicateJsonKeyException
 
 nonpdata = {
 	'my_array': list(range(20)),

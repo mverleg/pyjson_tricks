@@ -2,9 +2,9 @@
 from tempfile import mkdtemp
 from numpy import arange, ones, uint8, float64, array
 from os.path import join
-from json_tricks.np import dump, dumps, load, loads
-from json_tricks.test_class import MyTestCls
-from json_tricks.test_nonp import cls_instance
+from .np import dump, dumps, load, loads
+from .test_class import MyTestCls
+from .test_nonp import cls_instance
 
 
 npdata = {
