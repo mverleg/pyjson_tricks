@@ -14,7 +14,10 @@ except ImportError:
 
 def numpy_encode(obj):
 	if isinstance(obj, ndarray):
-		return dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
+		dct = dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
+		if len(obj.shape) > 1:
+			dct['Corder'] = obj.flags['C_CONTIGUOUS']
+		return dct
 	return obj
 
 
@@ -40,7 +43,10 @@ def json_numpy_obj_hook(dct):
 	:return: (ndarray) if input was an encoded ndarray
 	"""
 	if isinstance(dct, dict) and '__ndarray__' in dct:
-		return asarray(dct['__ndarray__'], dtype=dct['dtype'])
+		order = 'A'
+		if 'Corder' in dct:
+			order = 'C' if dct['Corder'] else 'F'
+		return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
 	return dct
 
 

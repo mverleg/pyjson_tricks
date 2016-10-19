@@ -1,6 +1,6 @@
 
 from tempfile import mkdtemp
-from numpy import arange, ones, uint8, float64, array
+from numpy import arange, ones, uint8, float64, array, array_equal
 from os.path import join
 from .np import dump, dumps, load, loads
 from .test_class import MyTestCls
@@ -58,5 +58,20 @@ def test_mixed_cls_arr():
 	assert (mixed_data['inst'].li == back['inst'].li)
 	assert (mixed_data['inst'].inst.s == back['inst'].inst.s)
 	assert (mixed_data['inst'].inst.dct == dict(back['inst'].inst.dct))
+
+
+def test_memory_order():
+	arrC = array([[1., 2.], [3., 4.]], order='C')
+	json = dumps(arrC)
+	arr = loads(json)
+	assert array_equal(arrC, arr)
+	assert arrC.flags['C_CONTIGUOUS'] == arr.flags['C_CONTIGUOUS'] and \
+		arrC.flags['F_CONTIGUOUS'] == arr.flags['F_CONTIGUOUS']
+	arrF = array([[1., 2.], [3., 4.]], order='F')
+	json = dumps(arrF)
+	arr = loads(json)
+	assert array_equal(arrF, arr)
+	assert arrF.flags['C_CONTIGUOUS'] == arr.flags['C_CONTIGUOUS'] and \
+		arrF.flags['F_CONTIGUOUS'] == arr.flags['F_CONTIGUOUS']
 
 
