@@ -35,6 +35,7 @@ class TricksEncoder(JSONEncoder):
 		It never calls the `super` method so if there are non-primitive types
 		left at the end, you'll get an encoding error.
 		"""
+		prev_id = id(obj)
 		for encoder in self.obj_encoders:
 			if hasattr(encoder, 'default'):
 				# hope no TypeError is thrown
@@ -47,6 +48,9 @@ class TricksEncoder(JSONEncoder):
 				obj = encoder(obj)
 			else:
 				raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(encoder))
+		if id(obj) == prev_id:
+			raise TypeError('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]'.format(
+				type(obj), self.__class__.__name__, ', '.join(str(encoder) for encoder in self.obj_encoders)))
 		return obj
 
 
