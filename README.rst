@@ -1,13 +1,15 @@
 JSON tricks (python)
 ---------------------------------------
 
-Since the backward-incompatible 2.0 series, the `pyjson-tricks` package brings four pieces of functionality to python handling of json files:
+The `pyjson-tricks` package brings four pieces of functionality to python handling of json files:
 
 1. **Store and load numpy arrays** in human-readable format.
 2. **Store and load class instances** both generic and customized.
 3. **Store and load date/times** as a dictionary (including timezone).
 4. **Preserve map order** `{}` using `OrderedDict`.
 5. **Allow for comments** in json files by starting lines with `#`.
+
+The 2.0 series added some of the above features and broke backward compatibility. The version 3.0 series is a more readable rewrite that also makes it easier to combine encoders, again not fully backward compatible.
 
 As well as compression and disallowing duplicate keys.
 
@@ -67,11 +69,12 @@ after indering this yields:
 		"mydata": {
 			"dtype": "uint8",
 			"shape": [2, 5],
+			"Corder": true,
 			"__ndarray__": [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9]]
 		}
 	}
 
-which will be converted back to a numpy array when using `json_tricks.loads`.
+which will be converted back to a numpy array when using `json_tricks.loads`. Note that the memory order (`Corder`) is only stored in v3.1 and later and for arrays with at least 2 dimensions.
 
 As you've seen, this uses the magic key `__ndarray__`. Don't use `__ndarray__` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
 
@@ -210,9 +213,7 @@ And it would return the de-commented version:
 
 Since comments aren't stored in the Python representation of the data, loading and then saving a json file will remove the comments (it also likely changes the indentation).
 
-There is already a `commentjson` package_ for Python. However, as of November 2015, it doesn't support Python 3.x, and a pull_ request to add support has been left pending for five months.
-
-The implementation of comments is not particularly efficient, but it does handle all the special cases I tested. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`ignore_comments=False`).
+The implementation of comments is not particularly efficient, but it does handle all the special cases I could think of. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`ignore_comments=False`).
 
 Other features
 +++++++++++++++++++++++++++++++++++++++
@@ -229,8 +230,6 @@ Contributions are welcome! Please test that the ``py.test`` tests still pass whe
 
 .. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array
-.. _package: https://pypi.python.org/pypi/commentjson/
-.. _pull: https://github.com/vaidik/commentjson/pull/11
 .. _performance: http://stackoverflow.com/a/8177061/723090
 .. _`kind of allowed`: http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object
 
