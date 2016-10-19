@@ -124,6 +124,22 @@ def test_date_time():
 	assert obj == datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
 
 
+def test_complex_number():
+	objs = (
+		4.2 + 3.7j,
+		1j,
+		1 + 0j,
+		-999999.9999999 - 999999.9999999j,
+	)
+	for obj in objs:
+		json = dumps(obj)
+		back = loads(json)
+		assert obj == back, 'json en/decoding failed for complex number {0:}'.format(obj)
+	txt = '{"__complex__": [4.2, 3.7]}'
+	obj = loads(txt)
+	assert obj == 4.2 + 3.7j
+
+
 def test_float_precision():
 	json = dumps([pi])
 	back = loads(json)

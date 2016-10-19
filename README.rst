@@ -8,14 +8,15 @@ The `pyjson-tricks` package brings four pieces of functionality to python handli
 3. **Store and load date/times** as a dictionary (including timezone).
 4. **Preserve map order** `{}` using `OrderedDict`.
 5. **Allow for comments** in json files by starting lines with `#`.
-
-The 2.0 series added some of the above features and broke backward compatibility. The version 3.0 series is a more readable rewrite that also makes it easier to combine encoders, again not fully backward compatible.
+6. Complex numbers, compression, duplicate keys,
 
 As well as compression and disallowing duplicate keys.
 
 * Code: https://github.com/mverleg/pyjson_tricks
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
 * PIP: https://pypi.python.org/pypi/json_tricks
+
+The 2.0 series added some of the above features and broke backward compatibility. The version 3.0 series is a more readable rewrite that also makes it easier to combine encoders, again not fully backward compatible.
 
 Several keys of the format `__keyname__` have special meanings, and more might be added in future releases.
 
@@ -218,6 +219,7 @@ The implementation of comments is not particularly efficient, but it does handle
 Other features
 +++++++++++++++++++++++++++++++++++++++
 
+* Save and load complex numbers (version 3.2).
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
 * ``json_tricks`` can check for duplicate keys in maps by setting ``allow_duplicates`` to False. These are `kind of allowed`_, but are handled inconsistently between json implementations. In Python, for ``dict`` and ``OrderedDict``, duplicate keys are silently overwritten.
 

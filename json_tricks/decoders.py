@@ -77,6 +77,21 @@ def json_date_time_hook(dct):
 	return dct
 
 
+def json_complex_hook(dct):
+	"""
+	Return an encoded complex number to it's python representation.
+
+	:param dct: (dict) json encoded complex number (__complex__)
+	:return: python complex number
+	"""
+	if isinstance(dct, dict):
+		if '__complex__' in dct:
+			parts = dct['__complex__']
+			assert len(parts) == 2
+			return parts[0] + parts[1] * 1j
+	return dct
+
+
 class ClassInstanceHook(object):
 	"""
 	This hook tries to convert json encoded by class_instance_encoder back to it's original instance.

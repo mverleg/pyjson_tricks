@@ -108,6 +108,18 @@ def class_instance_encode(obj):
 	return obj
 
 
+def json_complex_encode(obj):
+	"""
+	Encode a complex number as a json dictionary of it's real and imaginary part.
+
+	:param obj: complex number, e.g. `2+1j`
+	:return: (dict) json primitives representation of `obj`
+	"""
+	if isinstance(obj, complex):
+		return {'__complex__': [obj.real, obj.imag]}
+	return obj
+
+
 class ClassInstanceEncoder(JSONEncoder):
 	"""
 	See `class_instance_encoder`.
