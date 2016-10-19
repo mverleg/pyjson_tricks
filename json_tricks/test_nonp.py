@@ -5,6 +5,8 @@ from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from .test_class import MyTestCls, CustomEncodeCls
 from .nonp import strip_comments, dumps, loads, DuplicateJsonKeyException
+from math import pi
+
 
 nonpdata = {
 	'my_array': list(range(20)),
@@ -120,5 +122,11 @@ def test_date_time():
 		'"second": 59, "microsecond": 7, "tzinfo": "Europe/Amsterdam"}'
 	obj = loads(txt)
 	assert obj == datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
+
+
+def test_float_precision():
+	json = dumps([pi])
+	back = loads(json)
+	assert back[0] - pi == 0, 'Precision lost while encoding and decoding float.'
 
 

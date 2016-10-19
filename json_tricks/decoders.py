@@ -32,8 +32,8 @@ class TricksPairHook(object):
 			known = set()
 			for key, value in pairs:
 				if key in known:
-					raise DuplicateJsonKeyException(('Trying to load a json map which contains a duplicate key "{0:}"' +
-						' (but allow_duplicates is False)').format(key))
+					raise DuplicateJsonKeyException(('Trying to load a json map which contains a' +
+						' duplicate key "{0:}" (but allow_duplicates is False)').format(key))
 				known.add(key)
 		map = self.map_type(pairs)
 		for hook in self.obj_pairs_hooks:

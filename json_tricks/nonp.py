@@ -131,9 +131,9 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 				string = string.decode('UTF-8')
 	if ignore_comments:
 		string = strip_comments(string)
-	obj_pairs_hooks = list(obj_pairs_hooks)
+	obj_pairs_hooks = tuple(obj_pairs_hooks)
 	_cih_instance.cls_lookup_map = cls_lookup_map or {}
-	hooks = tuple(obj_pairs_hooks) + tuple(extra_obj_pairs_hooks)
+	hooks = obj_pairs_hooks + tuple(extra_obj_pairs_hooks)
 	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=hooks, allow_duplicates=allow_duplicates)
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 
