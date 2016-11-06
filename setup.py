@@ -38,6 +38,7 @@ setup(
 		'Topic :: Software Development :: Libraries :: Python Modules',
 	],
 	install_requires=[
+		
 		# pytz for timezones (and tests)
 		# pytest for tests
 		# sphinx for dodumentation

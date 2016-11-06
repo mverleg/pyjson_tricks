@@ -23,6 +23,15 @@ def test_dumps_loads():
 	assert nonpdata == data2
 
 
+def test_file_nonumpy():
+	path = join(mkdtemp(), 'pytest-nonp.json')
+	with open(path, 'wb+') as fh:
+		dump(nonpdata, fh, compression=6)
+	with open(path, 'rb') as fh:
+		data2 = load(fh, decompression=True)
+	assert data2 == nonpdata
+
+
 test_json_with_comments = """{ # "comment 1
 	"hello": "Wor#d", "Bye": "\\"M#rk\\"", "yes\\\\\\"": 5,# comment" 2
 	"quote": "\\"th#t's\\" what she said", # comment "3"

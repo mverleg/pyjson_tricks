@@ -28,8 +28,8 @@ def test_dumps_loads_numpy():
 	_numpy_equality(data2)
 
 
-def test_dump_load_numpy():
-	path = join(mkdtemp(), 'pytest.json')
+def test_file_numpy():
+	path = join(mkdtemp(), 'pytest-np.json')
 	with open(path, 'wb+') as fh:
 		dump(npdata, fh, compression=9)
 	with open(path, 'rb') as fh:

@@ -219,7 +219,7 @@ The implementation of comments is not particularly efficient, but it does handle
 Other features
 +++++++++++++++++++++++++++++++++++++++
 
-* Save and load complex numbers (version 3.2).
+* Save and load complex numbers (version 3.2) with `1+2j` serializing as `{'__complex__': [1, 2]}`.
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
 * ``json_tricks`` can check for duplicate keys in maps by setting ``allow_duplicates`` to False. These are `kind of allowed`_, but are handled inconsistently between json implementations. In Python, for ``dict`` and ``OrderedDict``, duplicate keys are silently overwritten.
 
