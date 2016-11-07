@@ -1,4 +1,6 @@
-
+from gzip import GzipFile
+from io import BytesIO
+from io import StringIO
 from os.path import join
 from tempfile import mkdtemp
 import pytz
@@ -6,7 +8,7 @@ from pytest import raises
 from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from .test_class import MyTestCls, CustomEncodeCls
-from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException
+from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3
 from math import pi
 
 
@@ -32,6 +34,9 @@ def test_file_handle_nonumpy():
 	with open(path, 'rb') as fh:
 		data2 = load(fh, decompression=True)
 	assert data2 == nonpdata
+	with open(path, 'rb') as fh:
+		data3 = load(fh, decompression=None)  # test autodetect gzip
+	assert data3 == nonpdata
 
 
 def test_file_path_nonumpy():
@@ -39,6 +44,8 @@ def test_file_path_nonumpy():
 	dump(nonpdata, path, compression=6)
 	data2 = load(path, decompression=True)
 	assert data2 == nonpdata
+	data3 = load(path, decompression=None)  # autodetect gzip
+	assert data3 == nonpdata
 
 
 test_json_with_comments = """{ # "comment 1
@@ -77,6 +84,25 @@ ordered_map = OrderedDict((
 	('eagle', None),
 	('tortoise', None),
 ))
+
+
+def SKIP_test_string_compression():  #todo: later
+	json = dumps(ordered_map, compression=3)
+	data2 = loads(json, decompression=True)
+	assert json == data2
+	data3 = loads(json, decompression=None)
+	assert json == data3
+
+
+def SKIP_test_compression_with_comments():  #todo: later
+	sh = BytesIO()
+	with GzipFile(mode='wb', fileobj=sh, compresslevel=9) as zh:
+		zh.write(test_json_with_comments)
+	json = sh.getvalue()
+	data2 = loads(json, decompression=False)
+	assert json == data2
+	data3 = loads(json, decompression=None)
+	assert json == data3
 
 
 def test_order():

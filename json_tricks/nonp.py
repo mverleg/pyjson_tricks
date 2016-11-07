@@ -11,8 +11,9 @@ from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_
 from json import JSONEncoder
 
 
-py3 = (version[:2] == '3.')
-str_type = str if py3 else basestring
+is_py3 = (version[:2] == '3.')
+str_type = str if is_py3 else basestring
+ENCODING = 'UTF-8'
 
 
 class NoNumpyException(Exception):
@@ -57,7 +58,7 @@ DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook, json_date_time_hook, _cih_instance,
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-		**jsonkwargs):
+		compression=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -73,7 +74,22 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	Use `json_tricks.np.dumps` instead if you want encoding of numpy arrays.
 	"""
 	encoders = tuple(obj_encoders) + tuple(extra_obj_encoders)
-	return cls(sort_keys=sort_keys, obj_encoders=encoders, **jsonkwargs).encode(obj)
+	string = cls(sort_keys=sort_keys, obj_encoders=encoders, **jsonkwargs).encode(obj)
+	if not compression:
+		return string
+	if compression is True:
+		compression = 5
+	if is_py3:
+		string = bytes(string, encoding=ENCODING)
+	sh = BytesIO()
+	with GzipFile(mode='wb', fileobj=sh, compresslevel=compression) as zh:
+		zh.write(string)
+	gzstring = sh.getvalue()
+	# if is_py3:
+	# 	gzstring = gzstring.decode(ENCODING)
+	# print(type(gzstring))
+	# raise AssertionError
+	return gzstring
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
@@ -89,26 +105,32 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	Use `json_tricks.np.dump` instead if you want encoding of numpy arrays.
 	"""
 	string = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-		**jsonkwargs)
+		compression=compression, **jsonkwargs)
 	if isinstance(fp, str_type):
 		fh = open(fp, 'wb+')
 	else:
 		fh = fp
 	try:
-		if compression:
-			if compression is True:
-				compression = 5
-			try:
-				with GzipFile(fileobj=fh, mode='wb+', compresslevel=int(compression)) as zh:
-					if py3:
-						string = bytes(string, 'UTF-8')
-					zh.write(string)
-			except TypeError as err:
-				err.args = (err.args[0] + '. A posible reason is that the file is not opened in binary mode; '
-					'be sure to set file mode to something like "wb".',)
-				raise
-		else:
+		try:
 			fh.write(string)
+		except TypeError as err:
+			err.args = (err.args[0] + '. A possible reason is that the file is not opened in binary mode; '
+				'be sure to set file mode to something like "wb".',)
+			raise
+		# if compression:
+		# 	if compression is True:
+		# 		compression = 5
+		# 	try:
+		# 		with GzipFile(fileobj=fh, mode='wb+', compresslevel=int(compression)) as zh:
+		# 			if is_py3:
+		# 				string = bytes(string, 'UTF-8')
+		# 			zh.write(string)
+		# 	except TypeError as err:
+		# 		err.args = (err.args[0] + '. A possible reason is that the file is not opened in binary mode; '
+		# 			'be sure to set file mode to something like "wb".',)
+		# 		raise
+		# else:
+		# 	fh.write(string)
 	finally:
 		if isinstance(fp, str_type):
 			fh.close()
@@ -124,7 +146,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param decode_cls_instances: True to attempt to decode class instances (requires the environment to be similar the the encoding one).
 	:param preserve_order: Whether to preserve order by using OrderedDicts or not.
 	:param ignore_comments: Remove comments (starting with # or //).
-	:param decompression: True if gzip decompression should be used, False otherwise.
+	:param decompression: True to use gzip decompression, False to use raw data, None to automatically determine (default).
 	:param obj_pairs_hooks: A list of dictionary hooks to apply.
 	:param extra_obj_pairs_hooks: Like `obj_pairs_hooks` but on top of them: use this to add hooks without replacing defaults.
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
@@ -135,11 +157,42 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 
 	Use json_tricks.np.loads instead if you want decoding of numpy arrays.
 	"""
+	# print('dec1', type(string), decompression)  #todo
+	# if is_py3 and isinstance(string, str_type):
+	# 	print('gogo')
+	# 	string = bytes(string, encoding=ENCODING)
+	if decompression is None:
+		decompression = string[:2] == b'\x1f\x8b'
+		# print('dec2', type(string), decompression, string[:2] == b'\x1f\x8b', (string[0] == b'\x1f'), (string[1] == b'\x8b'))  #todo
 	if decompression:
 		with GzipFile(fileobj=BytesIO(string), mode='rb') as zh:
 			string = zh.read()
-			if py3:
-				string = string.decode('UTF-8')
+			# print('!!!', type(string))
+			# if is_py3:
+			# 	string = string.decode(ENCODING)
+			if is_py3:
+				string = str(string, encoding=ENCODING)
+				# print('&&', type(string))
+	# raise AssertionError(type(string))
+	# elif is_py3:
+	# 	print('##', type(string))
+	# 	string = str(string, encoding=ENCODING)
+	# print('>>', type(string))
+	# if is_py3:
+	# 	string = str(string, encoding=ENCODING)
+	# print(type(string))
+	# if is_py3 and not isinstance(string, str_type):
+	# 	print('$$$', decompression)
+	# 	try:
+	# 		string = str(string, encoding=ENCODING)
+	# 	except UnicodeDecodeError:
+	# 		if decompression is False:
+	# 			raise ValueError('Cannot decode loaded data; enable `decompression` if the data is gzipped.')
+	# 		# print('********')
+	# 		# print(err.args)
+	# 		# err.args = err.args[:-1] + (err.args[-1] + '. A possible reason is disabling decompression on a gzipped file or string.',)
+	# 		# print(err.args)
+	# 		raise
 	if ignore_comments:
 		string = strip_comments(string)
 	obj_pairs_hooks = tuple(obj_pairs_hooks)
