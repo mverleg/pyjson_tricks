@@ -103,6 +103,12 @@ def test_flush_no_errors():
 	with open(path, 'rb') as fh:
 		data2 = load(fh, decompression=True)
 	assert data2 == nonpdata
+	# flush non-file IO
+	sh = BytesIO()
+	try:
+		dump(ordered_map, fp=sh, compression=True, force_flush=True)
+	finally:
+		sh.close()
 
 
 def test_compression_with_comments():

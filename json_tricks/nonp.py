@@ -117,8 +117,11 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	finally:
 		if force_flush:
 			fh.flush()
-			if fh.fileno() is not None:
-				fsync(fh.fileno())
+			try:
+				if fh.fileno() is not None:
+					fsync(fh.fileno())
+			except (ValueError,):
+				pass
 		if isinstance(fp, str_type):
 			fh.close()
 	return string
