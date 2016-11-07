@@ -12,6 +12,7 @@ from json import JSONEncoder
 
 
 py3 = (version[:2] == '3.')
+str_type = str if py3 else basestring
 
 
 class NoNumpyException(Exception):
@@ -80,7 +81,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	"""
 	Convert a nested data structure to a json string.
 
-	:param fp: File handle to write to.
+	:param fp: File handle or path to write to.
 	:param compression: The gzip compression level, or None for no compression.
 
 	The other arguments are identical to `dumps`.
@@ -89,20 +90,28 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	"""
 	string = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
 		**jsonkwargs)
-	if compression:
-		if compression is True:
-			compression = 5
-		try:
-			with GzipFile(fileobj=fp, mode='wb+', compresslevel=int(compression)) as zh:
-				if py3:
-					string = bytes(string, 'UTF-8')
-				zh.write(string)
-		except TypeError as err:
-			err.args = (err.args[0] + '. A posible reason is that the file is not opened in binary mode; '
-				'be sure to set file mode to something like "wb".',)
-			raise
+	if isinstance(fp, str_type):
+		fh = open(fp, 'wb+')
 	else:
-		fp.write(string)
+		fh = fp
+	try:
+		if compression:
+			if compression is True:
+				compression = 5
+			try:
+				with GzipFile(fileobj=fh, mode='wb+', compresslevel=int(compression)) as zh:
+					if py3:
+						string = bytes(string, 'UTF-8')
+					zh.write(string)
+			except TypeError as err:
+				err.args = (err.args[0] + '. A posible reason is that the file is not opened in binary mode; '
+					'be sure to set file mode to something like "wb".',)
+				raise
+		else:
+			fh.write(string)
+	finally:
+		if isinstance(fp, str_type):
+			fh.close()
 	return string
 
 
@@ -145,14 +154,18 @@ def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_
 	"""
 	Convert a nested data structure to a json string.
 
-	:param fp: File handle to load from.
+	:param fp: File handle or path to load from.
 
 	The other arguments are identical to loads.
 
 	Use json_tricks.np.load instead if you want decoding of numpy arrays.
 	"""
 	try:
-		string = fp.read()
+		if isinstance(fp, str_type):
+			with open(fp, 'rb') as fh:
+				string = fh.read()
+		else:
+			string = fp.read()
 	except UnicodeDecodeError as err:
 		raise Exception('There was a problem decoding the file content. A possible reason is that the file is not ' +
 			'opened  in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])

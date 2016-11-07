@@ -1,10 +1,12 @@
 
+from os.path import join
+from tempfile import mkdtemp
 import pytz
 from pytest import raises
 from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from .test_class import MyTestCls, CustomEncodeCls
-from .nonp import strip_comments, dumps, loads, DuplicateJsonKeyException
+from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException
 from math import pi
 
 
@@ -23,12 +25,19 @@ def test_dumps_loads():
 	assert nonpdata == data2
 
 
-def test_file_nonumpy():
+def test_file_handle_nonumpy():
 	path = join(mkdtemp(), 'pytest-nonp.json')
 	with open(path, 'wb+') as fh:
 		dump(nonpdata, fh, compression=6)
 	with open(path, 'rb') as fh:
 		data2 = load(fh, decompression=True)
+	assert data2 == nonpdata
+
+
+def test_file_path_nonumpy():
+	path = join(mkdtemp(), 'pytest-nonp.json')
+	dump(nonpdata, path, compression=6)
+	data2 = load(path, decompression=True)
 	assert data2 == nonpdata
 
 
