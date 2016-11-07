@@ -85,10 +85,6 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	with GzipFile(mode='wb', fileobj=sh, compresslevel=compression) as zh:
 		zh.write(string)
 	gzstring = sh.getvalue()
-	# if is_py3:
-	# 	gzstring = gzstring.decode(ENCODING)
-	# print(type(gzstring))
-	# raise AssertionError
 	return gzstring
 
 
@@ -117,20 +113,6 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 			err.args = (err.args[0] + '. A possible reason is that the file is not opened in binary mode; '
 				'be sure to set file mode to something like "wb".',)
 			raise
-		# if compression:
-		# 	if compression is True:
-		# 		compression = 5
-		# 	try:
-		# 		with GzipFile(fileobj=fh, mode='wb+', compresslevel=int(compression)) as zh:
-		# 			if is_py3:
-		# 				string = bytes(string, 'UTF-8')
-		# 			zh.write(string)
-		# 	except TypeError as err:
-		# 		err.args = (err.args[0] + '. A possible reason is that the file is not opened in binary mode; '
-		# 			'be sure to set file mode to something like "wb".',)
-		# 		raise
-		# else:
-		# 	fh.write(string)
 	finally:
 		if isinstance(fp, str_type):
 			fh.close()
@@ -157,42 +139,13 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 
 	Use json_tricks.np.loads instead if you want decoding of numpy arrays.
 	"""
-	# print('dec1', type(string), decompression)  #todo
-	# if is_py3 and isinstance(string, str_type):
-	# 	print('gogo')
-	# 	string = bytes(string, encoding=ENCODING)
 	if decompression is None:
 		decompression = string[:2] == b'\x1f\x8b'
-		# print('dec2', type(string), decompression, string[:2] == b'\x1f\x8b', (string[0] == b'\x1f'), (string[1] == b'\x8b'))  #todo
 	if decompression:
 		with GzipFile(fileobj=BytesIO(string), mode='rb') as zh:
 			string = zh.read()
-			# print('!!!', type(string))
-			# if is_py3:
-			# 	string = string.decode(ENCODING)
 			if is_py3:
 				string = str(string, encoding=ENCODING)
-				# print('&&', type(string))
-	# raise AssertionError(type(string))
-	# elif is_py3:
-	# 	print('##', type(string))
-	# 	string = str(string, encoding=ENCODING)
-	# print('>>', type(string))
-	# if is_py3:
-	# 	string = str(string, encoding=ENCODING)
-	# print(type(string))
-	# if is_py3 and not isinstance(string, str_type):
-	# 	print('$$$', decompression)
-	# 	try:
-	# 		string = str(string, encoding=ENCODING)
-	# 	except UnicodeDecodeError:
-	# 		if decompression is False:
-	# 			raise ValueError('Cannot decode loaded data; enable `decompression` if the data is gzipped.')
-	# 		# print('********')
-	# 		# print(err.args)
-	# 		# err.args = err.args[:-1] + (err.args[-1] + '. A possible reason is disabling decompression on a gzipped file or string.',)
-	# 		# print(err.args)
-	# 		raise
 	if ignore_comments:
 		string = strip_comments(string)
 	obj_pairs_hooks = tuple(obj_pairs_hooks)

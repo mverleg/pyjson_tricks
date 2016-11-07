@@ -1,6 +1,6 @@
+
 from gzip import GzipFile
 from io import BytesIO
-from io import StringIO
 from os.path import join
 from tempfile import mkdtemp
 import pytz
@@ -8,7 +8,7 @@ from pytest import raises
 from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from .test_class import MyTestCls, CustomEncodeCls
-from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3
+from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
 from math import pi
 
 
@@ -86,23 +86,29 @@ ordered_map = OrderedDict((
 ))
 
 
-def SKIP_test_string_compression():  #todo: later
+def test_string_compression():
 	json = dumps(ordered_map, compression=3)
+	assert json[:2] == b'\x1f\x8b'
 	data2 = loads(json, decompression=True)
-	assert json == data2
+	assert ordered_map == data2
 	data3 = loads(json, decompression=None)
-	assert json == data3
+	assert ordered_map == data3
 
 
-def SKIP_test_compression_with_comments():  #todo: later
+def test_compression_with_comments():
 	sh = BytesIO()
+	if is_py3:
+		test_json = bytes(test_json_with_comments, encoding=ENCODING)
+	else:
+		test_json = test_json_with_comments
 	with GzipFile(mode='wb', fileobj=sh, compresslevel=9) as zh:
-		zh.write(test_json_with_comments)
+		zh.write(test_json)
 	json = sh.getvalue()
-	data2 = loads(json, decompression=False)
-	assert json == data2
+	ref = loads(test_json_without_comments)
+	data2 = loads(json, decompression=True)
+	assert ref == data2
 	data3 = loads(json, decompression=None)
-	assert json == data3
+	assert ref == data3
 
 
 def test_order():
