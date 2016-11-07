@@ -2,6 +2,7 @@
 from gzip import GzipFile
 from io import BytesIO
 from json import loads as json_loads
+from os import fsync
 from sys import exc_info, version
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder, \
@@ -89,7 +90,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-		compression=None, **jsonkwargs):
+		compression=None, force_flush=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -114,6 +115,10 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 				'be sure to set file mode to something like "wb".',)
 			raise
 	finally:
+		if force_flush:
+			fh.flush()
+			if fh.fileno() is not None:
+				fsync(fh.fileno())
 		if isinstance(fp, str_type):
 			fh.close()
 	return string

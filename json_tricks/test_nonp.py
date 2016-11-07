@@ -95,6 +95,16 @@ def test_string_compression():
 	assert ordered_map == data3
 
 
+def test_flush_no_errors():
+	# just tests that flush doesn't cause problems; checking actual flushing is too messy.
+	path = join(mkdtemp(), 'pytest-nonp.json')
+	with open(path, 'wb+') as fh:
+		dump(nonpdata, fh, compression=True, force_flush=True)
+	with open(path, 'rb') as fh:
+		data2 = load(fh, decompression=True)
+	assert data2 == nonpdata
+
+
 def test_compression_with_comments():
 	sh = BytesIO()
 	if is_py3:
