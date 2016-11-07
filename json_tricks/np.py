@@ -56,21 +56,21 @@ DEFAULT_NP_HOOKS = (json_numpy_obj_hook, json_date_time_hook, _cih_instance, jso
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
-		**jsonkwargs):
+		compression=None, **jsonkwargs):
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
 	"""
 	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-		**jsonkwargs)
+        compression=compression, **jsonkwargs)
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
-		compression=None, **jsonkwargs):
+		compression=None, force_flush=False, **jsonkwargs):
 	"""
 	Just like `nonp.dump` but with numpy functionality enabled.
 	"""
 	return nonp.dump(obj, fp, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
-		extra_obj_encoders=extra_obj_encoders, compression=compression, **jsonkwargs)
+		extra_obj_encoders=extra_obj_encoders, compression=compression, force_flush=force_flush, **jsonkwargs)
 
 
 def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_NP_HOOKS,
