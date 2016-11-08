@@ -99,7 +99,7 @@ def class_instance_encode(obj):
 				('perhaps it is an old-style class not derived from `object`; add `object` as a base class to encode it.'
 					if (version[:2] == '2.') else 'this should not happen in Python3'))
 		try:
-			obj = obj.__new__(obj.__class__)
+			obj.__new__(obj.__class__)
 		except TypeError:
 			raise TypeError(('instance "{0:s}" of class "{1:s}" cannot be encoded because it\'s __new__ method '
 				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
