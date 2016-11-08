@@ -23,3 +23,19 @@ class CustomEncodeCls(MyTestCls):
 		self.irrelevant = 12
 
 
+class SuperClass(object):
+	cls_attr = 37
+	
+	def __init__(self):
+		self.attr = None
+	
+	def __eq__(self, other):
+		return self.__class__ == other.__class__ and self.__dict__ == other.__dict__
+
+
+class SubClass(SuperClass):
+	def set_attr(self):
+		self.attr = 42
+
+
+

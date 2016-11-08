@@ -7,7 +7,7 @@ import pytz
 from pytest import raises
 from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
-from .test_class import MyTestCls, CustomEncodeCls
+from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass
 from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
 from math import pi
 
@@ -143,7 +143,6 @@ cls_instance_custom = CustomEncodeCls()
 
 def test_cls_instance_default():
 	json = dumps(cls_instance)
-	print(dumps(cls_instance, indent=4))
 	back = loads(json)
 	assert (cls_instance.s == back.s)
 	assert (cls_instance.dct == dict(back.dct))
@@ -160,6 +159,35 @@ def test_cls_instance_custom():
 def test_cls_instance_local():
 	json = '{"__instance_type__": [null, "CustomEncodeCls"], "attributes": {"relevant": 137}}'
 	loads(json, cls_lookup_map=globals())
+
+
+def test_cls_instance_inheritance():
+	inst = SubClass()
+	json = dumps(inst)
+	assert '42' not in json
+	back = loads(json)
+	assert inst == back
+	inst.set_attr()
+	json = dumps(inst)
+	assert '42' in json
+	back = loads(json)
+	assert inst == back
+
+
+def test_cls_attributes_unchanged():
+	"""
+	Test that class attributes are not restored. This would be undesirable,
+	because deserializing one instance could impact all other existing ones.
+	"""
+	SuperClass.cls_attr = 37
+	inst = SuperClass()
+	json = dumps(inst)
+	assert '37' not in json
+	SuperClass.cls_attr = 42
+	back = loads(json)
+	assert inst == back
+	assert inst.cls_attr == back.cls_attr == 42
+	SuperClass.cls_attr = 37
 
 
 def test_duplicates():
