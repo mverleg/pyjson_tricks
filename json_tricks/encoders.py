@@ -93,6 +93,11 @@ def class_instance_encode(obj):
 	if isinstance(obj, list) or isinstance(obj, dict):
 		return obj
 	if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
+		try:
+			obj = obj.__new__(obj.__class__)
+		except TypeError:
+			raise TypeError(('instance "{0:s}" of class "{1:s}" cannot be encoded because it\'s __new__ method '
+				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
 		mod = obj.__class__.__module__
 		if mod == '__main__':
 			mod = None

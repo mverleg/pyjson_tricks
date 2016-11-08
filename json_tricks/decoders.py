@@ -130,7 +130,11 @@ class ClassInstanceHook(object):
 						Cls = self.cls_lookup_map[name]
 					else:
 						raise ImportError(imp_err)
-			obj = Cls.__new__(Cls)
+			try:
+				obj = Cls.__new__(Cls)
+			except TypeError:
+				raise TypeError(('problem while decoding instance of "{0:s}"; this instance has a special '
+					'__new__ method and can\'t be restored').format(name))
 			if hasattr(obj, '__json_decode__'):
 				obj.__json_decode__(**attrs)
 			else:
