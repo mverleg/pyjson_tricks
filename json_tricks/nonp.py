@@ -96,7 +96,8 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 
 	:param fp: File handle or path to write to.
 	:param compression: The gzip compression level, or None for no compression.
-
+	:param force_flush: If True, flush the file handle used, when possibly also in the operating system (default False).
+	
 	The other arguments are identical to `dumps`.
 
 	Use `json_tricks.np.dump` instead if you want encoding of numpy arrays.
