@@ -3,6 +3,7 @@ from datetime import datetime, date, time, timedelta
 from logging import warning
 from collections import OrderedDict
 from json import JSONEncoder
+from sys import version
 
 
 class TricksEncoder(JSONEncoder):
@@ -93,6 +94,10 @@ def class_instance_encode(obj):
 	if isinstance(obj, list) or isinstance(obj, dict):
 		return obj
 	if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
+		if not hasattr(obj, '__new__'):
+			raise TypeError('class "{0:s}" does not have a __new__ method; '.format(obj.__class__) +
+				('perhaps it is an old-style class not derived from `object`; add `object` as a base class to encode it.'
+					if (version[:2] == '2.') else 'this should not happen in Python3'))
 		try:
 			obj = obj.__new__(obj.__class__)
 		except TypeError:
