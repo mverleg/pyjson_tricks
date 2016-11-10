@@ -53,16 +53,14 @@ Features
 Numpy arrays
 +++++++++++++++++++++++++++++++++++++++
 
-This implementation is mostly based on an answer by tlausch on stackoverflow_ that you could read for details.
-
-The array is encoded in sort-of-readableformat, like so:
+The array is encoded in sort-of-readable and very flexible and portable format, like so:
 
 .. code-block:: python
 
 	arr = arange(0, 10, 1, dtype=uint8).reshape((2, 5))
-	print dumps({'mydata': arr})
+	print(dumps({'mydata': arr}))
 
-after indering this yields:
+this yields:
 
 .. code-block:: javascript
 
@@ -78,6 +76,10 @@ after indering this yields:
 which will be converted back to a numpy array when using `json_tricks.loads`. Note that the memory order (`Corder`) is only stored in v3.1 and later and for arrays with at least 2 dimensions.
 
 As you've seen, this uses the magic key `__ndarray__`. Don't use `__ndarray__` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
+
+**Performance**: this method has slow write times similar to other human-readable formats, although read time is worse than csv. File size (with compression) is high on a relative scale, but it's only around 30% above binary. See this benchmark_ (it's called JSONGzip). A binary alternative `might be added`_, but is not yet available.
+
+This implementation is inspired by an answer by tlausch on stackoverflow_ that you could read for details.
 
 Class instances
 +++++++++++++++++++++++++++++++++++++++
@@ -234,5 +236,8 @@ Contributions are welcome! Please test that the ``py.test`` tests still pass whe
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array
 .. _performance: http://stackoverflow.com/a/8177061/723090
 .. _`kind of allowed`: http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object
+.. _benchmark: https://github.com/mverleg/array_storage_benchmark
+.. _`might be added`: https://github.com/mverleg/pyjson_tricks/issues/9
+
 
 
