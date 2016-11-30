@@ -1,5 +1,5 @@
 
-from json_tricks.utils import hashodict
+from .utils import hashodict
 from .nonp import NoNumpyException
 
 try:
@@ -9,7 +9,11 @@ except ImportError:
 
 
 def get_scalar_repr(npscalar):
-	return hashodict(__ndarray__=npscalar.item(), dtype=str(npscalar.dtype), shape=())
+	return hashodict((
+		('__ndarray__', npscalar.item()),
+		('dtype', str(npscalar.dtype)),
+		('shape', ()),
+	))
 
 
 def encode_scalars_inplace(obj):

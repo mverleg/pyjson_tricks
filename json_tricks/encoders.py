@@ -3,7 +3,7 @@ from datetime import datetime, date, time, timedelta
 from logging import warning
 from json import JSONEncoder
 from sys import version
-from json_tricks.utils import hashodict
+from .utils import hashodict
 
 
 class TricksEncoder(JSONEncoder):
@@ -113,8 +113,8 @@ def class_instance_encode(obj):
 		if hasattr(obj, '__json_encode__'):
 			attrs = obj.__json_encode__()
 		else:
-			attrs = dict(obj.__dict__.items())
-		return hashodict(__instance_type__=(mod, name), attributes=attrs)
+			attrs = hashodict(obj.__dict__.items())
+		return hashodict((('__instance_type__', (mod, name)), ('attributes', attrs)))
 	return obj
 
 
