@@ -1,10 +1,24 @@
 
 from tempfile import mkdtemp
-from numpy import arange, ones, uint8, float64, array, array_equal
+from numpy import arange, ones, array, array_equal, finfo, iinfo, generic
 from os.path import join
 from .np import dump, dumps, load, loads
 from .test_class import MyTestCls
 from .test_nonp import cls_instance
+from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
+	float16, float32, float64, complex64, complex128
+
+
+DTYPES = (int8, int16, int32, int64, uint8, uint16, uint32, uint64,
+	float16, float32, float64, complex64, complex128)
+
+
+def get_lims(dtype):
+	try:
+		info = finfo(dtype)
+	except ValueError:
+		info = iinfo(dtype)
+	return dtype(info.min), dtype(info.max)
 
 
 npdata = {
@@ -19,7 +33,6 @@ def _numpy_equality(d2):
 	assert (npdata['matrix'] == d2['matrix']).all()
 	assert npdata['vector'].dtype == d2['vector'].dtype
 	assert npdata['matrix'].dtype == d2['matrix'].dtype
-
 
 
 def test_dumps_loads_numpy():
@@ -73,5 +86,39 @@ def test_memory_order():
 	assert array_equal(arrF, arr)
 	assert arrF.flags['C_CONTIGUOUS'] == arr.flags['C_CONTIGUOUS'] and \
 		arrF.flags['F_CONTIGUOUS'] == arr.flags['F_CONTIGUOUS']
+
+
+def test_scalars_types():
+	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
+	# note: bool_ gives a deprecation warning
+	encme = []
+	for dtype in DTYPES:
+		for val in (dtype(0),) + get_lims(dtype):
+			assert isinstance(val, dtype)
+			encme.append(val)
+	# print(dtype, val.dtype, isinstance(val, generic))
+	json = dumps(encme, indent=2)
+	print(json)
+	# print('json:', json)
+	rec = loads(json)
+	for val, bck in zip(encme, rec):
+		assert str(val.dtype) in json, '{0:} not in json string'.format(val.dtype)
+		# print('>>>', val.dtype.__class__)
+		# print(bck.dtype, val.dtype)
+		assert bck.dtype == val.dtype
+	assert encme == rec
+	#todo: remove debug msgs
+
+
+def test_array_types():
+	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
+	# see also `test_scalars_types`
+	for dtype in DTYPES:
+		vec = [array((dtype(0),) + get_lims(dtype), dtype=dtype)]
+		json = dumps(vec)
+		assert dtype.__name__ in json
+		rec = loads(json)
+		assert rec[0].dtype == dtype
+		assert array_equal(vec, rec)
 
 
