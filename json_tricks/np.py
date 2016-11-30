@@ -30,19 +30,20 @@ class NumpyTricksEncoder(TricksEncoder):
 
 
 def numpy_encode(obj):
-	# print('numpy_encode')
+	"""
+	Encodes numpy `ndarray`s as lists with meta data.
+	
+	Encodes numpy scalar types as Python equivalents. Special encoding is not possible,
+	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
+	which never reach the encoder.
+	"""
 	if isinstance(obj, ndarray):
-		# print('ndarray')
 		dct = dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
 		if len(obj.shape) > 1:
 			dct['Corder'] = obj.flags['C_CONTIGUOUS']
 		return dct
 	elif isinstance(obj, generic):
-		# print('generic')
-		dct = dict(__ndarray__=obj.item(), dtype=str(obj.dtype), shape=())
-		return dct
-	# else:
-	# 	print('no')
+		return obj.item()
 	return obj
 
 

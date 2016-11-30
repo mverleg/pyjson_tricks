@@ -1,6 +1,6 @@
 
 from tempfile import mkdtemp
-from numpy import arange, ones, array, array_equal, finfo, iinfo, generic
+from numpy import arange, ones, array, array_equal, finfo, iinfo, generic, exp
 from os.path import join
 from .np import dump, dumps, load, loads
 from .test_class import MyTestCls
@@ -90,31 +90,21 @@ def test_memory_order():
 
 def test_scalars_types():
 	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
-	# note: bool_ gives a deprecation warning
 	encme = []
 	for dtype in DTYPES:
 		for val in (dtype(0),) + get_lims(dtype):
 			assert isinstance(val, dtype)
 			encme.append(val)
-	# print(dtype, val.dtype, isinstance(val, generic))
 	json = dumps(encme, indent=2)
-	print(json)
-	# print('json:', json)
 	rec = loads(json)
-	for val, bck in zip(encme, rec):
-		assert str(val.dtype) in json, '{0:} not in json string'.format(val.dtype)
-		# print('>>>', val.dtype.__class__)
-		# print(bck.dtype, val.dtype)
-		assert bck.dtype == val.dtype
 	assert encme == rec
-	#todo: remove debug msgs
 
 
 def test_array_types():
 	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
 	# see also `test_scalars_types`
 	for dtype in DTYPES:
-		vec = [array((dtype(0),) + get_lims(dtype), dtype=dtype)]
+		vec = [array((dtype(0), dtype(exp(1))) + get_lims(dtype), dtype=dtype)]
 		json = dumps(vec)
 		assert dtype.__name__ in json
 		rec = loads(json)
