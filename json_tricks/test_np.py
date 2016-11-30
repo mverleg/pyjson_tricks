@@ -114,24 +114,6 @@ def test_array_types():
 		assert array_equal(vec, rec)
 
 
-NP_NESTED_SCALARS_OBJ = [
-	int8(-27),
-	complex64(exp(1)+37j),
-	(
-		{
-			'alpha': float64(-exp(10)),
-			True: complex64(-1-1j),
-		},
-		uint32(123456789),
-		float16(exp(-1)),
-		{
-			int64(37),
-			uint64(-0),
-		},
-	),
-]
-
-
 def test_encode_scalar():
 	encd = encode_scalars_inplace([complex128(1+2j)])
 	print(encd)
@@ -142,9 +124,33 @@ def test_encode_scalar():
 
 
 def test_dump_np_scalars():
-	replaced = encode_scalars_inplace(deepcopy(NP_NESTED_SCALARS_OBJ))
+	data = [
+		int8(-27),
+		complex64(exp(1)+37j),
+		(
+			{
+				'alpha': float64(-exp(10)),
+				'str-only': complex64(-1-1j),
+			},
+			uint32(123456789),
+			float16(exp(-1)),
+			{
+				int64(37),
+				uint64(-0),
+			},
+		),
+	]
+	replaced = encode_scalars_inplace(deepcopy(data))
 	json = dumps(replaced)
 	rec = loads(json)
-	assert NP_NESTED_SCALARS_OBJ == rec
+	print(data)
+	print(rec)
+	assert data[0] == rec[0]
+	assert data[1] == rec[1]
+	assert data[2][0] == rec[2][0]
+	assert data[2][1] == rec[2][1]
+	assert data[2][2] == rec[2][2]
+	assert data[2][3] == rec[2][3]
+	assert data[2] == tuple(rec[2])
 
 
