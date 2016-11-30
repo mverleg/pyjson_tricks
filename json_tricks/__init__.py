@@ -12,5 +12,6 @@ except ImportError:
 else:
 	NUMPY_MODE = True
 	from .np import dumps, dump, loads, load, numpy_encode, NumpyEncoder, json_numpy_obj_hook, NoNumpyException
+	from .np_utils import encode_scalars_inplace
 
 
