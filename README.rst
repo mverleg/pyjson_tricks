@@ -77,6 +77,8 @@ which will be converted back to a numpy array when using `json_tricks.loads`. No
 
 As you've seen, this uses the magic key `__ndarray__`. Don't use `__ndarray__` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
 
+Since v3.5, numpy scalars are also serialized. They are represented by the closest python primitive type. A special representation was not feasible, because Python's json implementation serializes some numpy types as primitives, without consulting custom encoders.
+
 **Performance**: this method has slow write times similar to other human-readable formats, although read time is worse than csv. File size (with compression) is high on a relative scale, but it's only around 30% above binary. See this benchmark_ (it's called JSONGzip). A binary alternative `might be added`_, but is not yet available.
 
 This implementation is inspired by an answer by tlausch on stackoverflow_ that you could read for details.
