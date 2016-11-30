@@ -14,21 +14,6 @@ except ImportError:
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
 
 
-class NumpyTricksEncoder(TricksEncoder):
-	def _iterencode(self, o, *args, **kwargs):
-		"""
-		It is necessary to add a 'hack' here to handle numpy types which overlap with Python
-		primitive types. Primitive types are handled without ever reaching custom `.default`,
-		so int64, float64 and complex128 can not be encoded without this 'hack'.
-		EDIT: this doesn't work recursively, it's not possible...
-		"""
-		print('ENCODE', o)
-		if isinstance(o, (int64, float64, complex128,)):
-			print(o, o.dtype)
-			o = self.default(obj=o)
-		return super(NumpyTricksEncoder, self)._iterencode(o=o, *args, **kwargs)
-
-
 def numpy_encode(obj):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
@@ -87,7 +72,7 @@ DEFAULT_NP_ENCODERS = (numpy_encode,) + DEFAULT_ENCODERS  # numpy encode needs t
 DEFAULT_NP_HOOKS = (json_numpy_obj_hook, json_date_time_hook, _cih_instance, json_complex_hook,)
 
 
-def dumps(obj, sort_keys=None, cls=NumpyTricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
+def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
 		extra_obj_encoders=(), compression=None, **jsonkwargs):
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
@@ -96,7 +81,7 @@ def dumps(obj, sort_keys=None, cls=NumpyTricksEncoder, obj_encoders=DEFAULT_NP_E
 		extra_obj_encoders=extra_obj_encoders, compression=compression, **jsonkwargs)
 
 
-def dump(obj, fp, sort_keys=None, cls=NumpyTricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
+def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
 		compression=None, force_flush=False, **jsonkwargs):
 	"""
 	Just like `nonp.dump` but with numpy functionality enabled.
