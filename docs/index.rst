@@ -67,6 +67,18 @@ date/time
 
 .. autofunction:: json_tricks.decoders.json_date_time_hook
 
+numpy scalars
++++++++++++++++++++++++++++++++++++++++
+
+It's not possible (without a lot of hacks) to encode numpy scalars. This is the case because some numpy scalars (`float64`, and depending on Python version also `int64`) are subclasses of `float` and `int`. This means that the Python json encoder will stringify them without them ever reaching the custom encoders.
+
+So if you really want to encode numpy scalars, you'll have to do the conversion beforehand. For that purpose you can use `encode_scalars_inplace`, which mutates a nested data structure (in place!) to replace any numpy scalars by their representation. If you serialize this result, it can subsequently be loaded without further adaptations.
+
+It's not great, but unless the Python json module changes, it's the best that can be done. See `issue 18`_ for more details.
+
+.. autofunction:: json_tricks.np_utils.encode_scalars_inplace
+
+
 Table of content
 ---------------------------------------
 
@@ -74,5 +86,8 @@ This is a simple module so the documentation is single-page.
 
 .. toctree::
    :maxdepth: 2
+
+
+.. _`issue 18`: https://github.com/mverleg/pyjson_tricks/issues/18
 
 
