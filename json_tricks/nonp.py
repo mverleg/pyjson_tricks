@@ -67,14 +67,14 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	:param sort_keys: Keep this False if you want order to be preserved.
 	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which gives a warning for numpy arrays.
 	:param obj_encoders: Iterable of encoders to use to convert arbitrary objects into json-able promitives.
-	:param extra_obj_encoders: Like `obj_encoders` but on top of them: use this to add encoders without replacing defaults.
+	:param extra_obj_encoders: Like `obj_encoders` but on top of them: use this to add encoders without replacing defaults. Since v3.5 these happen before default encoders.
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to `cls`. Note that `sort_keys` should be false if you want to preserve order.
 
 	Use `json_tricks.np.dumps` instead if you want encoding of numpy arrays.
 	"""
-	encoders = tuple(obj_encoders) + tuple(extra_obj_encoders)
+	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	string = cls(sort_keys=sort_keys, obj_encoders=encoders, **jsonkwargs).encode(obj)
 	if not compression:
 		return string
@@ -139,7 +139,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param ignore_comments: Remove comments (starting with # or //).
 	:param decompression: True to use gzip decompression, False to use raw data, None to automatically determine (default).
 	:param obj_pairs_hooks: A list of dictionary hooks to apply.
-	:param extra_obj_pairs_hooks: Like `obj_pairs_hooks` but on top of them: use this to add hooks without replacing defaults.
+	:param extra_obj_pairs_hooks: Like `obj_pairs_hooks` but on top of them: use this to add hooks without replacing defaults. Since v3.5 these happen before default hooks.
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
 	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
 	:return: The string containing the json-encoded version of obj.
@@ -159,7 +159,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 		string = strip_comments(string)
 	obj_pairs_hooks = tuple(obj_pairs_hooks)
 	_cih_instance.cls_lookup_map = cls_lookup_map or {}
-	hooks = obj_pairs_hooks + tuple(extra_obj_pairs_hooks)
+	hooks = tuple(extra_obj_pairs_hooks) + obj_pairs_hooks
 	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=hooks, allow_duplicates=allow_duplicates)
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 

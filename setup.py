@@ -6,6 +6,7 @@ from setuptools import setup
 with open('README.rst', 'r') as fh:
 	readme = fh.read()
 
+
 setup(
 	name='json_tricks',
 	description='Add features to json: en/decoding of numpy arrays, ' +
@@ -17,7 +18,7 @@ setup(
 	author_email='mdilligaf@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments',],
-	version='3.4.2',
+	version='3.5.0',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
@@ -38,10 +39,9 @@ setup(
 		'Topic :: Software Development :: Libraries :: Python Modules',
 	],
 	install_requires=[
-		
 		# pytz for timezones (and tests)
 		# pytest for tests
-		# sphinx for dodumentation
+		# sphinx for documentation
 		# numpy for numpy functionality
 	],
 )
