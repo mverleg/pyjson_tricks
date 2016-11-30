@@ -17,7 +17,6 @@ class TricksPairHook(object):
 		"""
 		:param ordered: True if maps should retain their ordering.
 		:param obj_pairs_hooks: An iterable of hooks to apply to elements.
-		:return:
 		"""
 		self.map_type = OrderedDict
 		if not ordered:
@@ -141,5 +140,15 @@ class ClassInstanceHook(object):
 				obj.__dict__ = dict(attrs)
 			return  obj
 		return dct
+
+
+def json_set_hook(dct):
+	"""
+	Return an encoded set to it's python representation.
+	"""
+	if isinstance(dct, dict):
+		if '__set__' in dct:
+			return set((tuple(item) if isinstance(item, list) else item) for item in dct['__set__'])
+	return dct
 
 

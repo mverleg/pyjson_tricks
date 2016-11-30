@@ -6,9 +6,9 @@ from os import fsync
 from sys import exc_info, version
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder, \
-	json_complex_encode  # keep 'unused' imports
+	json_complex_encode, json_set_encode  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
-	json_complex_hook  # keep 'unused' imports
+	json_complex_hook, json_set_hook  # keep 'unused' imports
 from json import JSONEncoder
 
 
@@ -53,9 +53,10 @@ def json_nonumpy_obj_hook(dct):
 
 
 _cih_instance = ClassInstanceHook()
-DEFAULT_ENCODERS = (json_date_time_encode, class_instance_encode, json_complex_encode,)
+DEFAULT_ENCODERS = (json_date_time_encode, class_instance_encode, json_complex_encode, json_set_encode,)
 DEFAULT_NONP_ENCODERS = DEFAULT_ENCODERS + (nonumpy_encode,)
-DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook, json_date_time_hook, _cih_instance, json_complex_hook,)
+DEFAULT_HOOKS = (json_date_time_hook, _cih_instance, json_complex_hook, json_set_hook,)
+DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),

@@ -9,8 +9,7 @@ from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass
 from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
-from math import pi
-
+from math import pi, exp
 
 nonpdata = {
 	'my_array': list(range(20)),
@@ -238,5 +237,13 @@ def test_float_precision():
 	json = dumps([pi])
 	back = loads(json)
 	assert back[0] - pi == 0, 'Precision lost while encoding and decoding float.'
+
+
+def test_set():
+	data = [{'set': {3, exp(1), (-5, +7), False}}]
+	json = dumps(data)
+	back = loads(json)
+	assert isinstance(back[0]['set'], set)
+	assert data == back
 
 

@@ -144,3 +144,12 @@ class ClassInstanceEncoder(JSONEncoder):
 		return super(ClassInstanceEncoder, self).default(obj, *args, **kwargs)
 
 
+def json_set_encode(obj):
+	"""
+	Encode python sets as dictionary with key __set__ and a list of the values.
+	"""
+	if isinstance(obj, set):
+		return dict(__set__=tuple(obj))
+	return obj
+
+

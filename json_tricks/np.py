@@ -3,8 +3,8 @@ from logging import warning
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
-	json_complex_hook  # keep 'unused' imports
-from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance
+	json_complex_hook, json_set_hook  # keep 'unused' imports
+from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance, DEFAULT_HOOKS
 from . import nonp
 
 try:
@@ -75,7 +75,7 @@ def json_numpy_obj_hook(dct):
 
 
 DEFAULT_NP_ENCODERS = (numpy_encode,) + DEFAULT_ENCODERS  # numpy encode needs to be before complex
-DEFAULT_NP_HOOKS = (json_numpy_obj_hook, json_date_time_hook, _cih_instance, json_complex_hook,)
+DEFAULT_NP_HOOKS = (json_numpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
