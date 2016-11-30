@@ -7,7 +7,7 @@ from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance
 from . import nonp
 
 try:
-	from numpy import ndarray, asarray, generic, int64, float64, complex128
+	from numpy import ndarray, asarray, generic
 	import numpy as nptypes
 except ImportError:
 	raise NoNumpyException('Could not load numpy, maybe it is not installed? If you do not want to use numpy encoding '

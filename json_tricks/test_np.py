@@ -1,7 +1,9 @@
 
 from tempfile import mkdtemp
-from numpy import arange, ones, array, array_equal, finfo, iinfo, generic, exp
+from copy import deepcopy
+from numpy import arange, ones, array, array_equal, finfo, iinfo, exp
 from os.path import join
+from json_tricks.np_utils import encode_scalars_inplace
 from .np import dump, dumps, load, loads
 from .test_class import MyTestCls
 from .test_nonp import cls_instance
@@ -110,5 +112,39 @@ def test_array_types():
 		rec = loads(json)
 		assert rec[0].dtype == dtype
 		assert array_equal(vec, rec)
+
+
+NP_NESTED_SCALARS_OBJ = [
+	int8(-27),
+	complex64(exp(1)+37j),
+	(
+		{
+			'alpha': float64(-exp(10)),
+			True: complex64(-1-1j),
+		},
+		uint32(123456789),
+		float16(exp(-1)),
+		{
+			int64(37),
+			uint64(-0),
+		},
+	),
+]
+
+
+def test_encode_scalar():
+	encd = encode_scalars_inplace([complex128(1+2j)])
+	print(encd)
+	assert isinstance(encd[0], dict)
+	assert encd[0]['__ndarray__'] == 1+2j
+	assert encd[0]['shape'] == ()
+	assert encd[0]['dtype'] == complex128.__name__
+
+
+def test_dump_np_scalars():
+	replaced = encode_scalars_inplace(deepcopy(NP_NESTED_SCALARS_OBJ))
+	json = dumps(replaced)
+	rec = loads(json)
+	assert NP_NESTED_SCALARS_OBJ == rec
 
 
