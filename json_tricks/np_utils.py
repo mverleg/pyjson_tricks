@@ -1,4 +1,5 @@
 
+from json_tricks.utils import hashodict
 from .nonp import NoNumpyException
 
 try:
@@ -8,7 +9,7 @@ except ImportError:
 
 
 def get_scalar_repr(npscalar):
-	return dict(__ndarray__=npscalar.item(), dtype=str(npscalar.dtype), shape=())
+	return hashodict(__ndarray__=npscalar.item(), dtype=str(npscalar.dtype), shape=())
 
 
 def encode_scalars_inplace(obj):
@@ -16,7 +17,6 @@ def encode_scalars_inplace(obj):
 	Searches a data structure of lists, tuples and dicts for numpy scalars
 	and replaces them by their dictionary representation, which can be loaded
 	by json-tricks. This happens in-place (the object is changed, use a copy).
-	Sets can't be contain dicts, so sets are converted to tuples.
 	"""
 	if isinstance(obj, (generic, complex64, complex128)):
 		return get_scalar_repr(obj)
@@ -28,10 +28,8 @@ def encode_scalars_inplace(obj):
 		for k, val in enumerate(obj):
 			obj[k] = encode_scalars_inplace(val)
 		return obj
-	if isinstance(obj, tuple):
+	if isinstance(obj, (tuple, set)):
 		return type(obj)(encode_scalars_inplace(val) for val in obj)
-	if isinstance(obj, set):
-		return tuple(encode_scalars_inplace(val) for val in obj)
 	return obj
 
 

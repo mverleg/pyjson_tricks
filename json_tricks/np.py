@@ -1,5 +1,6 @@
 
 from logging import warning
+from json_tricks.utils import hashodict
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
@@ -24,7 +25,7 @@ def numpy_encode(obj):
 	which never reach the encoder.
 	"""
 	if isinstance(obj, ndarray):
-		dct = dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
+		dct = hashodict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
 		if len(obj.shape) > 1:
 			dct['Corder'] = obj.flags['C_CONTIGUOUS']
 		return dct

@@ -1,9 +1,9 @@
 
 from datetime import datetime, date, time, timedelta
 from logging import warning
-from collections import OrderedDict
 from json import JSONEncoder
 from sys import version
+from json_tricks.utils import hashodict
 
 
 class TricksEncoder(JSONEncoder):
@@ -63,20 +63,20 @@ def json_date_time_encode(obj):
 	:return: (dict) json primitives representation of date, time, datetime or timedelta
 	"""
 	if isinstance(obj, datetime):
-		dct = OrderedDict([('__datetime__', None), ('year', obj.year), ('month', obj.month),
+		dct = hashodict([('__datetime__', None), ('year', obj.year), ('month', obj.month),
 			('day', obj.day), ('hour', obj.hour), ('minute', obj.minute),
 			('second', obj.second), ('microsecond', obj.microsecond)])
 		if obj.tzinfo:
 			dct['tzinfo'] = obj.tzinfo.zone
 	elif isinstance(obj, date):
-		dct = OrderedDict([('__date__', None), ('year', obj.year), ('month', obj.month), ('day', obj.day)])
+		dct = hashodict([('__date__', None), ('year', obj.year), ('month', obj.month), ('day', obj.day)])
 	elif isinstance(obj, time):
-		dct = OrderedDict([('__time__', None), ('hour', obj.hour), ('minute', obj.minute),
+		dct = hashodict([('__time__', None), ('hour', obj.hour), ('minute', obj.minute),
 			('second', obj.second), ('microsecond', obj.microsecond)])
 		if obj.tzinfo:
 			dct['tzinfo'] = obj.tzinfo.zone
 	elif isinstance(obj, timedelta):
-		dct = OrderedDict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
+		dct = hashodict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
 			('microseconds', obj.microseconds)])
 	else:
 		return obj
@@ -114,7 +114,7 @@ def class_instance_encode(obj):
 			attrs = obj.__json_encode__()
 		else:
 			attrs = dict(obj.__dict__.items())
-		return dict(__instance_type__=(mod, name), attributes=attrs)
+		return hashodict(__instance_type__=(mod, name), attributes=attrs)
 	return obj
 
 
@@ -126,7 +126,7 @@ def json_complex_encode(obj):
 	:return: (dict) json primitives representation of `obj`
 	"""
 	if isinstance(obj, complex):
-		return {'__complex__': [obj.real, obj.imag]}
+		return hashodict(__complex__=[obj.real, obj.imag])
 	return obj
 
 
@@ -147,9 +147,15 @@ class ClassInstanceEncoder(JSONEncoder):
 def json_set_encode(obj):
 	"""
 	Encode python sets as dictionary with key __set__ and a list of the values.
+
+	Try to sort the set to get a consistent json representation, use arbitrary order if the data is not ordinal.
 	"""
 	if isinstance(obj, set):
-		return dict(__set__=tuple(obj))
+		try:
+			repr = sorted(obj)
+		except Exception:
+			repr = list(obj)
+		return hashodict(__set__=repr)
 	return obj
 
 
