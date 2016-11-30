@@ -1,4 +1,5 @@
 
+from logging import warning
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
@@ -28,6 +29,9 @@ def numpy_encode(obj):
 			dct['Corder'] = obj.flags['C_CONTIGUOUS']
 		return dct
 	elif isinstance(obj, generic):
+		if NumpyEncoder.SHOW_SCALAR_WARNING:
+			NumpyEncoder.SHOW_SCALAR_WARNING = False
+			warning('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
 		return obj.item()
 	return obj
 
@@ -36,6 +40,8 @@ class NumpyEncoder(ClassInstanceEncoder):
 	"""
 	JSON encoder for numpy arrays.
 	"""
+	SHOW_SCALAR_WARNING = True  # show a warning that numpy scalar serialization is experimental
+	
 	def default(self, obj, *args, **kwargs):
 		"""
 		If input object is a ndarray it will be converted into a dict holding
