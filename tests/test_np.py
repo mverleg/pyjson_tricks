@@ -1,10 +1,9 @@
 
 from tempfile import mkdtemp
-from copy import deepcopy
 from numpy import arange, ones, array, array_equal, finfo, iinfo, exp
 from os.path import join
 from json_tricks.np_utils import encode_scalars_inplace
-from .np import dump, dumps, load, loads
+from json_tricks.np import dump, dumps, load, loads
 from .test_class import MyTestCls
 from .test_nonp import cls_instance
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
@@ -121,36 +120,5 @@ def test_encode_scalar():
 	assert encd[0]['__ndarray__'] == 1+2j
 	assert encd[0]['shape'] == ()
 	assert encd[0]['dtype'] == complex128.__name__
-
-
-def test_dump_np_scalars():
-	data = [
-		int8(-27),
-		complex64(exp(1)+37j),
-		(
-			{
-				'alpha': float64(-exp(10)),
-				'str-only': complex64(-1-1j),
-			},
-			uint32(123456789),
-			float16(exp(-1)),
-			{
-				int64(37),
-				uint64(-0),
-			},
-		),
-	]
-	replaced = encode_scalars_inplace(deepcopy(data))
-	json = dumps(replaced)
-	rec = loads(json)
-	print(data)
-	print(rec)
-	assert data[0] == rec[0]
-	assert data[1] == rec[1]
-	assert data[2][0] == rec[2][0]
-	assert data[2][1] == rec[2][1]
-	assert data[2][2] == rec[2][2]
-	assert data[2][3] == rec[2][3]
-	assert data[2] == tuple(rec[2])
 
 

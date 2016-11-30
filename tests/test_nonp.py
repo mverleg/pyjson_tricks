@@ -8,7 +8,7 @@ from pytest import raises
 from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass
-from .nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
+from json_tricks.nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
 from math import pi, exp
 
 nonpdata = {
