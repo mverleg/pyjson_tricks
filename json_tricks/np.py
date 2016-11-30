@@ -7,18 +7,42 @@ from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance
 from . import nonp
 
 try:
-	from numpy import ndarray, asarray
+	from numpy import ndarray, asarray, generic, int64, float64, complex128
+	import numpy as nptypes
 except ImportError:
 	raise NoNumpyException('Could not load numpy, maybe it is not installed? If you do not want to use numpy encoding '
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
 
 
+class NumpyTricksEncoder(TricksEncoder):
+	def _iterencode(self, o, *args, **kwargs):
+		"""
+		It is necessary to add a 'hack' here to handle numpy types which overlap with Python
+		primitive types. Primitive types are handled without ever reaching custom `.default`,
+		so int64, float64 and complex128 can not be encoded without this 'hack'.
+		EDIT: this doesn't work recursively, it's not possible...
+		"""
+		print('ENCODE', o)
+		if isinstance(o, (int64, float64, complex128,)):
+			print(o, o.dtype)
+			o = self.default(obj=o)
+		return super(NumpyTricksEncoder, self)._iterencode(o=o, *args, **kwargs)
+
+
 def numpy_encode(obj):
+	# print('numpy_encode')
 	if isinstance(obj, ndarray):
+		# print('ndarray')
 		dct = dict(__ndarray__=obj.tolist(), dtype=str(obj.dtype), shape=obj.shape)
 		if len(obj.shape) > 1:
 			dct['Corder'] = obj.flags['C_CONTIGUOUS']
 		return dct
+	elif isinstance(obj, generic):
+		# print('generic')
+		dct = dict(__ndarray__=obj.item(), dtype=str(obj.dtype), shape=())
+		return dct
+	# else:
+	# 	print('no')
 	return obj
 
 
@@ -47,24 +71,31 @@ def json_numpy_obj_hook(dct):
 		order = 'A'
 		if 'Corder' in dct:
 			order = 'C' if dct['Corder'] else 'F'
-		return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
+		if dct['shape']:
+			return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
+		else:
+			# print(dct['dtype'])
+			# print(getattr(nptypes, dct['dtype']))
+			dtype = getattr(nptypes, dct['dtype'])
+			return dtype(dct['__ndarray__'])
+			# return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
 	return dct
 
 
-DEFAULT_NP_ENCODERS = DEFAULT_ENCODERS + (numpy_encode,)
+DEFAULT_NP_ENCODERS = (numpy_encode,) + DEFAULT_ENCODERS  # numpy encode needs to be before complex
 DEFAULT_NP_HOOKS = (json_numpy_obj_hook, json_date_time_hook, _cih_instance, json_complex_hook,)
 
 
-def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
-		compression=None, **jsonkwargs):
+def dumps(obj, sort_keys=None, cls=NumpyTricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
+		extra_obj_encoders=(), compression=None, **jsonkwargs):
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
 	"""
-	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-        compression=compression, **jsonkwargs)
+	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
+		extra_obj_encoders=extra_obj_encoders, compression=compression, **jsonkwargs)
 
 
-def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
+def dump(obj, fp, sort_keys=None, cls=NumpyTricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS, extra_obj_encoders=(),
 		compression=None, force_flush=False, **jsonkwargs):
 	"""
 	Just like `nonp.dump` but with numpy functionality enabled.
