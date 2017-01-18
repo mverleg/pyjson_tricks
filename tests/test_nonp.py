@@ -279,3 +279,12 @@ def test_special_floats():
 	dumps(special_floats)  # if default becomes False, I need to update documentation
 
 
+def test_decimal():
+	decimals = [Decimal(0), Decimal(-pi), Decimal('9999999999999999999999999999999999999999999999999999'),
+		Decimal('NaN'), Decimal('Infinity'), -Decimal('Infinity'), Decimal('+0'), Decimal('-0')]
+	txt = dumps(decimals, allow_nan=True)
+	res = loads(txt)
+	for x, y in zip(decimals, res):
+		assert isinstance(y, Decimal)
+		assert x == y or x.is_nan()
+		assert str(x) == str(y)
