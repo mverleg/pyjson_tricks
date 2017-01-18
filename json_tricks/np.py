@@ -27,7 +27,7 @@ def numpy_encode(obj):
 	if isinstance(obj, ndarray):
 		dct = hashodict((
 			('__ndarray__', obj.tolist()),
-		    ('dtype', str(obj.dtype)),
+			('dtype', str(obj.dtype)),
 			('shape', obj.shape),
 		))
 		if len(obj.shape) > 1:

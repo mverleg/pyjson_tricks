@@ -69,6 +69,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which gives a warning for numpy arrays.
 	:param obj_encoders: Iterable of encoders to use to convert arbitrary objects into json-able promitives.
 	:param extra_obj_encoders: Like `obj_encoders` but on top of them: use this to add encoders without replacing defaults. Since v3.5 these happen before default encoders.
+	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default True).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to `cls`. Note that `sort_keys` should be false if you want to preserve order.
@@ -143,7 +144,6 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param extra_obj_pairs_hooks: Like `obj_pairs_hooks` but on top of them: use this to add hooks without replacing defaults. Since v3.5 these happen before default hooks.
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
 	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
-	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default True).
 	:param parse_float: A function to parse strings to integers (e.g. Decimal). There is also `parse_int`.
 	:return: The string containing the json-encoded version of obj.
 
