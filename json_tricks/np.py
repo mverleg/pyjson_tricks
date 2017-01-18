@@ -71,11 +71,8 @@ def json_numpy_obj_hook(dct):
 		if dct['shape']:
 			return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
 		else:
-			# print(dct['dtype'])
-			# print(getattr(nptypes, dct['dtype']))
 			dtype = getattr(nptypes, dct['dtype'])
 			return dtype(dct['__ndarray__'])
-			# return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
 	return dct
 
 

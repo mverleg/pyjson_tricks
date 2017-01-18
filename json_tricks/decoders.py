@@ -1,7 +1,9 @@
 
 from datetime import datetime, date, time, timedelta
+from fractions import Fraction
 from importlib import import_module
 from collections import OrderedDict
+from decimal import Decimal
 
 
 class DuplicateJsonKeyException(Exception):
@@ -88,6 +90,15 @@ def json_complex_hook(dct):
 			parts = dct['__complex__']
 			assert len(parts) == 2
 			return parts[0] + parts[1] * 1j
+	return dct
+
+
+def numeric_types_hook(dct):
+	if isinstance(dct, dict):
+		if '__decimal__' in dct:
+			return Decimal(dct['__decimal__'])
+		if '__fraction__' in dct:
+			return Fraction(numerator=dct['numerator'], denominator=dct['denominator'])
 	return dct
 
 
