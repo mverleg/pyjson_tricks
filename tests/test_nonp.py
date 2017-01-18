@@ -1,4 +1,5 @@
 
+from decimal import Decimal
 from gzip import GzipFile
 from io import BytesIO
 from os.path import join
@@ -245,5 +246,21 @@ def test_set():
 	back = loads(json)
 	assert isinstance(back[0]['set'], set)
 	assert data == back
+
+
+def test_special_nr_parsing():
+	nr_li_json = '[1, 3.14]'
+	res = loads(nr_li_json,
+		parse_int=lambda s: int('7' + s),
+		parse_float=lambda s: float('5' + s)
+	)
+	assert res == [71, 53.14], 'Special integer and/or float parsing not working'
+	nr_li_json = '[1, 3.14]'
+	res = loads(nr_li_json,
+		parse_int=Decimal,
+		parse_float=Decimal
+	)
+	assert isinstance(res[0], Decimal)
+	assert isinstance(res[1], Decimal)
 
 
