@@ -60,7 +60,7 @@ DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-		compression=None, **jsonkwargs):
+		compression=None, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -69,7 +69,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which gives a warning for numpy arrays.
 	:param obj_encoders: Iterable of encoders to use to convert arbitrary objects into json-able promitives.
 	:param extra_obj_encoders: Like `obj_encoders` but on top of them: use this to add encoders without replacing defaults. Since v3.5 these happen before default encoders.
-	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default True).
+	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default False).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to `cls`. Note that `sort_keys` should be false if you want to preserve order.
@@ -77,7 +77,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	Use `json_tricks.np.dumps` instead if you want encoding of numpy arrays.
 	"""
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
-	string = cls(sort_keys=sort_keys, obj_encoders=encoders, **jsonkwargs).encode(obj)
+	string = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan, **jsonkwargs).encode(obj)
 	if not compression:
 		return string
 	if compression is True:
@@ -92,7 +92,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-		compression=None, force_flush=False, **jsonkwargs):
+		compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -105,7 +105,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	Use `json_tricks.np.dump` instead if you want encoding of numpy arrays.
 	"""
 	string = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-		compression=compression, **jsonkwargs)
+		compression=compression, allow_nan=allow_nan, **jsonkwargs)
 	if isinstance(fp, str_type):
 		fh = open(fp, 'wb+')
 	else:
