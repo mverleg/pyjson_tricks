@@ -143,6 +143,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param extra_obj_pairs_hooks: Like `obj_pairs_hooks` but on top of them: use this to add hooks without replacing defaults. Since v3.5 these happen before default hooks.
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
 	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
+	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default True).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
