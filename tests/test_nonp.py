@@ -264,3 +264,18 @@ def test_special_nr_parsing():
 	assert isinstance(res[1], Decimal)
 
 
+def test_special_floats():
+	"""
+	The official json standard doesn't support infinity or NaN, but the Python implementation does.
+	"""
+	special_floats = [float('NaN'), float('Infinity'), -float('Infinity'), float('+0'), float('-0')]
+	txt = dumps(special_floats, allow_nan=True)
+	res = loads(txt)
+	for x, y in zip(special_floats, res):
+		""" Use strings since `+0 == -1` and `NaN != NaN` """
+		assert str(x) == str(y)
+	with raises(ValueError):
+		dumps(special_floats, allow_nan=False)
+	dumps(special_floats)  # if default becomes False, I need to update documentation
+
+
