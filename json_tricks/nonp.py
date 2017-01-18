@@ -6,7 +6,7 @@ from os import fsync
 from sys import exc_info, version
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder, \
-	json_complex_encode, json_set_encode  # keep 'unused' imports
+	json_complex_encode, json_set_encode, numeric_types_encode  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
 	json_complex_hook, json_set_hook  # keep 'unused' imports
 from json import JSONEncoder
@@ -53,7 +53,7 @@ def json_nonumpy_obj_hook(dct):
 
 
 _cih_instance = ClassInstanceHook()
-DEFAULT_ENCODERS = (json_date_time_encode, class_instance_encode, json_complex_encode, json_set_encode,)
+DEFAULT_ENCODERS = (json_date_time_encode, class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode,)
 DEFAULT_NONP_ENCODERS = DEFAULT_ENCODERS + (nonumpy_encode,)
 DEFAULT_HOOKS = (json_date_time_hook, _cih_instance, json_complex_hook, json_set_hook,)
 DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook,) + DEFAULT_HOOKS
@@ -144,6 +144,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
 	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
 	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default True).
+	:param parse_float: A function to parse strings to integers (e.g. Decimal). There is also `parse_int`.
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.

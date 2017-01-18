@@ -1,8 +1,12 @@
 
 from datetime import datetime, date, time, timedelta
+from fractions import Fraction
 from logging import warning
 from json import JSONEncoder
 from sys import version
+
+from decimal import Decimal
+
 from .utils import hashodict
 
 
@@ -127,6 +131,20 @@ def json_complex_encode(obj):
 	"""
 	if isinstance(obj, complex):
 		return hashodict(__complex__=[obj.real, obj.imag])
+	return obj
+
+
+def numeric_types_encode(obj):
+	if isinstance(obj, Decimal):
+		return {
+			'__decimal__': str(obj.canonical()),
+		}
+	if isinstance(obj, Fraction):
+		return {
+			'__fraction__': True,
+			'numerator': obj.numerator,
+			'denominator': obj.denominator,
+		}
 	return obj
 
 
