@@ -1,5 +1,6 @@
 
 from decimal import Decimal
+from fractions import Fraction
 from gzip import GzipFile
 from io import BytesIO
 from os.path import join
@@ -288,3 +289,16 @@ def test_decimal():
 		assert isinstance(y, Decimal)
 		assert x == y or x.is_nan()
 		assert str(x) == str(y)
+
+
+def test_fraction():
+	decimals = [Fraction(0), Fraction(1, 3), Fraction(-pi), Fraction('1/3'), Fraction('1/3') / Fraction('1/6'),
+		Fraction('9999999999999999999999999999999999999999999999999999'), Fraction('1/12345678901234567890123456789'),]
+	txt = dumps(decimals, allow_nan=True)
+	res = loads(txt)
+	for x, y in zip(decimals, res):
+		assert isinstance(y, Fraction)
+		assert x == y or x.is_nan()
+		assert str(x) == str(y)
+
+
