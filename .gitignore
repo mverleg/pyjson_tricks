@@ -9,3 +9,4 @@
 /MANIFEST
 /.cache/
 /try.py
+/.tox/
