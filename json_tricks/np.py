@@ -23,17 +23,21 @@ def numpy_encode(obj, approximate_types=False):
 	Encodes numpy scalar types as Python equivalents. Special encoding is not possible,
 	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
 	which never reach the encoder.
+	
+	:param approximate_types: If True, arrays are serialized as (nested) lists without meta info.
 	"""
-	#todo
 	if isinstance(obj, ndarray):
-		dct = hashodict((
-			('__ndarray__', obj.tolist()),
-			('dtype', str(obj.dtype)),
-			('shape', obj.shape),
-		))
-		if len(obj.shape) > 1:
-			dct['Corder'] = obj.flags['C_CONTIGUOUS']
-		return dct
+		if approximate_types:
+			return obj.tolist()
+		else:
+			dct = hashodict((
+				('__ndarray__', obj.tolist()),
+				('dtype', str(obj.dtype)),
+				('shape', obj.shape),
+			))
+			if len(obj.shape) > 1:
+				dct['Corder'] = obj.flags['C_CONTIGUOUS']
+			return dct
 	elif isinstance(obj, generic):
 		if NumpyEncoder.SHOW_SCALAR_WARNING:
 			NumpyEncoder.SHOW_SCALAR_WARNING = False
@@ -82,7 +86,7 @@ DEFAULT_NP_HOOKS = (json_numpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
-		extra_obj_encoders=(), approximate_types=True, compression=None, allow_nan=False,
+		extra_obj_encoders=(), approximate_types=False, compression=None, allow_nan=False,
 		**jsonkwargs):
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
@@ -93,7 +97,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODE
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
-		extra_obj_encoders=(), approximate_types=True, compression=None, force_flush=False,
+		extra_obj_encoders=(), approximate_types=False, compression=None, force_flush=False,
 		allow_nan=False, **jsonkwargs):
 	"""
 	Just like `nonp.dump` but with numpy functionality enabled.

@@ -61,7 +61,7 @@ DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-		approximate_types=True, compression=None, allow_nan=False, **jsonkwargs):
+		approximate_types=False, compression=None, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -95,7 +95,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-         approximate_types=True, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
+         approximate_types=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
