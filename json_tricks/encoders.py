@@ -4,10 +4,8 @@ from fractions import Fraction
 from logging import warning
 from json import JSONEncoder
 from sys import version
-
 from decimal import Decimal
-
-from .utils import hashodict
+from .utils import hashodict, call_with_optional_kwargs
 
 
 class TricksEncoder(JSONEncoder):
@@ -18,7 +16,7 @@ class TricksEncoder(JSONEncoder):
 	Each encoder should make any appropriate changes and return an object,
 	changed or not. This will be passes to the other encoders.
 	"""
-	def __init__(self, obj_encoders=None, silence_typeerror=False, **json_kwargs):
+	def __init__(self, obj_encoders=None, silence_typeerror=False, approximate_types=False, **json_kwargs):
 		"""
 		:param obj_encoders: An iterable of functions or encoder instances to try.
 		:param silence_typeerror: If set to True, ignore the TypeErrors that Encoder instances throw (default False).
@@ -27,6 +25,7 @@ class TricksEncoder(JSONEncoder):
 		if obj_encoders:
 			self.obj_encoders = list(obj_encoders)
 		self.silence_typeerror = silence_typeerror
+		self.approximate_types = approximate_types
 		super(TricksEncoder, self).__init__(**json_kwargs)
 
 	def default(self, obj, *args, **kwargs):
@@ -35,7 +34,7 @@ class TricksEncoder(JSONEncoder):
 		all the encoders with the previous one's output used as input.
 
 		It works for Encoder instances, but they are expected not to throw
-		TypeErrorfor unrecognized types (the super method does that by default).
+		`TypeError` for unrecognized types (the super method does that by default).
 
 		It never calls the `super` method so if there are non-primitive types
 		left at the end, you'll get an encoding error.
@@ -43,14 +42,13 @@ class TricksEncoder(JSONEncoder):
 		prev_id = id(obj)
 		for encoder in self.obj_encoders:
 			if hasattr(encoder, 'default'):
-				# hope no TypeError is thrown
 				try:
-					obj = encoder.default(obj)
+					obj = call_with_optional_kwargs(encoder.default, obj, approximate_types=self.approximate_types)
 				except TypeError as err:
 					if not self.silence_typeerror:
 						raise
 			elif hasattr(encoder, '__call__'):
-				obj = encoder(obj)
+				obj = call_with_optional_kwargs(encoder, obj, approximate_types=self.approximate_types)
 			else:
 				raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(encoder))
 		if id(obj) == prev_id:
@@ -59,13 +57,14 @@ class TricksEncoder(JSONEncoder):
 		return obj
 
 
-def json_date_time_encode(obj):
+def json_date_time_encode(obj, approximate_types=False):
 	"""
 	Encode a date, time, datetime or timedelta to a string of a json dictionary, including optional timezone.
 
 	:param obj: date/time/datetime/timedelta obj
 	:return: (dict) json primitives representation of date, time, datetime or timedelta
 	"""
+	#todo
 	if isinstance(obj, datetime):
 		dct = hashodict([('__datetime__', None), ('year', obj.year), ('month', obj.month),
 			('day', obj.day), ('hour', obj.hour), ('minute', obj.minute),
@@ -90,11 +89,12 @@ def json_date_time_encode(obj):
 	return dct
 
 
-def class_instance_encode(obj):
+def class_instance_encode(obj, approximate_types=False):
 	"""
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
 	imported in the same way.
 	"""
+	#todo
 	if isinstance(obj, list) or isinstance(obj, dict):
 		return obj
 	if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
@@ -122,19 +122,21 @@ def class_instance_encode(obj):
 	return obj
 
 
-def json_complex_encode(obj):
+def json_complex_encode(obj, approximate_types=False):
 	"""
 	Encode a complex number as a json dictionary of it's real and imaginary part.
 
 	:param obj: complex number, e.g. `2+1j`
 	:return: (dict) json primitives representation of `obj`
 	"""
+	#todo
 	if isinstance(obj, complex):
 		return hashodict(__complex__=[obj.real, obj.imag])
 	return obj
 
 
-def numeric_types_encode(obj):
+def numeric_types_encode(obj, approximate_types=False):
+	#todo
 	if isinstance(obj, Decimal):
 		return {
 			'__decimal__': str(obj.canonical()),
@@ -162,12 +164,13 @@ class ClassInstanceEncoder(JSONEncoder):
 		return super(ClassInstanceEncoder, self).default(obj, *args, **kwargs)
 
 
-def json_set_encode(obj):
+def json_set_encode(obj, approximate_types=False):
 	"""
 	Encode python sets as dictionary with key __set__ and a list of the values.
 
 	Try to sort the set to get a consistent json representation, use arbitrary order if the data is not ordinal.
 	"""
+	#todo
 	if isinstance(obj, set):
 		try:
 			repr = sorted(obj)

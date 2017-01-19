@@ -1,12 +1,12 @@
 
 from logging import warning
+from . import nonp
+from .nonp import NoNumpyException, DEFAULT_ENCODERS, DEFAULT_HOOKS
 from .utils import hashodict
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
 	json_complex_hook, json_set_hook  # keep 'unused' imports
-from .nonp import NoNumpyException, DEFAULT_ENCODERS, _cih_instance, DEFAULT_HOOKS
-from . import nonp
 
 try:
 	from numpy import ndarray, asarray, generic
@@ -16,7 +16,7 @@ except ImportError:
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
 
 
-def numpy_encode(obj):
+def numpy_encode(obj, approximate_types=False):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
 	
@@ -24,6 +24,7 @@ def numpy_encode(obj):
 	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
 	which never reach the encoder.
 	"""
+	#todo
 	if isinstance(obj, ndarray):
 		dct = hashodict((
 			('__ndarray__', obj.tolist()),
@@ -81,24 +82,25 @@ DEFAULT_NP_HOOKS = (json_numpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
-		extra_obj_encoders=(), compression=None, allow_nan=False, **jsonkwargs):
+		extra_obj_encoders=(), approximate_types=True, compression=None, allow_nan=False,
+		**jsonkwargs):
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
 	"""
 	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
-		extra_obj_encoders=extra_obj_encoders, compression=compression,
-		allow_nan=allow_nan, **jsonkwargs)
+		extra_obj_encoders=extra_obj_encoders, approximate_types=approximate_types,
+		compression=compression, allow_nan=allow_nan, **jsonkwargs)
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
-		extra_obj_encoders=(), compression=None, force_flush=False, allow_nan=False,
-		**jsonkwargs):
+		extra_obj_encoders=(), approximate_types=True, compression=None, force_flush=False,
+		allow_nan=False, **jsonkwargs):
 	"""
 	Just like `nonp.dump` but with numpy functionality enabled.
 	"""
 	return nonp.dump(obj, fp, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
-		extra_obj_encoders=extra_obj_encoders, compression=compression,
-		force_flush=force_flush, allow_nan=allow_nan, **jsonkwargs)
+		extra_obj_encoders=extra_obj_encoders, approximate_types=approximate_types,
+		compression=compression, force_flush=force_flush, allow_nan=allow_nan, **jsonkwargs)
 
 
 def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_NP_HOOKS,
