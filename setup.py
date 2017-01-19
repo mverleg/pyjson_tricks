@@ -24,6 +24,7 @@ setup(
 	zip_safe=False,
 	classifiers=[
 		'Development Status :: 5 - Production/Stable',
+		'Development Status :: 6 - Mature',
 		'Intended Audience :: Developers',
 		'Natural Language :: English',
 		'License :: OSI Approved :: BSD License',
@@ -36,11 +37,17 @@ setup(
 		'Programming Language :: Python :: 3.3',
 		'Programming Language :: Python :: 3.4',
 		'Programming Language :: Python :: 3.5',
+		'Programming Language :: Python :: Implementation :: CPython',
+		'Programming Language :: Python :: Implementation :: PyPy',
 		'Topic :: Software Development :: Libraries :: Python Modules',
+		# 'Topic :: Documentation',
+		# 'Topic :: Documentation :: Sphinx',
+		# 'Topic :: Utilities',
 	],
 	install_requires=[
 		# pytz for timezones (and tests)
 		# pytest for tests
+		# tox for tests
 		# sphinx for documentation
 		# numpy for numpy functionality
 	],
