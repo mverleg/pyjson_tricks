@@ -39,14 +39,16 @@ def _numpy_equality(d2):
 	assert npdata['matrix'].dtype == d2['matrix'].dtype
 
 
-def test_appriximate_types():
+def test_approximate_types():
 	txt = dumps(deepcopy(npdata), approximate_types=True)
 	data2 = loads(txt)
 	assert isinstance(data2['vector'], list)
 	assert isinstance(data2['matrix'], list)
 	assert isinstance(data2['matrix'][0], list)
 	assert data2['vector'] == npdata['vector'].tolist()
+	assert (abs(array(data2['vector']) - npdata['vector'])).sum() < 1e-10
 	assert data2['matrix'] == npdata['matrix'].tolist()
+	assert (abs(array(data2['matrix']) - npdata['matrix'])).sum() < 1e-10
 
 
 def test_dumps_loads_numpy():

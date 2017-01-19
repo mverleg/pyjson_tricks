@@ -14,7 +14,7 @@ from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass
 
 nonpdata = {
 	'my_array': list(range(20)),
-	'my_map': {chr(k): k for k in range(97, 123)},
+	'my_map': dict((chr(k), k) for k in range(97, 123)),
 	'my_string': 'Hello world!',
 	'my_float': 3.1415,
 	'my_int': 42
@@ -206,7 +206,11 @@ def test_complex_number():
 	for obj in objs:
 		json = dumps(obj)
 		back = loads(json)
-		assert obj == back, 'json en/decoding failed for complex number {0:}'.format(obj)
+		assert back == obj, 'json en/decoding failed for complex number {0:}'.format(obj)
+		json = dumps(obj, approximate_types=True)
+		back = loads(json)
+		assert back == [obj.real, obj.imag]
+		assert complex(*back) == obj
 	txt = '{"__complex__": [4.2, 3.7]}'
 	obj = loads(txt)
 	assert obj == 4.2 + 3.7j
@@ -261,7 +265,7 @@ def test_special_floats():
 def test_decimal():
 	decimals = [Decimal(0), Decimal(-pi), Decimal('9999999999999999999999999999999999999999999999999999'),
 		Decimal('NaN'), Decimal('Infinity'), -Decimal('Infinity'), Decimal('+0'), Decimal('-0')]
-	txt = dumps(decimals, allow_nan=True)
+	txt = dumps(decimals)
 	res = loads(txt)
 	for x, y in zip(decimals, res):
 		assert isinstance(y, Decimal)
@@ -269,14 +273,28 @@ def test_decimal():
 		assert str(x) == str(y)
 
 
-def test_fraction():
-	decimals = [Fraction(0), Fraction(1, 3), Fraction(-pi), Fraction('1/3'), Fraction('1/3') / Fraction('1/6'),
-		Fraction('9999999999999999999999999999999999999999999999999999'), Fraction('1/12345678901234567890123456789'),]
-	txt = dumps(decimals, allow_nan=True)
+def test_decimal_approximate_types():
+	decimals = [Decimal(0), Decimal(-pi), Decimal('9999999999999')]
+	txt = dumps(decimals, approximate_types=True)
 	res = loads(txt)
 	for x, y in zip(decimals, res):
-		assert isinstance(y, Fraction)
+		assert isinstance(y, float)
 		assert x == y or x.is_nan()
+
+
+def test_fraction():
+	fractions = [Fraction(0), Fraction(1, 3), Fraction(-pi), Fraction('1/3'), Fraction('1/3') / Fraction('1/6'),
+		Fraction('9999999999999999999999999999999999999999999999999999'), Fraction('1/12345678901234567890123456789'),]
+	txt = dumps(fractions)
+	res = loads(txt)
+	for x, y in zip(fractions, res):
+		assert isinstance(y, Fraction)
+		assert x == y
 		assert str(x) == str(y)
+	txt = dumps(fractions, approximate_types=True)
+	res = loads(txt)
+	for x, y in zip(fractions, res):
+		assert isinstance(y, float)
+		assert abs(x - y) < 1e-10
 
 

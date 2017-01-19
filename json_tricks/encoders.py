@@ -129,24 +129,36 @@ def json_complex_encode(obj, approximate_types=False):
 	:param obj: complex number, e.g. `2+1j`
 	:return: (dict) json primitives representation of `obj`
 	"""
-	#todo
 	if isinstance(obj, complex):
-		return hashodict(__complex__=[obj.real, obj.imag])
+		if approximate_types:
+			return [obj.real, obj.imag]
+		else:
+			return hashodict(__complex__=[obj.real, obj.imag])
 	return obj
 
 
 def numeric_types_encode(obj, approximate_types=False):
-	#todo
+	"""
+	Encode Decimal and Fraction.
+	
+	:param approximate_types: Encode decimals and fractions as standard floats. You may lose precision. If you do this, you may need to enable `allow_nan` (decimals always allow NaNs but floats do not).
+	"""
 	if isinstance(obj, Decimal):
-		return {
-			'__decimal__': str(obj.canonical()),
-		}
+		if approximate_types:
+			return float(obj)
+		else:
+			return {
+				'__decimal__': str(obj.canonical()),
+			}
 	if isinstance(obj, Fraction):
-		return {
-			'__fraction__': True,
-			'numerator': obj.numerator,
-			'denominator': obj.denominator,
-		}
+		if approximate_types:
+			return float(obj)
+		else:
+			return {
+				'__fraction__': True,
+				'numerator': obj.numerator,
+				'denominator': obj.denominator,
+			}
 	return obj
 
 

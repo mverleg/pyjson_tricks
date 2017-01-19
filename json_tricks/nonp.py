@@ -25,7 +25,6 @@ def nonumpy_encode(obj, approximate_types=False):
 	"""
 	Emits a warning for numpy arrays, no other effect.
 	"""
-	#todo
 	if 'ndarray' in str(type(obj)):
 		raise NoNumpyException(('Trying to encode {0:} which appears to be a numpy array ({1:}), but numpy ' +
 			'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
@@ -77,7 +76,6 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 	Use `json_tricks.np.dumps` instead if you want encoding of numpy arrays.
 	"""
-	# todo: approximate_types=approximate_types,
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	string = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
 		approximate_types=approximate_types, **jsonkwargs).encode(obj)
