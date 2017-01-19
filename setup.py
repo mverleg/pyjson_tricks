@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from sys import version_info
 from setuptools import setup
 
 
 with open('README.rst', 'r') as fh:
 	readme = fh.read()
+
+
+requires = []
+if version_info < (2, 7, 0):
+	requires.append('ordereddict')
 
 
 setup(
@@ -44,13 +50,12 @@ setup(
 		# 'Topic :: Documentation :: Sphinx',
 		# 'Topic :: Utilities',
 	],
-	install_requires=[
+	install_requires=requires,
 		# pytz for timezones (and tests)
 		# pytest for tests
 		# tox for tests
 		# sphinx for documentation
 		# numpy for numpy functionality
-	],
 )
 
 
