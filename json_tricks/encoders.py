@@ -64,7 +64,8 @@ def json_date_time_encode(obj, approximate_types=False):
 	:param obj: date/time/datetime/timedelta obj
 	:return: (dict) json primitives representation of date, time, datetime or timedelta
 	"""
-	#todo
+	if approximate_types and isinstance(obj, (date, time, datetime)):
+		return obj.isoformat()
 	if isinstance(obj, datetime):
 		dct = hashodict([('__datetime__', None), ('year', obj.year), ('month', obj.month),
 			('day', obj.day), ('hour', obj.hour), ('minute', obj.minute),
@@ -79,8 +80,11 @@ def json_date_time_encode(obj, approximate_types=False):
 		if obj.tzinfo:
 			dct['tzinfo'] = obj.tzinfo.zone
 	elif isinstance(obj, timedelta):
-		dct = hashodict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
-			('microseconds', obj.microseconds)])
+		if approximate_types:
+			return obj.total_seconds()
+		else:
+			dct = hashodict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
+				('microseconds', obj.microseconds)])
 	else:
 		return obj
 	for key, val in tuple(dct.items()):
