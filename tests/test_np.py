@@ -39,8 +39,8 @@ def _numpy_equality(d2):
 	assert npdata['matrix'].dtype == d2['matrix'].dtype
 
 
-def test_approximate_types():
-	txt = dumps(deepcopy(npdata), approximate_types=True)
+def test_primitives():
+	txt = dumps(deepcopy(npdata), primitives=True)
 	data2 = loads(txt)
 	assert isinstance(data2['vector'], list)
 	assert isinstance(data2['matrix'], list)

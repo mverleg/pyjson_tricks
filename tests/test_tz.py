@@ -31,7 +31,7 @@ def test_date_time():
 
 def test_approximate_type_date_time():
 	for obj in DTOBJS:
-		json = dumps(obj, approximate_types=True)
+		json = dumps(obj, primitives=True)
 		back = loads(json)
 		if isinstance(obj, (date, time, datetime,)):
 			assert isinstance(back, str if is_py3 else (str, unicode))
@@ -40,6 +40,6 @@ def test_approximate_type_date_time():
 			assert isinstance(back, float)
 			assert back == obj.total_seconds()
 	dt = datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
-	assert dumps(dt, approximate_types=True).strip('"') == '1988-03-15T08:03:59.000007+00:20'
+	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007+00:20'
 
 

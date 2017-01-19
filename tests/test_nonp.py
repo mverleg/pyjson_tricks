@@ -146,7 +146,7 @@ def test_cls_instance_default():
 	back = loads(json)
 	assert (cls_instance.s == back.s)
 	assert (cls_instance.dct == dict(back.dct))
-	json = dumps(cls_instance, approximate_types=True)
+	json = dumps(cls_instance, primitives=True)
 	back = loads(json)
 	assert tuple(sorted(back.keys())) == ('dct', 's',)
 	assert '7' in back['dct']
@@ -158,7 +158,7 @@ def test_cls_instance_custom():
 	assert (cls_instance_custom.relevant == back.relevant)
 	assert (cls_instance_custom.irrelevant == 37)
 	assert (back.irrelevant == 12)
-	json = dumps(cls_instance_custom, approximate_types=True)
+	json = dumps(cls_instance_custom, primitives=True)
 	back = loads(json)
 	assert (cls_instance_custom.relevant == back['relevant'])
 	assert (cls_instance_custom.irrelevant == 37)
@@ -216,7 +216,7 @@ def test_complex_number():
 		json = dumps(obj)
 		back = loads(json)
 		assert back == obj, 'json en/decoding failed for complex number {0:}'.format(obj)
-		json = dumps(obj, approximate_types=True)
+		json = dumps(obj, primitives=True)
 		back = loads(json)
 		assert back == [obj.real, obj.imag]
 		assert complex(*back) == obj
@@ -237,7 +237,7 @@ def test_set():
 	back = loads(json)
 	assert isinstance(back[0]['set'], set)
 	assert setdata == back
-	json = dumps(setdata, approximate_types=True)
+	json = dumps(setdata, primitives=True)
 	back = loads(json)
 	assert isinstance(back[0]['set'], list)
 	assert setdata[0]['set'] == set(tuple(q) if isinstance(q, list) else q for q in back[0]['set'])
@@ -286,9 +286,9 @@ def test_decimal():
 		assert str(x) == str(y)
 
 
-def test_decimal_approximate_types():
+def test_decimal_primitives():
 	decimals = [Decimal(0), Decimal(-pi), Decimal('9999999999999')]
-	txt = dumps(decimals, approximate_types=True)
+	txt = dumps(decimals, primitives=True)
 	res = loads(txt)
 	for x, y in zip(decimals, res):
 		assert isinstance(y, float)
@@ -304,7 +304,7 @@ def test_fraction():
 		assert isinstance(y, Fraction)
 		assert x == y
 		assert str(x) == str(y)
-	txt = dumps(fractions, approximate_types=True)
+	txt = dumps(fractions, primitives=True)
 	res = loads(txt)
 	for x, y in zip(fractions, res):
 		assert isinstance(y, float)

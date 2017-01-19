@@ -47,14 +47,14 @@ If you do not have numpy and want to use only order preservation and commented j
 
 The exact signatures of these functions are in the documentation_.
 
-Preserving types
----------------------------------------
+Preserve type vs use primitive
+-------------------------------
 
 By default, types are encoded such that they can be restored to their original type when loaded with `json-tricks. Example encodings in this documentation refer to that format.
 
-You can also choose to store things as their closest primitive type (e.g. arrays and sets as lists, decimals as floats). This may be desirable if you don't care about the exact type or you are loading the json in another language (which doesn't restore python types).
+You can also choose to store things as their closest primitive type (e.g. arrays and sets as lists, decimals as floats). This may be desirable if you don't care about the exact type, or you are loading the json in another language (which doesn't restore python types). It's also smaller.
 
-To do this, pass `approximate_types` to `dump(s)`. This is available in version `3.8` and later. Example:
+To forego meta data and store primitives instead, pass `primitives` to `dump(s)`. This is available in version `3.8` and later. Example:
 
 .. code-block:: python
 
@@ -122,7 +122,7 @@ To do this, pass `approximate_types` to `dump(s)`. This is available in version 
 
 .. code-block:: python
 
-    print(dumps(data, indent=2, approximate_types=True))
+    print(dumps(data, indent=2, primitives=True))
 
 .. code-block:: javascript
 

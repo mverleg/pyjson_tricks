@@ -16,7 +16,7 @@ except ImportError:
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
 
 
-def numpy_encode(obj, approximate_types=False):
+def numpy_encode(obj, primitives=False):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
 	
@@ -24,10 +24,10 @@ def numpy_encode(obj, approximate_types=False):
 	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
 	which never reach the encoder.
 	
-	:param approximate_types: If True, arrays are serialized as (nested) lists without meta info.
+	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
 	"""
 	if isinstance(obj, ndarray):
-		if approximate_types:
+		if primitives:
 			return obj.tolist()
 		else:
 			dct = hashodict((
@@ -86,24 +86,24 @@ DEFAULT_NP_HOOKS = (json_numpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
-		extra_obj_encoders=(), approximate_types=False, compression=None, allow_nan=False,
+		extra_obj_encoders=(), primitives=False, compression=None, allow_nan=False,
 		**jsonkwargs):
 	"""
 	Just like `nonp.dumps` but with numpy functionality enabled.
 	"""
 	return nonp.dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
-		extra_obj_encoders=extra_obj_encoders, approximate_types=approximate_types,
+		extra_obj_encoders=extra_obj_encoders, primitives=primitives,
 		compression=compression, allow_nan=allow_nan, **jsonkwargs)
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NP_ENCODERS,
-		extra_obj_encoders=(), approximate_types=False, compression=None, force_flush=False,
+		extra_obj_encoders=(), primitives=False, compression=None, force_flush=False,
 		allow_nan=False, **jsonkwargs):
 	"""
 	Just like `nonp.dump` but with numpy functionality enabled.
 	"""
 	return nonp.dump(obj, fp, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders,
-		extra_obj_encoders=extra_obj_encoders, approximate_types=approximate_types,
+		extra_obj_encoders=extra_obj_encoders, primitives=primitives,
 		compression=compression, force_flush=force_flush, allow_nan=allow_nan, **jsonkwargs)
 
 

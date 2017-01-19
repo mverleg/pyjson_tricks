@@ -21,7 +21,7 @@ class NoNumpyException(Exception):
 		""" Trying to use numpy features, but numpy cannot be found. """
 
 
-def nonumpy_encode(obj, approximate_types=False):
+def nonumpy_encode(obj, primitives=False):
 	"""
 	Emits a warning for numpy arrays, no other effect.
 	"""
@@ -60,7 +60,7 @@ DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook,) + DEFAULT_HOOKS
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-		approximate_types=False, compression=None, allow_nan=False, **jsonkwargs):
+		primitives=False, compression=None, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -78,7 +78,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	"""
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	string = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
-		approximate_types=approximate_types, **jsonkwargs).encode(obj)
+		primitives=primitives, **jsonkwargs).encode(obj)
 	if not compression:
 		return string
 	if compression is True:
@@ -93,7 +93,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-         approximate_types=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
+         primitives=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -106,7 +106,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	Use `json_tricks.np.dump` instead if you want encoding of numpy arrays.
 	"""
 	string = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-		approximate_types=approximate_types, compression=compression, allow_nan=allow_nan, **jsonkwargs)
+		primitives=primitives, compression=compression, allow_nan=allow_nan, **jsonkwargs)
 	if isinstance(fp, str_type):
 		fh = open(fp, 'wb+')
 	else:

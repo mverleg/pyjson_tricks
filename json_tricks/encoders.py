@@ -16,7 +16,7 @@ class TricksEncoder(JSONEncoder):
 	Each encoder should make any appropriate changes and return an object,
 	changed or not. This will be passes to the other encoders.
 	"""
-	def __init__(self, obj_encoders=None, silence_typeerror=False, approximate_types=False, **json_kwargs):
+	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, **json_kwargs):
 		"""
 		:param obj_encoders: An iterable of functions or encoder instances to try.
 		:param silence_typeerror: If set to True, ignore the TypeErrors that Encoder instances throw (default False).
@@ -25,7 +25,7 @@ class TricksEncoder(JSONEncoder):
 		if obj_encoders:
 			self.obj_encoders = list(obj_encoders)
 		self.silence_typeerror = silence_typeerror
-		self.approximate_types = approximate_types
+		self.primitives = primitives
 		super(TricksEncoder, self).__init__(**json_kwargs)
 
 	def default(self, obj, *args, **kwargs):
@@ -43,12 +43,12 @@ class TricksEncoder(JSONEncoder):
 		for encoder in self.obj_encoders:
 			if hasattr(encoder, 'default'):
 				try:
-					obj = call_with_optional_kwargs(encoder.default, obj, approximate_types=self.approximate_types)
+					obj = call_with_optional_kwargs(encoder.default, obj, primitives=self.primitives)
 				except TypeError as err:
 					if not self.silence_typeerror:
 						raise
 			elif hasattr(encoder, '__call__'):
-				obj = call_with_optional_kwargs(encoder, obj, approximate_types=self.approximate_types)
+				obj = call_with_optional_kwargs(encoder, obj, primitives=self.primitives)
 			else:
 				raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(encoder))
 		if id(obj) == prev_id:
@@ -57,14 +57,14 @@ class TricksEncoder(JSONEncoder):
 		return obj
 
 
-def json_date_time_encode(obj, approximate_types=False):
+def json_date_time_encode(obj, primitives=False):
 	"""
 	Encode a date, time, datetime or timedelta to a string of a json dictionary, including optional timezone.
 
 	:param obj: date/time/datetime/timedelta obj
 	:return: (dict) json primitives representation of date, time, datetime or timedelta
 	"""
-	if approximate_types and isinstance(obj, (date, time, datetime)):
+	if primitives and isinstance(obj, (date, time, datetime)):
 		return obj.isoformat()
 	if isinstance(obj, datetime):
 		dct = hashodict([('__datetime__', None), ('year', obj.year), ('month', obj.month),
@@ -80,7 +80,7 @@ def json_date_time_encode(obj, approximate_types=False):
 		if obj.tzinfo:
 			dct['tzinfo'] = obj.tzinfo.zone
 	elif isinstance(obj, timedelta):
-		if approximate_types:
+		if primitives:
 			return obj.total_seconds()
 		else:
 			dct = hashodict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
@@ -93,7 +93,7 @@ def json_date_time_encode(obj, approximate_types=False):
 	return dct
 
 
-def class_instance_encode(obj, approximate_types=False):
+def class_instance_encode(obj, primitives=False):
 	"""
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
 	imported in the same way.
@@ -121,14 +121,14 @@ def class_instance_encode(obj, approximate_types=False):
 			attrs = obj.__json_encode__()
 		else:
 			attrs = hashodict(obj.__dict__.items())
-		if approximate_types:
+		if primitives:
 			return attrs
 		else:
 			return hashodict((('__instance_type__', (mod, name)), ('attributes', attrs)))
 	return obj
 
 
-def json_complex_encode(obj, approximate_types=False):
+def json_complex_encode(obj, primitives=False):
 	"""
 	Encode a complex number as a json dictionary of it's real and imaginary part.
 
@@ -136,28 +136,28 @@ def json_complex_encode(obj, approximate_types=False):
 	:return: (dict) json primitives representation of `obj`
 	"""
 	if isinstance(obj, complex):
-		if approximate_types:
+		if primitives:
 			return [obj.real, obj.imag]
 		else:
 			return hashodict(__complex__=[obj.real, obj.imag])
 	return obj
 
 
-def numeric_types_encode(obj, approximate_types=False):
+def numeric_types_encode(obj, primitives=False):
 	"""
 	Encode Decimal and Fraction.
 	
-	:param approximate_types: Encode decimals and fractions as standard floats. You may lose precision. If you do this, you may need to enable `allow_nan` (decimals always allow NaNs but floats do not).
+	:param primitives: Encode decimals and fractions as standard floats. You may lose precision. If you do this, you may need to enable `allow_nan` (decimals always allow NaNs but floats do not).
 	"""
 	if isinstance(obj, Decimal):
-		if approximate_types:
+		if primitives:
 			return float(obj)
 		else:
 			return {
 				'__decimal__': str(obj.canonical()),
 			}
 	if isinstance(obj, Fraction):
-		if approximate_types:
+		if primitives:
 			return float(obj)
 		else:
 			return hashodict((
@@ -182,7 +182,7 @@ class ClassInstanceEncoder(JSONEncoder):
 		return super(ClassInstanceEncoder, self).default(obj, *args, **kwargs)
 
 
-def json_set_encode(obj, approximate_types=False):
+def json_set_encode(obj, primitives=False):
 	"""
 	Encode python sets as dictionary with key __set__ and a list of the values.
 
@@ -193,7 +193,7 @@ def json_set_encode(obj, approximate_types=False):
 			repr = sorted(obj)
 		except Exception:
 			repr = list(obj)
-		if approximate_types:
+		if primitives:
 			return repr
 		else:
 			return hashodict(__set__=repr)
