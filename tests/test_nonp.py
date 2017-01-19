@@ -232,11 +232,15 @@ def test_float_precision():
 
 
 def test_set():
-	data = [{'set': {3, exp(1), (-5, +7), False}}]
-	json = dumps(data)
+	setdata = [{'set': {3, exp(1), (-5, +7), False}}]
+	json = dumps(setdata)
 	back = loads(json)
 	assert isinstance(back[0]['set'], set)
-	assert data == back
+	assert setdata == back
+	json = dumps(setdata, approximate_types=True)
+	back = loads(json)
+	assert isinstance(back[0]['set'], list)
+	assert setdata[0]['set'] == set(tuple(q) if isinstance(q, list) else q for q in back[0]['set'])
 
 
 def test_special_nr_parsing():

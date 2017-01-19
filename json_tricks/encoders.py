@@ -188,13 +188,15 @@ def json_set_encode(obj, approximate_types=False):
 
 	Try to sort the set to get a consistent json representation, use arbitrary order if the data is not ordinal.
 	"""
-	#todo
 	if isinstance(obj, set):
 		try:
 			repr = sorted(obj)
 		except Exception:
 			repr = list(obj)
-		return hashodict(__set__=repr)
+		if approximate_types:
+			return repr
+		else:
+			return hashodict(__set__=repr)
 	return obj
 
 
