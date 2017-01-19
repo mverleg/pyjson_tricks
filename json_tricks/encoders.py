@@ -160,11 +160,11 @@ def numeric_types_encode(obj, approximate_types=False):
 		if approximate_types:
 			return float(obj)
 		else:
-			return {
-				'__fraction__': True,
-				'numerator': obj.numerator,
-				'denominator': obj.denominator,
-			}
+			return hashodict((
+				('__fraction__', True),
+				('numerator', obj.numerator),
+				('denominator', obj.denominator),
+			))
 	return obj
 
 

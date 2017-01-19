@@ -1,7 +1,7 @@
 JSON tricks (python)
 ---------------------------------------
 
-The `pyjson-tricks` package brings four pieces of functionality to python handling of json files:
+The `pyjson-tricks` package brings several pieces of functionality to python handling of json files:
 
 1. **Store and load numpy arrays** in human-readable format.
 2. **Store and load class instances** both generic and customized.
@@ -46,6 +46,108 @@ You can import the usual json functions dump(s) and load(s), as well as a separa
 If you do not have numpy and want to use only order preservation and commented json reading, you should **``import from json_tricks.nonp`` instead**.
 
 The exact signatures of these functions are in the documentation_.
+
+Preserving types
+---------------------------------------
+
+By default, types are encoded such that they can be restored to their original type when loaded with `json-tricks. Example encodings in this documentation refer to that format.
+
+You can also choose to store things as their closest primitive type (e.g. arrays and sets as lists, decimals as floats). This may be desirable if you don't care about the exact type or you are loading the json in another language (which doesn't restore python types).
+
+To do this, pass `approximate_types` to `dump(s)`. This is available in version `3.8` and later. Example:
+
+.. code-block:: python
+
+	data = [
+		arange(0, 10, 1, dtype=int).reshape((2, 5)),
+		datetime(year=2017, month=1, day=19, hour=23, minute=00, second=00),
+		1 + 2j,
+		Decimal(42),
+		Fraction(1, 3),
+		MyTestCls(s='ub', dct={'7': 7}),  # see later
+		set(range(7)),
+	]
+	print(dumps(data, indent=2))
+
+.. code-block:: javascript
+
+    // (comments added and indenting changed)
+    [
+      // numpy array
+      {
+        "__ndarray__": [
+            [0, 1, 2, 3, 4],
+            [5, 6, 7, 8, 9]],
+        "dtype": "int64",
+        "shape": [2, 5],
+        "Corder": true
+      },
+      // datetime (naive)
+      {
+        "__datetime__": null,
+        "year": 2017,
+        "month": 1,
+        "day": 19,
+        "hour": 23
+      },
+      // complex number
+      {
+        "__complex__": [1.0, 2.0]
+      },
+      // decimal & fraction
+      {
+        "__decimal__": "42"
+      },
+      {
+        "__fraction__": true
+        "numerator": 1,
+        "denominator": 3,
+      },
+      // class instance
+      {
+        "__instance_type__": [
+          "tests.test_class",
+          "MyTestCls"
+        ],
+        "attributes": {
+          "s": "ub",
+          "dct": {"7": 7}
+        }
+      },
+      // set
+      {
+        "__set__": [0, 1, 2, 3, 4, 5, 6]
+      }
+    ]
+
+.. code-block:: python
+
+    print(dumps(data, indent=2, approximate_types=True))
+
+.. code-block:: javascript
+
+    // (comments added and indentation changed)
+    [
+      // numpy array
+      [[0, 1, 2, 3, 4],
+       [5, 6, 7, 8, 9]],
+      // datetime (naive)
+      "2017-01-19T23:00:00",
+      // complex number
+      [1.0, 2.0],
+      // decimal & fraction
+      42.0,
+      0.3333333333333333,
+      // class instance
+      {
+        "s": "ub",
+        "dct": {"7": 7}
+      },
+      // set
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+Note that valid json is produced either way: `json-tricks` stores meta data as normal json, but other packages probably won't interpret it.
 
 Features
 ---------------------------------------
