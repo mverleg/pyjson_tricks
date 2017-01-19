@@ -40,7 +40,7 @@ def _numpy_equality(d2):
 
 
 def test_dumps_loads_numpy():
-	json = dumps(npdata)
+	json = dumps(deepcopy(npdata))
 	data2 = loads(json)
 	_numpy_equality(data2)
 
@@ -48,7 +48,7 @@ def test_dumps_loads_numpy():
 def test_file_numpy():
 	path = join(mkdtemp(), 'pytest-np.json')
 	with open(path, 'wb+') as fh:
-		dump(npdata, fh, compression=9)
+		dump(deepcopy(npdata), fh, compression=9)
 	with open(path, 'rb') as fh:
 		data2 = load(fh, decompression=True)
 	_numpy_equality(data2)
