@@ -98,7 +98,6 @@ def class_instance_encode(obj, approximate_types=False):
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
 	imported in the same way.
 	"""
-	#todo
 	if isinstance(obj, list) or isinstance(obj, dict):
 		return obj
 	if hasattr(obj, '__class__') and hasattr(obj, '__dict__'):
@@ -122,7 +121,10 @@ def class_instance_encode(obj, approximate_types=False):
 			attrs = obj.__json_encode__()
 		else:
 			attrs = hashodict(obj.__dict__.items())
-		return hashodict((('__instance_type__', (mod, name)), ('attributes', attrs)))
+		if approximate_types:
+			return attrs
+		else:
+			return hashodict((('__instance_type__', (mod, name)), ('attributes', attrs)))
 	return obj
 
 

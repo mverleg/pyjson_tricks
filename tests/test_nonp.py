@@ -146,6 +146,10 @@ def test_cls_instance_default():
 	back = loads(json)
 	assert (cls_instance.s == back.s)
 	assert (cls_instance.dct == dict(back.dct))
+	json = dumps(cls_instance, approximate_types=True)
+	back = loads(json)
+	assert tuple(sorted(back.keys())) == ('dct', 's',)
+	assert '7' in back['dct']
 
 
 def test_cls_instance_custom():
@@ -154,6 +158,11 @@ def test_cls_instance_custom():
 	assert (cls_instance_custom.relevant == back.relevant)
 	assert (cls_instance_custom.irrelevant == 37)
 	assert (back.irrelevant == 12)
+	json = dumps(cls_instance_custom, approximate_types=True)
+	back = loads(json)
+	assert (cls_instance_custom.relevant == back['relevant'])
+	assert (cls_instance_custom.irrelevant == 37)
+	assert 'irrelevant' not in back
 
 
 def test_cls_instance_local():
