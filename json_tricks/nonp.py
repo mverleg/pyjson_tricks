@@ -4,11 +4,12 @@ from io import BytesIO
 from json import loads as json_loads
 from os import fsync
 from sys import exc_info, version
+from .utils import NoNumpyException
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder, \
-	json_complex_encode, json_set_encode, numeric_types_encode  # keep 'unused' imports
+	json_complex_encode, json_set_encode, numeric_types_encode, nonumpy_encode, NoNumpyEncoder  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
-	json_complex_hook, json_set_hook, numeric_types_hook  # keep 'unused' imports
+	json_complex_hook, json_set_hook, numeric_types_hook, json_nonumpy_obj_hook  # keep 'unused' imports
 from json import JSONEncoder
 
 
@@ -17,49 +18,37 @@ str_type = str if is_py3 else basestring
 ENCODING = 'UTF-8'
 
 
-class NoNumpyException(Exception):
-		""" Trying to use numpy features, but numpy cannot be found. """
-
-
-def nonumpy_encode(obj, primitives=False):
-	"""
-	Emits a warning for numpy arrays, no other effect.
-	"""
-	if 'ndarray' in str(type(obj)):
-		raise NoNumpyException(('Trying to encode {0:} which appears to be a numpy array ({1:}), but numpy ' +
-			'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
-			.format(obj, type(obj)))
-	return obj
-
-
-class NoNumpyEncoder(JSONEncoder):
-	"""
-	See `nonumpy_encoder`.
-	"""
-	def default(self, obj, *args, **kwargs):
-		obj = nonumpy_encode(obj)
-		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)
-
-
-def json_nonumpy_obj_hook(dct):
-	"""
-	This hook has no effect except to check if you're trying to decode numpy arrays without support, and give you a useful message.
-	"""
-	if isinstance(dct, dict) and '__ndarray__' in dct:
-		raise NoNumpyException(('Trying to decode dictionary ({0:}) which appears to be a numpy array, but numpy ' +
-			'support is not enabled. Make sure that numpy is installed and that you import from json_tricks.np.')
-			.format(', '.join(dct.keys()[:10])))
-	return dct
-
-
 _cih_instance = ClassInstanceHook()
-DEFAULT_ENCODERS = (json_date_time_encode, class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode,)
-DEFAULT_NONP_ENCODERS = (nonumpy_encode,) + DEFAULT_ENCODERS
-DEFAULT_HOOKS = (json_date_time_hook, _cih_instance, json_complex_hook, json_set_hook, numeric_types_hook,)
-DEFAULT_NONP_HOOKS = (json_nonumpy_obj_hook,) + DEFAULT_HOOKS
+DEFAULT_ENCODERS = [json_date_time_encode, class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode,]
+DEFAULT_HOOKS = [json_date_time_hook, _cih_instance, json_complex_hook, json_set_hook, numeric_types_hook,]
+
+try:
+	import numpy
+except ImportError:
+	DEFAULT_ENCODERS = [nonumpy_encode,] + DEFAULT_ENCODERS
+	DEFAULT_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS
+else:
+	# numpy encode needs to be before complex
+	from .np import numpy_encode, json_numpy_obj_hook
+	DEFAULT_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS
+	DEFAULT_HOOKS = [json_numpy_obj_hook,] + DEFAULT_HOOKS
+
+try:
+	import pandas
+except ImportError:
+	DEFAULT_ENCODERS = [nopandas_encode,] + DEFAULT_ENCODERS
+	DEFAULT_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS
+else:
+	from json_tricks.np import numpy_encode, json_numpy_obj_hook
+	DEFAULT_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS
+	DEFAULT_HOOKS = [json_numpy_obj_hook,] + DEFAULT_HOOKS
 
 
-def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
+DEFAULT_NONP_ENCODERS = [nonumpy_encode,] + DEFAULT_ENCODERS    # DEPRECATED
+DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS   # DEPRECATED
+
+
+def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
 		primitives=False, compression=None, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
@@ -94,7 +83,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 	return gzstring
 
 
-def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
+def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
 		 primitives=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
@@ -133,7 +122,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_E
 	return string
 
 
-def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_NONP_HOOKS,
+def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
 		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
@@ -174,7 +163,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 
 
-def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_NONP_HOOKS,
+def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
 		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.

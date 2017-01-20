@@ -38,5 +38,43 @@ def call_with_optional_kwargs(callable, *args, **optional_kwargs):
 		if key in accepted_kwargs:
 			use_kwargs[key] = val
 	return callable(*args, **use_kwargs)
-	
+
+
+class NoNumpyException(Exception):
+	""" Trying to use numpy features, but numpy cannot be found. """
+
+
+class NoPandasException(Exception):
+	""" Trying to use pandas features, but pandas cannot be found. """
+
+
+def get_scalar_repr(npscalar):
+	return hashodict((
+		('__ndarray__', npscalar.item()),
+		('dtype', str(npscalar.dtype)),
+		('shape', ()),
+	))
+
+
+def encode_scalars_inplace(obj):
+	"""
+	Searches a data structure of lists, tuples and dicts for numpy scalars
+	and replaces them by their dictionary representation, which can be loaded
+	by json-tricks. This happens in-place (the object is changed, use a copy).
+	"""
+	from numpy import generic, complex64, complex128
+	if isinstance(obj, (generic, complex64, complex128)):
+		return get_scalar_repr(obj)
+	if isinstance(obj, dict):
+		for key, val in tuple(obj.items()):
+			obj[key] = encode_scalars_inplace(val)
+		return obj
+	if isinstance(obj, list):
+		for k, val in enumerate(obj):
+			obj[k] = encode_scalars_inplace(val)
+		return obj
+	if isinstance(obj, (tuple, set)):
+		return type(obj)(encode_scalars_inplace(val) for val in obj)
+	return obj
+
 

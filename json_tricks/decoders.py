@@ -5,6 +5,7 @@ from importlib import import_module
 from collections import OrderedDict
 from decimal import Decimal
 from logging import warning
+from json_tricks import NoPandasException, NoNumpyException
 
 
 class DuplicateJsonKeyException(Exception):
@@ -171,7 +172,10 @@ def pandas_hook(dct):
 			pandas_hook._warned = True
 			warning('Pandas loading support in json-tricks is experimental and may change in future versions.')
 	if '__pandas_dataframe__' in dct:
-		from pandas import DataFrame
+		try:
+			from pandas import DataFrame
+		except ImportError:
+			raise NoPandasException('Trying to decode a map which appears to represent a pandas data structure, but pandas appears not to be installed.')
 		from numpy import dtype, array
 		meta = dct.pop('__pandas_dataframe__')
 		indx = dct.pop('index') if 'index' in dct else None
@@ -196,6 +200,49 @@ def pandas_hook(dct):
 			name=meta['name'],
 			dtype=dtype(meta['type']),
 		)
+	return dct
+
+
+def nopandas_hook(dct):
+	if isinstance(dct, dict) and ('__pandas_dataframe__' in dct or '__pandas_series__' in dct):
+		raise NoPandasException(('Trying to decode a map which appears to represent a pandas '
+			'data structure, but pandas support is not enabled, perhaps it is not installed.'))
+	return dct
+
+
+def json_numpy_obj_hook(dct):
+	"""
+	Replace any numpy arrays previously encoded by NumpyEncoder to their proper
+	shape, data type and data.
+
+	:param dct: (dict) json encoded ndarray
+	:return: (ndarray) if input was an encoded ndarray
+	"""
+	if isinstance(dct, dict) and '__ndarray__' in dct:
+		try:
+			from numpy import asarray
+			import numpy as nptypes
+		except ImportError:
+			raise NoNumpyException('Trying to decode a map which appears to represent a numpy '
+				'array, but numpy appears not to be installed.')
+		order = 'A'
+		if 'Corder' in dct:
+			order = 'C' if dct['Corder'] else 'F'
+		if dct['shape']:
+			return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
+		else:
+			dtype = getattr(nptypes, dct['dtype'])
+			return dtype(dct['__ndarray__'])
+	return dct
+
+
+def json_nonumpy_obj_hook(dct):
+	"""
+	This hook has no effect except to check if you're trying to decode numpy arrays without support, and give you a useful message.
+	"""
+	if isinstance(dct, dict) and '__ndarray__' in dct:
+		raise NoNumpyException(('Trying to decode a map which appears to represent a numpy array, '
+			'but numpy support is not enabled, perhaps it is not installed.'))
 	return dct
 
 

@@ -5,7 +5,7 @@ from logging import warning
 from json import JSONEncoder
 from sys import version
 from decimal import Decimal
-from .utils import hashodict, call_with_optional_kwargs
+from .utils import hashodict, call_with_optional_kwargs, NoPandasException, NoNumpyException
 
 
 class TricksEncoder(JSONEncoder):
@@ -232,5 +232,80 @@ def pandas_encode(obj, primitives=False):
 		repr['data'] = tuple(obj.values)
 		return repr
 	return obj
+
+
+def nopandas_encode(obj):
+	if ('DataFrame' in getattr(obj.__class__, '__name__', '') or 'Series' in getattr(obj.__class__, '__name__', '')) \
+			and 'pandas.' in getattr(obj.__class__, '__module__', ''):
+		raise NoPandasException(('Trying to encode an object of type {0:} which appears to be '
+			'a numpy array, but numpy support is not enabled, perhaps it is not installed.').format(type(obj)))
+	return obj
+
+
+def numpy_encode(obj, primitives=False):
+	"""
+	Encodes numpy `ndarray`s as lists with meta data.
+	
+	Encodes numpy scalar types as Python equivalents. Special encoding is not possible,
+	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
+	which never reach the encoder.
+	
+	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
+	"""
+	from numpy import ndarray, generic
+	if isinstance(obj, ndarray):
+		if primitives:
+			return obj.tolist()
+		else:
+			dct = hashodict((
+				('__ndarray__', obj.tolist()),
+				('dtype', str(obj.dtype)),
+				('shape', obj.shape),
+			))
+			if len(obj.shape) > 1:
+				dct['Corder'] = obj.flags['C_CONTIGUOUS']
+			return dct
+	elif isinstance(obj, generic):
+		if NumpyEncoder.SHOW_SCALAR_WARNING:
+			NumpyEncoder.SHOW_SCALAR_WARNING = False
+			warning('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
+		return obj.item()
+	return obj
+
+
+class NumpyEncoder(ClassInstanceEncoder):
+	"""
+	JSON encoder for numpy arrays.
+	"""
+	SHOW_SCALAR_WARNING = True  # show a warning that numpy scalar serialization is experimental
+	
+	def default(self, obj, *args, **kwargs):
+		"""
+		If input object is a ndarray it will be converted into a dict holding
+		data type, shape and the data. The object can be restored using json_numpy_obj_hook.
+		"""
+		warning('`NumpyEncoder` is deprecated, use `numpy_encode`')  #todo
+		obj = numpy_encode(obj)
+		return super(NumpyEncoder, self).default(obj, *args, **kwargs)
+
+
+def nonumpy_encode(obj):
+	"""
+	Raises an error for numpy arrays.
+	"""
+	if 'ndarray' in getattr(obj.__class__, '__name__', '') and 'numpy.' in getattr(obj.__class__, '__module__', ''):
+		raise NoNumpyException(('Trying to encode an object of type {0:} which appears to be '
+			'a pandas data stucture, but pandas support is not enabled, perhaps it is not installed.').format(type(obj)))
+	return obj
+
+
+class NoNumpyEncoder(JSONEncoder):
+	"""
+	See `nonumpy_encode`.
+	"""
+	def default(self, obj, *args, **kwargs):
+		warning('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`')  #todo
+		obj = nonumpy_encode(obj)
+		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)
 
 
