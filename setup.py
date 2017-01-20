@@ -55,6 +55,7 @@ setup(
 		# pytz for timezones (and tests)
 		# pytest for tests
 		# tox for tests
+		# detox recommended for tests (optional)
 		# sphinx for documentation
 		# numpy for numpy functionality
 )
