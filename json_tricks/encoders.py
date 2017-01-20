@@ -42,6 +42,7 @@ class TricksEncoder(JSONEncoder):
 		prev_id = id(obj)
 		for encoder in self.obj_encoders:
 			if hasattr(encoder, 'default'):
+				#todo: write test for this scenario (maybe ClassInstanceEncoder?)
 				try:
 					obj = call_with_optional_kwargs(encoder.default, obj, primitives=self.primitives)
 				except TypeError as err:
@@ -52,6 +53,7 @@ class TricksEncoder(JSONEncoder):
 			else:
 				raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(encoder))
 		if id(obj) == prev_id:
+			#todo: test
 			raise TypeError('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]'.format(
 				type(obj), self.__class__.__name__, ', '.join(str(encoder) for encoder in self.obj_encoders)))
 		return obj
@@ -172,6 +174,7 @@ class ClassInstanceEncoder(JSONEncoder):
 	"""
 	See `class_instance_encoder`.
 	"""
+	# Not covered in tests since `class_instance_encode` is recommended way.
 	def __init__(self, obj, encode_cls_instances=True, **kwargs):
 		self.encode_cls_instances = encode_cls_instances
 		super(ClassInstanceEncoder, self).__init__(obj, **kwargs)
@@ -200,33 +203,33 @@ def json_set_encode(obj, primitives=False):
 	return obj
 
 
-def pandas_encode(obj):
+def pandas_encode(obj, primitives=False):
 	from pandas import DataFrame, Series
 	if isinstance(obj, (DataFrame, Series)):
 		#todo: this is experimental
-		if getattr(pandas_encode, '_warned', False):
+		if not getattr(pandas_encode, '_warned', False):
 			pandas_encode._warned = True
 			warning('Pandas dumping support in json-tricks is experimental and may change in future versions.')
 	if isinstance(obj, DataFrame):
-		repr = hashodict((
-			('__pandas_dataframe__', hashodict((
+		repr = hashodict()
+		if not primitives:
+			repr['__pandas_dataframe__'] = hashodict((
 				('column_order', tuple(obj.columns.values)),
 				('types', tuple(str(dt) for dt in obj.dtypes)),
-			))),
-			('index', tuple(obj.index.values)),
-		))
+			))
+		repr['index'] = tuple(obj.index.values)
 		for k, name in enumerate(obj.columns.values):
 			repr[name] = tuple(obj.ix[:, k].values)
 		return repr
 	if isinstance(obj, Series):
-		repr = hashodict((
-			('__pandas_series__', hashodict((
+		repr = hashodict()
+		if not primitives:
+			repr['__pandas_series__'] = hashodict((
 				('name', str(obj.name)),
 				('type', str(obj.dtype)),
-			))),
-			('index', tuple(obj.index.values)),
-			('data', tuple(obj.values)),
-		))
+			))
+		repr['index'] = tuple(obj.index.values)
+		repr['data'] = tuple(obj.values)
 		return repr
 	return obj
 
