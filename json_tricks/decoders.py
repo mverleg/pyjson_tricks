@@ -4,6 +4,7 @@ from fractions import Fraction
 from importlib import import_module
 from collections import OrderedDict
 from decimal import Decimal
+from logging import warning
 
 
 class DuplicateJsonKeyException(Exception):
@@ -160,6 +161,41 @@ def json_set_hook(dct):
 	if isinstance(dct, dict):
 		if '__set__' in dct:
 			return set((tuple(item) if isinstance(item, list) else item) for item in dct['__set__'])
+	return dct
+
+
+def pandas_hook(dct):
+	if '__pandas_dataframe__' in dct or '__pandas_series__' in dct:
+		# todo: this is experimental
+		if getattr(pandas_hook, '_warned', False):
+			pandas_hook._warned = True
+			warning('Pandas loading support in json-tricks is experimental and may change in future versions.')
+	if '__pandas_dataframe__' in dct:
+		from pandas import DataFrame
+		from numpy import dtype, array
+		meta = dct.pop('__pandas_dataframe__')
+		indx = dct.pop('index') if 'index' in dct else None
+		dtypes = dict((colname, dtype(tp)) for colname, tp in zip(meta['column_order'], meta['types']))
+		data = OrderedDict()
+		for name, col in dct.items():
+			data[name] = array(col, dtype=dtypes[name])
+		return DataFrame(
+			data=data,
+			index=indx,
+			columns=meta['column_order'],
+			# mixed `dtypes` argument not supported, so use duct of numpy arrays
+		)
+	elif '__pandas_series__' in dct:
+		from pandas import Series
+		from numpy import dtype, array
+		meta = dct.pop('__pandas_series__')
+		indx = dct.pop('index') if 'index' in dct else None
+		return Series(
+			data=dct['data'],
+			index=indx,
+			name=meta['name'],
+			dtype=dtype(meta['type']),
+		)
 	return dct
 
 

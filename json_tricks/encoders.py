@@ -108,7 +108,7 @@ def class_instance_encode(obj, primitives=False):
 		try:
 			obj.__new__(obj.__class__)
 		except TypeError:
-			raise TypeError(('instance "{0:s}" of class "{1:s}" cannot be encoded because it\'s __new__ method '
+			raise TypeError(('instance "{0:}" of class "{1:}" cannot be encoded because it\'s __new__ method '
 				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
 		mod = obj.__class__.__module__
 		if mod == '__main__':
@@ -197,6 +197,37 @@ def json_set_encode(obj, primitives=False):
 			return repr
 		else:
 			return hashodict(__set__=repr)
+	return obj
+
+
+def pandas_encode(obj):
+	from pandas import DataFrame, Series
+	if isinstance(obj, (DataFrame, Series)):
+		#todo: this is experimental
+		if getattr(pandas_encode, '_warned', False):
+			pandas_encode._warned = True
+			warning('Pandas dumping support in json-tricks is experimental and may change in future versions.')
+	if isinstance(obj, DataFrame):
+		repr = hashodict((
+			('__pandas_dataframe__', hashodict((
+				('column_order', tuple(obj.columns.values)),
+				('types', tuple(str(dt) for dt in obj.dtypes)),
+			))),
+			('index', tuple(obj.index.values)),
+		))
+		for k, name in enumerate(obj.columns.values):
+			repr[name] = tuple(obj.ix[:, k].values)
+		return repr
+	if isinstance(obj, Series):
+		repr = hashodict((
+			('__pandas_series__', hashodict((
+				('name', str(obj.name)),
+				('type', str(obj.dtype)),
+			))),
+			('index', tuple(obj.index.values)),
+			('data', tuple(obj.values)),
+		))
+		return repr
 	return obj
 
 
