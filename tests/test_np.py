@@ -150,10 +150,10 @@ def test_dump_np_scalars():
 			},
 			uint32(123456789),
 			float16(exp(-1)),
-			{
+			set((
 				int64(37),
 				uint64(-0),
-			},
+			)),
 		),
 	]
 	replaced = encode_scalars_inplace(deepcopy(data))

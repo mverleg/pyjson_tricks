@@ -14,6 +14,6 @@ def test_get_args():
 	def get_my_args(hello, world=7):
 		pass
 	argnames = get_arg_names(get_my_args)
-	assert argnames == {'hello', 'world'}
+	assert argnames == set(('hello', 'world'))
 
 

@@ -235,7 +235,7 @@ def test_float_precision():
 
 
 def test_set():
-	setdata = [{'set': {3, exp(1), (-5, +7), False}}]
+	setdata = [{'set': set((3, exp(1), (-5, +7), False))}]
 	json = dumps(setdata)
 	back = loads(json)
 	assert isinstance(back[0]['set'], set)

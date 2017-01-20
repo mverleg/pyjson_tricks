@@ -8,6 +8,7 @@ from json_tricks import dumps, loads
 from json_tricks.decoders import pandas_hook
 from json_tricks.encoders import pandas_encode
 
+
 COLUMNS = OrderedDict((
 	('name', ('Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliett',)),
 	('count', linspace(0, 10, 10, dtype=int)),
