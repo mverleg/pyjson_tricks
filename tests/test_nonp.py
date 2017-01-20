@@ -1,5 +1,6 @@
 
 from collections import OrderedDict
+from datetime import  datetime, time, date, timedelta
 from decimal import Decimal
 from fractions import Fraction
 from gzip import GzipFile
@@ -309,5 +310,40 @@ def test_fraction():
 	for x, y in zip(fractions, res):
 		assert isinstance(y, float)
 		assert abs(x - y) < 1e-10
+
+
+DTOBJ = [
+	datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7),
+	date(year=1988, month=3, day=15),
+	time(hour=8, minute=3, second=59, microsecond=123),
+	timedelta(days=2, seconds=3599),
+]
+
+
+def test_naive_date_time():
+	json = dumps(DTOBJ)
+	back = loads(json)
+	assert DTOBJ == back
+	for orig, bck in zip(DTOBJ, back):
+		assert orig == bck
+		assert type(orig) == type(bck)
+	txt = '{"__datetime__": null, "year": 1988, "month": 3, "day": 15, "hour": 8, "minute": 3, ' \
+			'"second": 59, "microsecond": 7}'
+	obj = loads(txt)
+	assert obj == datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7)
+
+
+def test_primitive_naive_date_time():
+	json = dumps(DTOBJ, primitives=True)
+	back = loads(json)
+	for orig, bck in zip(DTOBJ, back):
+		if isinstance(bck, (date, time, datetime,)):
+			assert isinstance(back, str if is_py3 else (str, unicode))
+			assert bck == orig.isoformat()
+		elif isinstance(bck, (timedelta,)):
+			assert isinstance(back, float)
+			assert bck == orig.total_seconds()
+	dt = datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7)
+	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007'
 
 
