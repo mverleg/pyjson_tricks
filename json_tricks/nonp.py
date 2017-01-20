@@ -93,7 +93,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCODERS, extra_obj_encoders=(),
-         primitives=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
+		 primitives=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -140,7 +140,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param decode_cls_instances: True to attempt to decode class instances (requires the environment to be similar the the encoding one).
 	:param preserve_order: Whether to preserve order by using OrderedDicts or not.
 	:param ignore_comments: Remove comments (starting with # or //).
-	:param decompression: True to use gzip decompression, False to use raw data, None to automatically determine (default).
+	:param decompression: True to use gzip decompression, False to use raw data, None to automatically determine (default). Assumes utf-8 encoding!
 	:param obj_pairs_hooks: A list of dictionary hooks to apply.
 	:param extra_obj_pairs_hooks: Like `obj_pairs_hooks` but on top of them: use this to add hooks without replacing defaults. Since v3.5 these happen before default hooks.
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
@@ -159,6 +159,8 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 			string = zh.read()
 			if is_py3:
 				string = str(string, encoding=ENCODING)
+	if is_py3 and isinstance(string, (bytes, bytearray)):
+		raise TypeError('Cannot automatically encode object of type "{0:}" in `json_tricks.load(s)` since the encoding is not known. You should instead encode the bytes to a string and pass that string to `load(s)`, for example bytevar.encode("utf-8") if utf-8 is the encoding.'.format(type(string)))
 	if ignore_comments:
 		string = strip_comments(string)
 	obj_pairs_hooks = tuple(obj_pairs_hooks)

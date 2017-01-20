@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from collections import OrderedDict
 from datetime import  datetime, time, date, timedelta
@@ -345,5 +347,16 @@ def test_primitive_naive_date_time():
 			assert bck == orig.total_seconds()
 	dt = datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7)
 	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007'
+
+
+def test_str_unicode_bytes():
+	text, pyrepr = u'{"mykey": "你好"}', {"mykey": u"你好"}
+	assert loads(text) == pyrepr
+	if is_py3:
+		with raises(TypeError) as err:
+			assert loads(text.encode('utf-8')) == pyrepr
+		assert 'Cannot automatically encode' in str(err)
+	else:
+		assert loads('{"mykey": "nihao"}') == {'mykey': 'nihao'}
 
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """
 This tests timezone-aware date/time objects, which need pytz. Naive date/times should

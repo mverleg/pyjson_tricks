@@ -27,15 +27,9 @@ You can install using
 
 .. code-block:: bash
 
-	pip install json-tricks
-	pip install numpy       # only if you want to use numpy arrays
-	pip install pytz        # only if you want timezone-aware datetimes
-
-If your code relies on the old version, make sure to install
-
-.. code-block:: bash
-
-	pip install `json-tricks<2.0`
+	pip install json-tricks  # or e.g. 'json-tricks<3.0' for older versions
+	pip install numpy        # only if you want to use numpy arrays
+	pip install pytz         # only if you want timezone-aware datetimes
 
 You can import the usual json functions dump(s) and load(s), as well as a separate comment removal function, as follows:
 
@@ -43,7 +37,7 @@ You can import the usual json functions dump(s) and load(s), as well as a separa
 
 	from json_tricks.np import dump, dumps, load, loads, strip_comments
 
-If you do not have numpy but want the other features, you should **``import from json_tricks.nonp`` instead**.
+If you do not have numpy, you should **``import from json_tricks.nonp`` instead**.
 
 The exact signatures of these functions are in the documentation_.
 
