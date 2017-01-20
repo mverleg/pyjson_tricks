@@ -1,7 +1,4 @@
 
-.. image:: https://travis-ci.org/mverleg/pyjson_tricks.svg?branch=master
-	:target: https://travis-ci.org/mverleg/pyjson_tricks
-
 JSON tricks (python)
 ---------------------------------------
 
@@ -10,8 +7,8 @@ The `pyjson-tricks` package brings several pieces of functionality to python han
 1. **Store and load numpy arrays** in human-readable format.
 2. **Store and load class instances** both generic and customized.
 3. **Store and load date/times** as a dictionary (including timezone).
-4. **Preserve map order** `{}` using `OrderedDict`.
-5. **Allow for comments** in json files by starting lines with `#`.
+4. **Preserve map order** ``{}`` using ``OrderedDict``.
+5. **Allow for comments** in json files by starting lines with ``#``.
 6. Sets, complex numbers, Decimal, Fraction, compression, duplicate keys, ...
 
 As well as compression and disallowing duplicate keys.
@@ -22,7 +19,7 @@ As well as compression and disallowing duplicate keys.
 
 The 2.0 series added some of the above features and broke backward compatibility. The version 3.0 series is a more readable rewrite that also makes it easier to combine encoders, again not fully backward compatible.
 
-Several keys of the format `__keyname__` have special meanings, and more might be added in future releases.
+Several keys of the format ``__keyname__`` have special meanings, and more might be added in future releases.
 
 Installation and use
 ---------------------------------------
@@ -48,11 +45,11 @@ The exact signatures of these functions are in the documentation_.
 Preserve type vs use primitive
 -------------------------------
 
-By default, types are encoded such that they can be restored to their original type when loaded with `json-tricks. Example encodings in this documentation refer to that format.
+By default, types are encoded such that they can be restored to their original type when loaded with ``json-tricks``. Example encodings in this documentation refer to that format.
 
 You can also choose to store things as their closest primitive type (e.g. arrays and sets as lists, decimals as floats). This may be desirable if you don't care about the exact type, or you are loading the json in another language (which doesn't restore python types). It's also smaller.
 
-To forego meta data and store primitives instead, pass `primitives` to `dump(s)`. This is available in version `3.8` and later. Example:
+To forego meta data and store primitives instead, pass ``primitives`` to ``dump(s)``. This is available in version ``3.8`` and later. Example:
 
 .. code-block:: python
 
@@ -147,7 +144,7 @@ To forego meta data and store primitives instead, pass `primitives` to `dump(s)`
 		[0, 1, 2, 3, 4, 5, 6]
 	]
 
-Note that valid json is produced either way: `json-tricks` stores meta data as normal json, but other packages probably won't interpret it.
+Note that valid json is produced either way: ``json-tricks`` stores meta data as normal json, but other packages probably won't interpret it.
 
 Features
 ---------------------------------------
@@ -175,9 +172,9 @@ this yields:
 		}
 	}
 
-which will be converted back to a numpy array when using `json_tricks.loads`. Note that the memory order (`Corder`) is only stored in v3.1 and later and for arrays with at least 2 dimensions.
+which will be converted back to a numpy array when using ``json_tricks.loads``. Note that the memory order (``Corder``) is only stored in v3.1 and later and for arrays with at least 2 dimensions.
 
-As you've seen, this uses the magic key `__ndarray__`. Don't use `__ndarray__` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
+As you've seen, this uses the magic key ``__ndarray__``. Don't use ``__ndarray__`` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
 
 Numpy scalars are also serialized (v3.5+). They are represented by the closest python primitive type. A special representation was not feasible, because Python's json implementation serializes some numpy types as primitives, without consulting custom encoders. If you want to preverse the exact numpy type, use encode_scalars_inplace_.
 
@@ -244,14 +241,14 @@ If the instance doesn't serialize automatically, or if you want custom behaviour
 			self.relevant = attrs['relevant']
 			self.irrelevant = 12
 
-As you've seen, this uses the magic key `__instance_type__`. Don't use `__instance_type__` as a dictionary key unless you know what you're doing.
+As you've seen, this uses the magic key ``__instance_type__``. Don't use ``__instance_type__`` as a dictionary key unless you know what you're doing.
 
 Date, time, datetime and timedelta
 +++++++++++++++++++++++++++++++++++++++
 
 Date, time, datetime and timedelta objects are stored as dictionaries of "day", "hour", "millisecond" etc keys, for each nonzero property.
 
-Timezone name is also stored in case it is set. You'll need to have `pytz` installed to use timezone-aware date/times, it's not needed for naive date/times.
+Timezone name is also stored in case it is set. You'll need to have ``pytz`` installed to use timezone-aware date/times, it's not needed for naive date/times.
 
 .. code-block:: javascript
 
@@ -267,9 +264,9 @@ Timezone name is also stored in case it is set. You'll need to have `pytz` insta
 		"tzinfo": "Europe/Amsterdam"
 	}
 
-This approach was chosen over timestamps for readability and consistency between date and time, and over a single string to prevent parsing problems and reduce dependencies. Note that if `primitives=True`, date/times are encoded as ISO 8601, but they won't be restored automatically.
+This approach was chosen over timestamps for readability and consistency between date and time, and over a single string to prevent parsing problems and reduce dependencies. Note that if ``primitives=True``, date/times are encoded as ISO 8601, but they won't be restored automatically.
 
-Don't use `__date__`, `__time__`, `__datetime__`, `__timedelta__` or `__tzinfo__` as dictionary keys unless you know what you're doing, as they have special meaning.
+Don't use ``__date__``, ``__time__``, ``__datetime__``, ``__timedelta__`` or ``__tzinfo__`` as dictionary keys unless you know what you're doing, as they have special meaning.
 
 Order
 +++++++++++++++++++++++++++++++++++++++
@@ -292,16 +289,16 @@ Converting to json and back will preserve the order:
 	json = dumps(ordered)
 	ordered = loads(json, preserve_order=True)
 
-where `preserve_order=True` is added for emphasis; it can be left out since it's the default.
+where ``preserve_order=True`` is added for emphasis; it can be left out since it's the default.
 
-As a note on performance_, both dicts and OrderedDicts have the same scaling for getting and setting items (`O(1)`). In Python versions before 3.5, OrderedDicts were implemented in Python rather than C, so were somewhat slower; since Python 3.5 both are implemented in C. In summary, you should have no scaling problems and probably no performance problems at all, especially for 3.5 and later. Python 3.6+ preserve order of dictionaries by default making this redundant, but this is an implementation detail that should not be relied on.
+As a note on performance_, both dicts and OrderedDicts have the same scaling for getting and setting items (``O(1)``). In Python versions before 3.5, OrderedDicts were implemented in Python rather than C, so were somewhat slower; since Python 3.5 both are implemented in C. In summary, you should have no scaling problems and probably no performance problems at all, especially for 3.5 and later. Python 3.6+ preserve order of dictionaries by default making this redundant, but this is an implementation detail that should not be relied on.
 
 Comments
 +++++++++++++++++++++++++++++++++++++++
 
 This package uses ``#`` and ``//`` for comments, which seem to be the most common conventions, though only the latter is valid javascript.
 
-For example, you could call `loads` on the following string::
+For example, you could call ``loads`` on the following string::
 
 	{ # "comment 1
 		"hello": "Wor#d", "Bye": "\"M#rk\"", "yes\\\"": 5,# comment" 2
@@ -322,14 +319,14 @@ And it would return the de-commented version:
 
 Since comments aren't stored in the Python representation of the data, loading and then saving a json file will remove the comments (it also likely changes the indentation).
 
-The implementation of comments is not particularly efficient, but it does handle all the special cases I could think of. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (`ignore_comments=False`).
+The implementation of comments is not particularly efficient, but it does handle all the special cases I could think of. For a few files you shouldn't notice any performance problems, but if you're reading hundreds of files, then they are presumably computer-generated, and you could consider turning comments off (``ignore_comments=False``).
 
 Other features
 +++++++++++++++++++++++++++++++++++++++
 
 * Sets are serializable and can be loaded. By default the set json representation is sorted, to have a consistent representation.
-* Save and load complex numbers (version 3.2) with `1+2j` serializing as `{'__complex__': [1, 2]}`.
-* Save and load `Decimal` and `Fraction` (including NaN, infinity, -0 for Decimal).
+* Save and load complex numbers (version 3.2) with ``1+2j`` serializing as ``{'__complex__': [1, 2]}``.
+* Save and load ``Decimal`` and ``Fraction`` (including NaN, infinity, -0 for Decimal).
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
 * ``json_tricks`` can check for duplicate keys in maps by setting ``allow_duplicates`` to False. These are `kind of allowed`_, but are handled inconsistently between json implementations. In Python, for ``dict`` and ``OrderedDict``, duplicate keys are silently overwritten.
 
@@ -339,6 +336,9 @@ Usage & contributions
 Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
 
 Contributions (ideas, issues, pull requests) are welcome!
+
+.. image:: https://travis-ci.org/mverleg/pyjson_tricks.svg?branch=master
+	:target: https://travis-ci.org/mverleg/pyjson_tricks
 
 .. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array
