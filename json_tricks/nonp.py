@@ -76,6 +76,8 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_NONP_ENCO
 
 	Use `json_tricks.np.dumps` instead if you want encoding of numpy arrays.
 	"""
+	if not hasattr(extra_obj_encoders, '__iter__'):
+		raise TypeError('`extra_obj_encoders` should be a tuple in `json_tricks.dump(s)`')
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	string = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
 		primitives=primitives, **jsonkwargs).encode(obj)
@@ -152,6 +154,8 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 
 	Use json_tricks.np.loads instead if you want decoding of numpy arrays.
 	"""
+	if not hasattr(extra_obj_pairs_hooks, '__iter__'):
+		raise TypeError('`extra_obj_pairs_hooks` should be a tuple in `json_tricks.load(s)`')
 	if decompression is None:
 		decompression = string[:2] == b'\x1f\x8b'
 	if decompression:
