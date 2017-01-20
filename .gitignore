@@ -10,3 +10,5 @@
 /.cache/
 /try.py
 /.tox/
+.coverage
+coverage.xml

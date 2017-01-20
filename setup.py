@@ -52,12 +52,15 @@ setup(
 		# 'Topic :: Utilities',
 	],
 	install_requires=requires,
-		# pytz for timezones (and tests)
-		# pytest for tests
-		# tox for tests
-		# detox recommended for tests (optional)
-		# sphinx for documentation
 		# numpy for numpy functionality
+		# pytz for timezones awareness
+		# pandas for data frame functionality
+		
+		# pytest for tests
+		# pytest-cov for test coverage
+		# tox for tests
+		# detox for parallel tests
+		# sphinx for documentation
 )
 
 
