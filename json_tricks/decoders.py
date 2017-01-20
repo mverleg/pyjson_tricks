@@ -167,7 +167,7 @@ def json_set_hook(dct):
 def pandas_hook(dct):
 	if '__pandas_dataframe__' in dct or '__pandas_series__' in dct:
 		# todo: this is experimental
-		if getattr(pandas_hook, '_warned', False):
+		if not getattr(pandas_hook, '_warned', False):
 			pandas_hook._warned = True
 			warning('Pandas loading support in json-tricks is experimental and may change in future versions.')
 	if '__pandas_dataframe__' in dct:

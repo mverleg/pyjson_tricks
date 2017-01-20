@@ -43,10 +43,10 @@ def test_tzaware_naive_date_time():
 	back = loads(json)
 	for orig, bck in zip(DTOBJ, back):
 		if isinstance(bck, (date, time, datetime,)):
-			assert isinstance(back, str if is_py3 else (str, unicode))
+			assert isinstance(bck, str if is_py3 else (str, unicode))
 			assert bck == orig.isoformat()
 		elif isinstance(bck, (timedelta,)):
-			assert isinstance(back, float)
+			assert isinstance(bck, float)
 			assert bck == orig.total_seconds()
 	dt = datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
 	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007+00:20'
