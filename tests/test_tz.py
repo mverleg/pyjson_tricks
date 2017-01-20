@@ -8,8 +8,8 @@ work with just Python code functionality, and are tested in `nonp`.
 
 from datetime import datetime, date, time, timedelta
 from json_tricks import dumps, loads
-import pytz
 from json_tricks.nonp import is_py3
+import pytz
 
 
 DTOBJ = [

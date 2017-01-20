@@ -4,12 +4,14 @@ from io import BytesIO
 from json import loads as json_loads
 from os import fsync
 from sys import exc_info, version
-from .utils import NoNumpyException
+from .utils import NoNumpyException  # keep 'unused' imports
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder, \
-	json_complex_encode, json_set_encode, numeric_types_encode, nonumpy_encode, NoNumpyEncoder  # keep 'unused' imports
+	json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, nonumpy_encode, NoNumpyEncoder, \
+	nopandas_encode, pandas_encode  # keep 'unused' imports
 from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
-	json_complex_hook, json_set_hook, numeric_types_hook, json_nonumpy_obj_hook  # keep 'unused' imports
+	json_complex_hook, json_set_hook, numeric_types_hook, json_numpy_obj_hook, json_nonumpy_obj_hook, \
+	nopandas_hook, pandas_hook  # keep 'unused' imports
 from json import JSONEncoder
 
 
@@ -29,7 +31,6 @@ except ImportError:
 	DEFAULT_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS
 else:
 	# numpy encode needs to be before complex
-	from .np import numpy_encode, json_numpy_obj_hook
 	DEFAULT_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS
 	DEFAULT_HOOKS = [json_numpy_obj_hook,] + DEFAULT_HOOKS
 
@@ -37,11 +38,10 @@ try:
 	import pandas
 except ImportError:
 	DEFAULT_ENCODERS = [nopandas_encode,] + DEFAULT_ENCODERS
-	DEFAULT_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS
+	DEFAULT_HOOKS = [nopandas_hook,] + DEFAULT_HOOKS
 else:
-	from json_tricks.np import numpy_encode, json_numpy_obj_hook
-	DEFAULT_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS
-	DEFAULT_HOOKS = [json_numpy_obj_hook,] + DEFAULT_HOOKS
+	DEFAULT_ENCODERS = [pandas_encode,] + DEFAULT_ENCODERS
+	DEFAULT_HOOKS = [pandas_hook,] + DEFAULT_HOOKS
 
 
 DEFAULT_NONP_ENCODERS = [nonumpy_encode,] + DEFAULT_ENCODERS    # DEPRECATED
