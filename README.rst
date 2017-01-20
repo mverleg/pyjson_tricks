@@ -1,3 +1,7 @@
+
+.. image:: https://travis-ci.org/mverleg/pyjson_tricks.svg?branch=master
+	:target: https://travis-ci.org/mverleg/pyjson_tricks
+
 JSON tricks (python)
 ---------------------------------------
 
