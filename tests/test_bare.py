@@ -7,6 +7,7 @@ from decimal import Decimal
 from fractions import Fraction
 from gzip import GzipFile
 from io import BytesIO
+from io import StringIO
 from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
@@ -30,7 +31,7 @@ def test_dumps_loads():
 	assert nonpdata == data2
 
 
-def test_file_handle_nonumpy():
+def test_file_handle():
 	path = join(mkdtemp(), 'pytest-nonp.json')
 	with open(path, 'wb+') as fh:
 		dump(nonpdata, fh, compression=6)
@@ -42,7 +43,30 @@ def test_file_handle_nonumpy():
 	assert data3 == nonpdata
 
 
-def test_file_path_nonumpy():
+def test_file_handle_types():
+	path = join(mkdtemp(), 'pytest-text.json')
+	for conv_str_byte in [True, False]:
+		with open(path, 'w+') as fh:
+			dump(nonpdata, fh, compression=False, conv_str_byte=conv_str_byte)
+		with open(path, 'r') as fh:
+			assert load(fh, conv_str_byte=conv_str_byte) == nonpdata
+		with StringIO() as fh:
+			dump(nonpdata, fh, conv_str_byte=conv_str_byte)
+			fh.seek(0)
+			assert load(fh, conv_str_byte=conv_str_byte) == nonpdata
+	with BytesIO() as fh:
+		with raises(TypeError):
+			dump(nonpdata, fh)
+	with BytesIO() as fh:
+		dump(nonpdata, fh, conv_str_byte=True)
+		fh.seek(0)
+		assert load(fh, conv_str_byte=True) == nonpdata
+	with open(path, 'w+') as fh:
+		with raises(IOError):
+			dump(nonpdata, fh, compression=6)
+
+
+def test_file_path():
 	path = join(mkdtemp(), 'pytest-nonp.json')
 	dump(nonpdata, path, compression=6)
 	data2 = load(path, decompression=True)
@@ -357,8 +381,9 @@ def test_str_unicode_bytes():
 	assert loads(text) == pyrepr
 	if is_py3:
 		with raises(TypeError) as err:
-			assert loads(text.encode('utf-8')) == pyrepr
+			loads(text.encode('utf-8'))
 		assert 'Cannot automatically encode' in str(err)
+		assert loads(text.encode('utf-8'), conv_str_byte=True) == pyrepr
 	else:
 		assert loads('{"mykey": "nihao"}') == {'mykey': 'nihao'}
 

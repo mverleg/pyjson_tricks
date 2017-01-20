@@ -49,7 +49,7 @@ DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS   # DEPRECATED
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
-		primitives=False, compression=None, allow_nan=False, **jsonkwargs):
+		primitives=False, compression=None, allow_nan=False, conv_str_byte=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -59,32 +59,30 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	:param obj_encoders: Iterable of encoders to use to convert arbitrary objects into json-able promitives.
 	:param extra_obj_encoders: Like `obj_encoders` but on top of them: use this to add encoders without replacing defaults. Since v3.5 these happen before default encoders.
 	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default False).
+	:param conv_str_byte: Try to automatically convert between strings and bytes (assuming utf-8) (default False).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to `cls`. Note that `sort_keys` should be false if you want to preserve order.
-
-	Use `json_tricks.np.dumps` instead if you want encoding of numpy arrays.
 	"""
 	if not hasattr(extra_obj_encoders, '__iter__'):
 		raise TypeError('`extra_obj_encoders` should be a tuple in `json_tricks.dump(s)`')
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
-	string = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
+	txt = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
 		primitives=primitives, **jsonkwargs).encode(obj)
 	if not compression:
-		return string
+		return txt
 	if compression is True:
 		compression = 5
-	if is_py3:
-		string = bytes(string, encoding=ENCODING)
+	txt = txt.encode(ENCODING)
 	sh = BytesIO()
 	with GzipFile(mode='wb', fileobj=sh, compresslevel=compression) as zh:
-		zh.write(string)
+		zh.write(txt)
 	gzstring = sh.getvalue()
 	return gzstring
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
-		 primitives=False, compression=None, force_flush=False, allow_nan=False, **jsonkwargs):
+		 primitives=False, compression=None, force_flush=False, allow_nan=False, conv_str_byte=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -93,18 +91,32 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 	:param force_flush: If True, flush the file handle used, when possibly also in the operating system (default False).
 	
 	The other arguments are identical to `dumps`.
-
-	Use `json_tricks.np.dump` instead if you want encoding of numpy arrays.
 	"""
-	string = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-		primitives=primitives, compression=compression, allow_nan=allow_nan, **jsonkwargs)
+	txt = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
+		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte, **jsonkwargs)
 	if isinstance(fp, str_type):
 		fh = open(fp, 'wb+')
 	else:
 		fh = fp
+		if conv_str_byte:
+			try:
+				fh.write(b'')
+			except TypeError:
+				if not isinstance(txt, str_type):
+					# Cannot write bytes, so must be in text mode, but we didn't get a text
+					if not compression:
+						txt = txt.decode(ENCODING)
+			else:
+				try:
+					fh.write('')
+				except TypeError:
+					if isinstance(txt, str_type):
+						txt = txt.encode(ENCODING)
 	try:
+		if 'b' not in getattr(fh, 'mode', 'b?') and not isinstance(txt, str_type) and compression:
+			raise IOError('If compression is enabled, the file must be opened in binary mode.')
 		try:
-			fh.write(string)
+			fh.write(txt)
 		except TypeError as err:
 			err.args = (err.args[0] + '. A possible reason is that the file is not opened in binary mode; '
 				'be sure to set file mode to something like "wb".',)
@@ -119,11 +131,11 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 				pass
 		if isinstance(fp, str_type):
 			fh.close()
-	return string
+	return txt
 
 
 def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
-		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -137,11 +149,10 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	:param cls_lookup_map: If set to a dict, for example ``globals()``, then classes encoded from __main__ are looked up this dict.
 	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
 	:param parse_float: A function to parse strings to integers (e.g. Decimal). There is also `parse_int`.
+	:param conv_str_byte: Try to automatically convert between strings and bytes (assuming utf-8) (default False).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
-
-	Use json_tricks.np.loads instead if you want decoding of numpy arrays.
 	"""
 	if not hasattr(extra_obj_pairs_hooks, '__iter__'):
 		raise TypeError('`extra_obj_pairs_hooks` should be a tuple in `json_tricks.load(s)`')
@@ -150,10 +161,14 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	if decompression:
 		with GzipFile(fileobj=BytesIO(string), mode='rb') as zh:
 			string = zh.read()
-			if is_py3:
-				string = str(string, encoding=ENCODING)
-	if is_py3 and isinstance(string, (bytes, bytearray)):
-		raise TypeError('Cannot automatically encode object of type "{0:}" in `json_tricks.load(s)` since the encoding is not known. You should instead encode the bytes to a string and pass that string to `load(s)`, for example bytevar.encode("utf-8") if utf-8 is the encoding.'.format(type(string)))
+			string = string.decode(ENCODING)
+	if not isinstance(string, str_type):
+		if conv_str_byte:
+			string = string.decode(ENCODING)
+		else:
+			raise TypeError(('Cannot automatically encode object of type "{0:}" in `json_tricks.load(s)` since '
+				'the encoding is not known. You should instead encode the bytes to a string and pass that '
+				'string to `load(s)`, for example bytevar.encode("utf-8") if utf-8 is the encoding.').format(type(string)))
 	if ignore_comments:
 		string = strip_comments(string)
 	obj_pairs_hooks = tuple(obj_pairs_hooks)
@@ -164,15 +179,13 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 
 
 def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
-		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, **jsonkwargs):
+		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
 	:param fp: File handle or path to load from.
 
 	The other arguments are identical to loads.
-
-	Use json_tricks.np.load instead if you want decoding of numpy arrays.
 	"""
 	try:
 		if isinstance(fp, str_type):
@@ -185,6 +198,6 @@ def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_
 			'opened  in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
 	return loads(string, preserve_order=preserve_order, ignore_comments=ignore_comments, decompression=decompression,
 		obj_pairs_hooks=obj_pairs_hooks, extra_obj_pairs_hooks=extra_obj_pairs_hooks, cls_lookup_map=cls_lookup_map,
-		allow_duplicates=allow_duplicates, **jsonkwargs)
+		allow_duplicates=allow_duplicates, conv_str_byte=conv_str_byte, **jsonkwargs)
 
 
