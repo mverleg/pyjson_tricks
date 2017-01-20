@@ -61,9 +61,10 @@ def test_file_handle_types():
 		dump(nonpdata, fh, conv_str_byte=True)
 		fh.seek(0)
 		assert load(fh, conv_str_byte=True) == nonpdata
-	with open(path, 'w+') as fh:
-		with raises(IOError):
-			dump(nonpdata, fh, compression=6)
+	if is_py3:
+		with open(path, 'w+') as fh:
+			with raises(IOError):
+				dump(nonpdata, fh, compression=6)
 
 
 def test_file_path():

@@ -16,7 +16,7 @@ from json import JSONEncoder
 
 
 is_py3 = (version[:2] == '3.')
-str_type = str if is_py3 else basestring
+str_type = str if is_py3 else (basestring, unicode,)
 ENCODING = 'UTF-8'
 
 
@@ -69,6 +69,8 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	txt = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
 		primitives=primitives, **jsonkwargs).encode(obj)
+	if not is_py3 and isinstance(txt, str):
+		txt = unicode(txt, ENCODING)
 	if not compression:
 		return txt
 	if compression is True:
@@ -108,7 +110,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 						txt = txt.decode(ENCODING)
 			else:
 				try:
-					fh.write('')
+					fh.write(u'')
 				except TypeError:
 					if isinstance(txt, str_type):
 						txt = txt.encode(ENCODING)
