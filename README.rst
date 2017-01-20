@@ -28,6 +28,8 @@ You can install using
 .. code-block:: bash
 
 	pip install json-tricks
+	pip install numpy       # only if you want to use numpy arrays
+	pip install pytz        # only if you want timezone-aware datetimes
 
 If your code relies on the old version, make sure to install
 
@@ -35,15 +37,13 @@ If your code relies on the old version, make sure to install
 
 	pip install `json-tricks<2.0`
 
-If you want to use numpy features, you should install numpy as well. If you don't, then numpy is not required.
-
 You can import the usual json functions dump(s) and load(s), as well as a separate comment removal function, as follows:
 
 .. code-block:: bash
 
 	from json_tricks.np import dump, dumps, load, loads, strip_comments
 
-If you do not have numpy and want to use only order preservation and commented json reading, you should **``import from json_tricks.nonp`` instead**.
+If you do not have numpy but want the other features, you should **``import from json_tricks.nonp`` instead**.
 
 The exact signatures of these functions are in the documentation_.
 
@@ -67,85 +67,87 @@ To forego meta data and store primitives instead, pass `primitives` to `dump(s)`
 		MyTestCls(s='ub', dct={'7': 7}),  # see later
 		set(range(7)),
 	]
-	print(dumps(data, indent=2))
+	# Encode with metadata to preserve types when decoding
+	print(dumps(data))
 
 .. code-block:: javascript
 
-    // (comments added and indenting changed)
-    [
-      // numpy array
-      {
-        "__ndarray__": [
-            [0, 1, 2, 3, 4],
-            [5, 6, 7, 8, 9]],
-        "dtype": "int64",
-        "shape": [2, 5],
-        "Corder": true
-      },
-      // datetime (naive)
-      {
-        "__datetime__": null,
-        "year": 2017,
-        "month": 1,
-        "day": 19,
-        "hour": 23
-      },
-      // complex number
-      {
-        "__complex__": [1.0, 2.0]
-      },
-      // decimal & fraction
-      {
-        "__decimal__": "42"
-      },
-      {
-        "__fraction__": true
-        "numerator": 1,
-        "denominator": 3,
-      },
-      // class instance
-      {
-        "__instance_type__": [
-          "tests.test_class",
-          "MyTestCls"
-        ],
-        "attributes": {
-          "s": "ub",
-          "dct": {"7": 7}
-        }
-      },
-      // set
-      {
-        "__set__": [0, 1, 2, 3, 4, 5, 6]
-      }
-    ]
+	// (comments added and indenting changed)
+	[
+		// numpy array
+		{
+			"__ndarray__": [
+				[0, 1, 2, 3, 4],
+				[5, 6, 7, 8, 9]],
+			"dtype": "int64",
+			"shape": [2, 5],
+			"Corder": true
+		},
+		// datetime (naive)
+		{
+			"__datetime__": null,
+			"year": 2017,
+			"month": 1,
+			"day": 19,
+			"hour": 23
+		},
+		// complex number
+		{
+			"__complex__": [1.0, 2.0]
+		},
+		// decimal & fraction
+		{
+			"__decimal__": "42"
+		},
+		{
+			"__fraction__": true
+			"numerator": 1,
+			"denominator": 3,
+		},
+		// class instance
+		{
+			"__instance_type__": [
+			  "tests.test_class",
+			  "MyTestCls"
+			],
+			"attributes": {
+			  "s": "ub",
+			  "dct": {"7": 7}
+			}
+		},
+		// set
+		{
+			"__set__": [0, 1, 2, 3, 4, 5, 6]
+		}
+	]
 
 .. code-block:: python
 
-    print(dumps(data, indent=2, primitives=True))
+	# Encode as primitive types; more simple but loses type information
+	print(dumps(data, primitives=True))
 
 .. code-block:: javascript
 
-    // (comments added and indentation changed)
-    [
-      // numpy array
-      [[0, 1, 2, 3, 4],
-       [5, 6, 7, 8, 9]],
-      // datetime (naive)
-      "2017-01-19T23:00:00",
-      // complex number
-      [1.0, 2.0],
-      // decimal & fraction
-      42.0,
-      0.3333333333333333,
-      // class instance
-      {
-        "s": "ub",
-        "dct": {"7": 7}
-      },
-      // set
-      [0, 1, 2, 3, 4, 5, 6]
-    ]
+	// (comments added and indentation changed)
+	[
+		// numpy array
+		[[0, 1, 2, 3, 4],
+		[5, 6, 7, 8, 9]],
+		// datetime (naive)
+		"2017-01-19T23:00:00",
+		// complex number
+		[1.0, 2.0],
+		// decimal & fraction
+		42.0,
+		0.3333333333333333,
+		// class instance
+		{
+			"s": "ub",
+			"dct": {"7": 7}
+		},
+		// set
+		[0, 1, 2, 3, 4, 5, 6]
+	]
 
 Note that valid json is produced either way: `json-tricks` stores meta data as normal json, but other packages probably won't interpret it.
 
@@ -249,7 +251,9 @@ As you've seen, this uses the magic key `__instance_type__`. Don't use `__instan
 Date, time, datetime and timedelta
 +++++++++++++++++++++++++++++++++++++++
 
-Date, time, datetime and timedelta objects are stored as dictionaries of "day", "hour", "millisecond" etc keys, for each nonzero property. Timezone name is also stored in case it is set.
+Date, time, datetime and timedelta objects are stored as dictionaries of "day", "hour", "millisecond" etc keys, for each nonzero property.
+
+Timezone name is also stored in case it is set. You'll need to have `pytz` installed to use timezone-aware date/times, it's not needed for naive date/times.
 
 .. code-block:: javascript
 
@@ -265,9 +269,7 @@ Date, time, datetime and timedelta objects are stored as dictionaries of "day", 
 		"tzinfo": "Europe/Amsterdam"
 	}
 
-This approach was chosen over timestamps for readability and consistency between date and time, and over a single string to prevent parsing problems and reduce dependencies.
-
-To use timezones, `pytz` should be installed. If you try to decode a timezone-aware time or datetime without pytz, you will get an error.
+This approach was chosen over timestamps for readability and consistency between date and time, and over a single string to prevent parsing problems and reduce dependencies. Note that if `primitives=True`, date/times are encoded as ISO 8601, but they won't be restored automatically.
 
 Don't use `__date__`, `__time__`, `__datetime__`, `__timedelta__` or `__tzinfo__` as dictionary keys unless you know what you're doing, as they have special meaning.
 
@@ -294,12 +296,14 @@ Converting to json and back will preserve the order:
 
 where `preserve_order=True` is added for emphasis; it can be left out since it's the default.
 
-As a note on performance_, both dicts and OrderedDicts have the same scaling for getting and setting items (`O(1)`). In Python versions before 3.5, OrderedDicts were implemented in Python rather than C, so were somewhat slower; since Python 3.5 both are implemented in C. In summary, you should have no scaling problems and probably no performance problems at all, especially for 3.5 and later.
+As a note on performance_, both dicts and OrderedDicts have the same scaling for getting and setting items (`O(1)`). In Python versions before 3.5, OrderedDicts were implemented in Python rather than C, so were somewhat slower; since Python 3.5 both are implemented in C. In summary, you should have no scaling problems and probably no performance problems at all, especially for 3.5 and later. Python 3.6+ preserve order of dictionaries by default making this redundant, but this is an implementation detail that should not be relied on.
 
 Comments
 +++++++++++++++++++++++++++++++++++++++
 
-This package uses ``#`` and ``//`` for comments, which seems to be the most common convention. For example, you could call `loads` on the following string::
+This package uses ``#`` and ``//`` for comments, which seem to be the most common conventions, though only the latter is valid javascript.
+
+For example, you could call `loads` on the following string::
 
 	{ # "comment 1
 		"hello": "Wor#d", "Bye": "\"M#rk\"", "yes\\\"": 5,# comment" 2
@@ -325,7 +329,7 @@ The implementation of comments is not particularly efficient, but it does handle
 Other features
 +++++++++++++++++++++++++++++++++++++++
 
-* Sets are serializable and can be loaded. By default the set is sorted, to have a consistent representation.
+* Sets are serializable and can be loaded. By default the set json representation is sorted, to have a consistent representation.
 * Save and load complex numbers (version 3.2) with `1+2j` serializing as `{'__complex__': [1, 2]}`.
 * Save and load `Decimal` and `Fraction` (including NaN, infinity, -0 for Decimal).
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
@@ -336,7 +340,7 @@ Usage & contributions
 
 Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
 
-Contributions are welcome! Please test that the ``py.test`` tests still pass when sending a pull request.
+Contributions (ideas, issues, pull requests) are welcome!
 
 .. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array
