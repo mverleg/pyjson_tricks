@@ -20,11 +20,11 @@ setup(
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
-	maintainer='(the author)',
-	author_email='mdilligaf@gmail.com',
+	maintainer='Mark V',
+	author_email='markv.nl.dev@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
-	keywords=['json', 'numpy', 'OrderedDict', 'comments',],
-	version='3.8.0',
+	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'encode', 'decode',],
+	version='3.9.0',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
@@ -62,5 +62,6 @@ setup(
 		# detox for parallel tests
 		# sphinx for documentation
 )
+
 
 
