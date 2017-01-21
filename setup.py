@@ -15,8 +15,7 @@ if version_info < (2, 7, 0):
 
 setup(
 	name='json_tricks',
-	description='Add features to json: en/decoding of numpy arrays, ' +
-		'preservation of ordering and ignoring of comments in input',
+        description='Extra features for Python\'s JSON: comments, order, numpy, pandas, datetimes, and many more! Simple but customizable.',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
