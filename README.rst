@@ -21,6 +21,8 @@ The 2.0 series added some of the above features and broke backward compatibility
 
 Several keys of the format ``__keyname__`` have special meanings, and more might be added in future releases.
 
+If you're considering JSON-but-with-comments as a config file format, have a look at HJSON_, it might be more appropriate. For other purposes, keep reading!
+
 Installation and use
 ---------------------------------------
 
@@ -340,6 +342,7 @@ Contributions (ideas, issues, pull requests) are welcome!
 .. image:: https://travis-ci.org/mverleg/pyjson_tricks.svg?branch=master
 	:target: https://travis-ci.org/mverleg/pyjson_tricks
 
+.. _HJSON: https://github.com/hjson/hjson-py
 .. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
 .. _stackoverflow: http://stackoverflow.com/questions/3488934/simplejson-and-numpy-array
 .. _performance: http://stackoverflow.com/a/8177061/723090
@@ -347,5 +350,6 @@ Contributions (ideas, issues, pull requests) are welcome!
 .. _benchmark: https://github.com/mverleg/array_storage_benchmark
 .. _`might be added`: https://github.com/mverleg/pyjson_tricks/issues/9
 .. _encode_scalars_inplace: https://json-tricks.readthedocs.io/en/latest/#json_tricks.np_utils.encode_scalars_inplace
+
 
 
