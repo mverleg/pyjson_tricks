@@ -22,6 +22,7 @@ except ImportError:
 			argspec = getargspec(callable)
 			return set(argspec.args)
 	else:
+		#todo: this is not covered in test case (py 3+ uses `signature`, py2 `getfullargspec`); consider removing it
 		def get_arg_names(callable):
 			argspec = getfullargspec(callable)
 			return set(argspec.args) | set(argspec.kwonlyargs)

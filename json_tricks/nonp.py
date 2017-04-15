@@ -104,10 +104,11 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 			try:
 				fh.write(b'')
 			except TypeError:
-				if not isinstance(txt, str_type):
-					# Cannot write bytes, so must be in text mode, but we didn't get a text
-					if not compression:
-						txt = txt.decode(ENCODING)
+				pass
+				# if not isinstance(txt, str_type):
+				# 	# Cannot write bytes, so must be in text mode, but we didn't get a text
+				# 	if not compression:
+				# 		txt = txt.decode(ENCODING)
 			else:
 				try:
 					fh.write(u'')
@@ -196,6 +197,7 @@ def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_
 		else:
 			string = fp.read()
 	except UnicodeDecodeError as err:
+		# todo: not covered in tests, is it relevant?
 		raise Exception('There was a problem decoding the file content. A possible reason is that the file is not ' +
 			'opened  in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
 	return loads(string, preserve_order=preserve_order, ignore_comments=ignore_comments, decompression=decompression,

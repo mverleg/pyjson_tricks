@@ -6,8 +6,7 @@ from datetime import  datetime, time, date, timedelta
 from decimal import Decimal
 from fractions import Fraction
 from gzip import GzipFile
-from io import BytesIO
-from io import StringIO
+from io import BytesIO, StringIO
 from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
@@ -388,4 +387,13 @@ def test_str_unicode_bytes():
 	else:
 		assert loads('{"mykey": "nihao"}') == {'mykey': 'nihao'}
 
+
+def test_binary_file_problems():
+	try:
+		load(BytesIO(b'{}'))
+	except TypeError as err:
+		assert 'encode the bytes to a string and pass that string to `load(s)`' in str(err)
+	else:
+		raise AssertionError('did not find the expected error when loading binary data')
+		
 
