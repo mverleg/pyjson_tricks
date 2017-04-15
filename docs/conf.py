@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-# json-tricks documentation build configuration file, created by
-# sphinx-quickstart on Thu Nov  5 22:52:45 2015.
-#
 # This file is execfile()d with the current directory set to its
 # containing dir.
 #
@@ -54,7 +51,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'json-tricks'
-copyright = u'2015, Mark'
+copyright = u'2017, Mark'
 author = u'Mark'
 
 # The version info for the project you're documenting, acts as replacement for

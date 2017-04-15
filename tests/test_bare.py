@@ -388,12 +388,3 @@ def test_str_unicode_bytes():
 		assert loads('{"mykey": "nihao"}') == {'mykey': 'nihao'}
 
 
-def test_binary_file_problems():
-	try:
-		load(BytesIO(b'{}'))
-	except TypeError as err:
-		assert 'encode the bytes to a string and pass that string to `load(s)`' in str(err)
-	else:
-		raise AssertionError('did not find the expected error when loading binary data')
-		
-
