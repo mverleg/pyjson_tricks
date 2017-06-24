@@ -21,8 +21,8 @@ ENCODING = 'UTF-8'
 
 
 _cih_instance = ClassInstanceHook()
-DEFAULT_ENCODERS = [json_date_time_encode, class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode,]
-DEFAULT_HOOKS = [json_date_time_hook, _cih_instance, json_complex_hook, json_set_hook, numeric_types_hook,]
+DEFAULT_ENCODERS = [json_date_time_encode, json_complex_encode, json_set_encode, numeric_types_encode, class_instance_encode,]
+DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook, numeric_types_hook, _cih_instance,]
 
 try:
 	import numpy
