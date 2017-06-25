@@ -152,7 +152,7 @@ class ClassInstanceHook(object):
 				obj.__json_decode__(**dct['attributes'])
 			else:
 				if 'slots' in dct:
-					for slot,value in dct['slots'].iteritems():
+					for slot,value in dct['slots'].items():
 						setattr(obj, slot, value)
 				else:
 					obj.__dict__ = dict(dct['attributes'])
