@@ -160,7 +160,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	if not hasattr(extra_obj_pairs_hooks, '__iter__'):
 		raise TypeError('`extra_obj_pairs_hooks` should be a tuple in `json_tricks.load(s)`')
 	if decompression is None:
-		decompression = string[:2] == b'\x1f\x8b'
+		decompression = isinstance(string, bytes) and string[:2] == b'\x1f\x8b'
 	if decompression:
 		with GzipFile(fileobj=BytesIO(string), mode='rb') as zh:
 			string = zh.read()

@@ -147,16 +147,19 @@ class ClassInstanceHook(object):
 				raise TypeError(('problem while decoding instance of "{0:s}"; this instance has a special '
 					'__new__ method and can\'t be restored').format(name))
 			if hasattr(obj, '__json_decode__'):
+				properties = {}
 				if 'slots' in dct:
-					obj.__json_decode__(**dct['slots'])
-				obj.__json_decode__(**dct['attributes'])
+					properties.update(dct['slots'])
+				if 'attributes' in dct:
+					properties.update(dct['attributes'])
+				obj.__json_decode__(**properties)
 			else:
 				if 'slots' in dct:
 					for slot,value in dct['slots'].items():
 						setattr(obj, slot, value)
-				else:
+				if 'attributes' in dct:
 					obj.__dict__ = dict(dct['attributes'])
-			return  obj
+			return obj
 		return dct
 
 

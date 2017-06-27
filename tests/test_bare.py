@@ -230,14 +230,17 @@ def test_cls_attributes_unchanged():
 	SuperClass.cls_attr = 37
 
 
-
 def test_cls_slots():
 	slots = [SlotsBase(), SlotsDictABC(), SlotsStr(), SlotsABCDict(), SlotsABC()]
 	txt = dumps(slots)
 	res = loads(txt)
-	for x, y in zip(slots, res):
-		assert isinstance(y, SlotsBase)
-		assert x == y
+	for inputobj, outputobj in zip(slots, res):
+		assert isinstance(outputobj, SlotsBase)
+		assert inputobj == outputobj
+	referenceobj = SlotsBase()
+	for outputobj in res[1:]:
+		assert outputobj != referenceobj
+
 
 def test_duplicates():
 	loads(test_json_duplicates, allow_duplicates=True)
