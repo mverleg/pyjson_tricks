@@ -40,3 +40,43 @@ class SubClass(SuperClass):
 
 
 
+class SlotsBase(object):
+    __slots__ = []
+    def __eq__(self, other):
+        ans = self.__class__ == other.__class__
+        slots = self.__slots__
+        if isinstance(slots,str):
+            slots = [slots]
+        return ans and all(getattr(self,i)==getattr(other,i) for i in self.__slots__)
+    
+    def __repr__(self):
+        return "%s(%s)"%(self.__class__.__name__, str([(i,getattr(self,i)) for i in self.__slots__]))
+
+
+class SlotsDictABC(SlotsBase):
+    __slots__ = ['__dict__']
+    def __init__(self, a = 'a', b = 'b', c = 'c'):
+        self.a = a
+        self.b = b
+        self.c = c
+
+class SlotsStr(SlotsBase):
+    __slots__ = 'a'
+    def __init__(self, a = 'a'):
+        self.a = a
+
+class SlotsABCDict(SlotsBase):
+    __slots__ = ['a','b','c','__dict__']
+    def __init__(self, a = 'a', b = 'b', c = 'c'):
+        self.a = a
+        self.b = b
+        self.c = c
+
+class SlotsABC(SlotsBase):
+    __slots__ = ['a','b','c']
+    def __init__(self, a = 'a', b = 'b', c = 'c'):
+        self.a = a
+        self.b = b
+        self.c = c
+
+

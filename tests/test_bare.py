@@ -12,7 +12,8 @@ from os.path import join
 from tempfile import mkdtemp
 from pytest import raises
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
-from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass
+from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, SlotsABCDict, SlotsABC
+
 
 
 nonpdata = {
@@ -228,6 +229,15 @@ def test_cls_attributes_unchanged():
 	assert inst.cls_attr == back.cls_attr == 42
 	SuperClass.cls_attr = 37
 
+
+
+def test_cls_slots():
+	slots = [SlotsBase(), SlotsDictABC(), SlotsStr(), SlotsABCDict(), SlotsABC()]
+	txt = dumps(slots)
+	res = loads(txt)
+	for x, y in zip(slots, res):
+		assert isinstance(y, SlotsBase)
+		assert x == y
 
 def test_duplicates():
 	loads(test_json_duplicates, allow_duplicates=True)
