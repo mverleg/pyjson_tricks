@@ -130,10 +130,11 @@ def class_instance_encode(obj, primitives=False):
 			slots = obj.__slots__
 			if isinstance(slots, str):
 				slots = [slots]
+			slots = list(item for item in slots if item != '__dict__')
 			dct['slots'] = hashodict([])
 			for s in slots:
 				dct['slots'][s] = getattr(obj, s)
-		else:
+		if hasattr(obj, '__dict__'):
 			dct['attributes'] = hashodict(obj.__dict__)
 		if primitives:
 			attrs = dct.get('attributes',{})
