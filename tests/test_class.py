@@ -45,7 +45,10 @@ class SlotsBase(object):
 	def __eq__(self, other):
 		if self.__class__ != other.__class__:
 			return False
-		return all(getattr(self, i) == getattr(other, i) for i in self.__class__.__slots__)
+		slots = self.__class__.__slots__
+		if isinstance(slots,str):
+			slots = [slots]
+		return all(getattr(self, i) == getattr(other, i) for i in slots)
 
 
 class SlotsDictABC(SlotsBase):
@@ -58,10 +61,10 @@ class SlotsDictABC(SlotsBase):
 
 
 class SlotsStr(SlotsBase):
-	__slots__ = 'a'
+	__slots__ = 'name'
 	
-	def __init__(self, a='a'):
-		self.a = a
+	def __init__(self, name='name'):
+		self.name = name
 
 
 class SlotsABCDict(SlotsBase):
