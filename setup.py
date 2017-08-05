@@ -15,7 +15,7 @@ if version_info < (2, 7, 0):
 
 setup(
 	name='json_tricks',
-        description='Extra features for Python\'s JSON: comments, order, numpy, pandas, datetimes, and many more! Simple but customizable.',
+	description='Extra features for Python\'s JSON: comments, order, numpy, pandas, datetimes, and many more! Simple but customizable.',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
