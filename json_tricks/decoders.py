@@ -5,6 +5,8 @@ from importlib import import_module
 from collections import OrderedDict
 from decimal import Decimal
 from logging import warning
+from time import struct_time
+
 from json_tricks import NoPandasException, NoNumpyException
 
 
@@ -77,6 +79,11 @@ def json_date_time_hook(dct):
 		elif '__timedelta__' in dct:
 			return timedelta(days=dct.get('days', 0), seconds=dct.get('seconds', 0),
 				microseconds=dct.get('microseconds', 0))
+		elif '__struct_time_iso__' in dct:
+			date_tuple = date(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0)).timetuple()
+			return struct_time(dct.get('year', 0), dct.get('month', 0), dct.get('day', 0),
+				dct.get('hour', 0), dct.get('minute', 0), dct.get('second', 0), date_tuple.tm_wday,
+				date_tuple.tm_yday, dct.get('isdst', 0))
 	return dct
 
 
@@ -158,7 +165,8 @@ class ClassInstanceHook(object):
 					for slot,value in dct['slots'].items():
 						setattr(obj, slot, value)
 				if 'attributes' in dct:
-					obj.__dict__ = dict(dct['attributes'])
+					obj.__dict__.clear()
+					obj.__dict__.update(dct['attributes'])
 			return obj
 		return dct
 

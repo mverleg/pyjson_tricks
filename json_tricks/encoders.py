@@ -5,6 +5,8 @@ from logging import warning
 from json import JSONEncoder
 from sys import version
 from decimal import Decimal
+from time import struct_time
+
 from .utils import hashodict, call_with_optional_kwargs, NoPandasException, NoNumpyException
 
 
@@ -87,10 +89,22 @@ def json_date_time_encode(obj, primitives=False):
 		else:
 			dct = hashodict([('__timedelta__', None), ('days', obj.days), ('seconds', obj.seconds),
 				('microseconds', obj.microseconds)])
+	elif isinstance(obj, struct_time):
+		if obj.tm_year <= 0:
+			warning("struct_time year is out of range for '{}'; weekday and day of year information will be lost when decoding".format(obj))
+		else:
+			date_tuple = date(year=obj.tm_year, month=obj.tm_mon, day=obj.tm_mday).timetuple()
+			if obj.tm_wday != date_tuple.tm_wday:
+				warning("struct_time year has an invalid weekday for '{}'; weekday information will be lost when decoding".format(obj))
+			if obj.tm_yday != date_tuple.tm_yday:
+				warning("struct_time year has an invalid day of year for '{}'; day of year information will be lost when decoding".format(obj))
+		dct = hashodict([('__struct_time_iso__', None), ('year', obj.tm_year), ('month', obj.tm_mon),
+			('day', obj.tm_mday), ('hour', obj.tm_hour), ('minute', obj.tm_min),
+			('second', obj.tm_sec), ('isdst', obj.tm_isdst)])
 	else:
 		return obj
 	for key, val in tuple(dct.items()):
-		if not key.startswith('__') and not val:
+		if not key.startswith('__') and not key == 'isdst' and not val:
 			del dct[key]
 	return dct
 
@@ -100,6 +114,7 @@ def class_instance_encode(obj, primitives=False):
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
 	imported in the same way.
 	"""
+	# if (isinstance(obj, list) or (isinstance(obj, dict)) and not hasattr(obj, '__dict__')):
 	if isinstance(obj, list) or isinstance(obj, dict):
 		return obj
 	if hasattr(obj, '__class__') and (hasattr(obj, '__dict__') or hasattr(obj, '__slots__')):
@@ -163,7 +178,7 @@ def json_complex_encode(obj, primitives=False):
 def numeric_types_encode(obj, primitives=False):
 	"""
 	Encode Decimal and Fraction.
-	
+
 	:param primitives: Encode decimals and fractions as standard floats. You may lose precision. If you do this, you may need to enable `allow_nan` (decimals always allow NaNs but floats do not).
 	"""
 	if isinstance(obj, Decimal):
@@ -260,11 +275,11 @@ def nopandas_encode(obj):
 def numpy_encode(obj, primitives=False):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
-	
+
 	Encodes numpy scalar types as Python equivalents. Special encoding is not possible,
 	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
 	which never reach the encoder.
-	
+
 	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
 	"""
 	from numpy import ndarray, generic
@@ -293,7 +308,7 @@ class NumpyEncoder(ClassInstanceEncoder):
 	JSON encoder for numpy arrays.
 	"""
 	SHOW_SCALAR_WARNING = True  # show a warning that numpy scalar serialization is experimental
-	
+
 	def default(self, obj, *args, **kwargs):
 		"""
 		If input object is a ndarray it will be converted into a dict holding
