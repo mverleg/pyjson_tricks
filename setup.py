@@ -23,7 +23,7 @@ setup(
 	author_email='markv.nl.dev@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'encode', 'decode',],
-	version='3.10.0',
+	version='3.10.1',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
@@ -54,7 +54,7 @@ setup(
 		# numpy for numpy functionality
 		# pytz for timezones awareness
 		# pandas for data frame functionality
-		
+
 		# pytest for tests
 		# pytest-cov for test coverage
 		# tox for tests

@@ -23,6 +23,8 @@ Several keys of the format ``__keyname__`` have special meanings, and more might
 
 If you're considering JSON-but-with-comments as a config file format, have a look at HJSON_, it might be more appropriate. For other purposes, keep reading!
 
+Thanks for all the Github stars!
+
 Installation and use
 ---------------------------------------
 
