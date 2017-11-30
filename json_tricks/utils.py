@@ -1,5 +1,6 @@
 
 from collections import OrderedDict
+from logging import warning
 
 
 class hashodict(OrderedDict):
@@ -79,3 +80,11 @@ def encode_scalars_inplace(obj):
 	return obj
 
 
+def get_module_name_from_object(obj):
+	mod = obj.__class__.__module__
+	if mod == '__main__':
+		mod = None
+		warning(('class {0:} seems to have been defined in the main file; unfortunately this means'
+			' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
+			'decoding').format(obj.__class__))
+	return mod

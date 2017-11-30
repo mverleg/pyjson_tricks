@@ -5,7 +5,7 @@ from logging import warning
 from json import JSONEncoder
 from sys import version
 from decimal import Decimal
-from .utils import hashodict, call_with_optional_kwargs, NoPandasException, NoNumpyException
+from .utils import hashodict, call_with_optional_kwargs, get_module_name_from_object, NoPandasException, NoNumpyException
 
 
 class TricksEncoder(JSONEncoder):
@@ -112,12 +112,7 @@ def class_instance_encode(obj, primitives=False):
 		except TypeError:
 			raise TypeError(('instance "{0:}" of class "{1:}" cannot be encoded because it\'s __new__ method '
 				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
-		mod = obj.__class__.__module__
-		if mod == '__main__':
-			mod = None
-			warning(('class {0:} seems to have been defined in the main file; unfortunately this means'
-				' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
-				'decoding').format(obj.__class__))
+		mod = get_module_name_from_object(obj)
 		name = obj.__class__.__name__
 		if hasattr(obj, '__json_encode__'):
 			attrs = obj.__json_encode__()
