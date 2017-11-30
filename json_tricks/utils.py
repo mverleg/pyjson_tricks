@@ -50,6 +50,10 @@ class NoPandasException(Exception):
 	""" Trying to use pandas features, but pandas cannot be found. """
 
 
+class NoEnumException(Exception):
+	""" Trying to use enum features, but enum cannot be found. """
+
+
 def get_scalar_repr(npscalar):
 	return hashodict((
 		('__ndarray__', npscalar.item()),
