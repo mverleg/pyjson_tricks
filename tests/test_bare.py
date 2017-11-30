@@ -401,3 +401,13 @@ def test_str_unicode_bytes():
 		assert loads('{"mykey": "nihao"}') == {'mykey': 'nihao'}
 
 
+def with_nondict_hook():
+	""" Add a custom hook, to test that all future hooks handle non-dicts. """
+	# Prevent issue 26 from coming back.
+	def test_hook(dct):
+		if not isinstance(dct, dict):
+			return
+		return ValueError()
+	loads('{"key": 42}', extra_obj_pairs_hooks=(test_hook,))
+
+

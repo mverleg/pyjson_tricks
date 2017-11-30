@@ -6,6 +6,7 @@ from numpy import linspace, isnan
 from numpy.testing import assert_equal
 from pandas import DataFrame, Series
 from json_tricks import dumps, loads
+from tests.test_bare import nonpdata
 
 
 COLUMNS = OrderedDict((
@@ -49,5 +50,19 @@ def test_pandas_series():
 		assert isinstance(back, dict)
 		assert_equal(ds.index.values, back['index'])
 		assert_equal(ds.values, back['data'])
+
+
+def test_pandas_mixed_with_other_types():
+	df = DataFrame(COLUMNS, columns=tuple(COLUMNS.keys()))
+	mixed = dict(
+		complex=1+42j,
+		frames=[df, df],
+		**nonpdata
+	)
+	txt = dumps(mixed, allow_nan=True)
+	back = loads(txt)
+	assert mixed['frames'][0].equals(back['frames'][0]) and mixed['frames'][1].equals(back['frames'][1])
+	del mixed['frames'], back['frames']  # cannot compare dataframes with '=='
+	assert mixed == back
 
 

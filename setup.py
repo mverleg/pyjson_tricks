@@ -23,7 +23,7 @@ setup(
 	author_email='markv.nl.dev@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'encode', 'decode',],
-	version='3.10.1',
+	version='3.10.2',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
