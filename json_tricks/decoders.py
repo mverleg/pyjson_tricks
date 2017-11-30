@@ -115,38 +115,14 @@ class ClassInstanceHook(object):
 	def __init__(self, cls_lookup_map=None):
 		self.cls_lookup_map = cls_lookup_map or {}
 
+class ClassInstanceHook(ClassInstanceHookBase):
 	def __call__(self, dct):
 		if not isinstance(dct, dict):
 			return dct
 		if '__instance_type__' not in dct:
 			return dct
 		mod, name = dct['__instance_type__']
-		if mod is None:
-			try:
-				Cls = getattr((__import__('__main__')), name)
-			except (ImportError, AttributeError) as err:
-				if not name in self.cls_lookup_map:
-					raise ImportError(('class {0:s} seems to have been exported from the main file, which means '
-						'it has no module/import path set; you need to provide cls_lookup_map which maps names '
-						'to classes').format(name))
-				Cls = self.cls_lookup_map[name]
-		else:
-			imp_err = None
-			try:
-				module = import_module('{0:}'.format(mod, name))
-			except ImportError as err:
-				imp_err = ('encountered import error "{0:}" while importing "{1:}" to decode a json file; perhaps '
-					'it was encoded in a different environment where {1:}.{2:} was available').format(err, mod, name)
-			else:
-				if not hasattr(module, name):
-					imp_err = 'imported "{0:}" but could find "{1:}" inside while decoding a json file (found {2:}'.format(
-						module, name, ', '.join(attr for attr in dir(module) if not attr.startswith('_')))
-				Cls = getattr(module, name)
-			if imp_err:
-				if 'name' in self.cls_lookup_map:
-					Cls = self.cls_lookup_map[name]
-				else:
-					raise ImportError(imp_err)
+		Cls = self.get_cls_from_instance_type(mod, name)
 		try:
 			obj = Cls.__new__(Cls)
 		except TypeError:
