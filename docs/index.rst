@@ -60,6 +60,19 @@ class instances
 
 .. autoclass:: json_tricks.decoders.ClassInstanceHook
 
+enum instances
++++++++++++++++++++++++++++++++++++++++
+
+Support for enums was added in Python 3.4. Support for previous versions of Python is available with the `enum 34`_ package.
+
+.. autofunction:: json_tricks.encoders.enum_instance_encode
+
+.. autoclass:: json_tricks.decoders.EnumInstanceHook
+
+By default ``IntEnum`` cannot be encoded as enums since they cannot be differenciated from integers. To serialize them, you must use `encode_intenums_inplace` which mutates a nested data structure (in place!) to replace any ``IntEnum`` by their representation. If you serialize this result, it can subsequently be loaded without further adaptations.
+
+.. autofunction:: json_tricks.utils.encode_intenums_inplace
+
 date/time
 +++++++++++++++++++++++++++++++++++++++
 
@@ -99,5 +112,6 @@ This is a simple module so the documentation is single-page.
 
 
 .. _`issue 18`: https://github.com/mverleg/pyjson_tricks/issues/18
+.. _`enum 34`: https://pypi.org/project/enum34/
 
 
