@@ -120,6 +120,29 @@ def encode_scalars_inplace(obj):
 	return obj
 
 
+def encode_intenums_inplace(obj):
+	"""
+	Searches a data structure of lists, tuples and dicts for IntEnum
+	and replaces them by their dictionary representation, which can be loaded
+	by json-tricks. This happens in-place (the object is changed, use a copy).
+	"""
+	from enum import IntEnum
+	from json_tricks import encoders
+	if isinstance(obj, IntEnum):
+		return encoders.enum_instance_encode(obj)
+	if isinstance(obj, dict):
+		for key, val in obj.items():
+			obj[key] = encode_intenums_inplace(val)
+		return obj
+	if isinstance(obj, list):
+		for index, val in enumerate(obj):
+			obj[index] = encode_intenums_inplace(val)
+		return obj
+	if isinstance(obj, (tuple, set)):
+		return type(obj)(encode_intenums_inplace(val) for val in obj)
+	return obj
+
+
 def get_module_name_from_object(obj):
 	mod = obj.__class__.__module__
 	if mod == '__main__':

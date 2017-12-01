@@ -3,7 +3,7 @@ try:
 	from json import JSONDecodeError  # imported for convenience
 except ImportError:
 	""" Older versions of Python use ValueError, of which JSONDecodeError is a subclass; it's recommended to catch ValueError. """
-from .utils import hashodict, NoEnumException, NoNumpyException, NoPandasException, get_scalar_repr, encode_scalars_inplace
+from .utils import hashodict, NoEnumException, NoNumpyException, NoPandasException, get_scalar_repr, encode_intenums_inplace, encode_scalars_inplace
 from .comment import strip_comment_line_with_symbol, strip_comments
 from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, json_complex_encode, \
 	numeric_types_encode, ClassInstanceEncoder, json_set_encode, pandas_encode, nopandas_encode, \
