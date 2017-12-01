@@ -5,7 +5,7 @@ from logging import warning
 from json import JSONEncoder
 from sys import version
 from decimal import Decimal
-from .utils import hashodict, call_with_optional_kwargs, NoPandasException, NoNumpyException
+from .utils import hashodict, call_with_optional_kwargs, get_module_name_from_object, NoEnumException, NoPandasException, NoNumpyException
 
 
 class TricksEncoder(JSONEncoder):
@@ -95,6 +95,34 @@ def json_date_time_encode(obj, primitives=False):
 	return dct
 
 
+def enum_instance_encode(obj, primitives=False):
+	"""Encodes an enum instance to json. Note that it can only be recovered if the environment allows the enum to be
+	imported in the same way.
+	"""
+	from enum import Enum
+	if not isinstance(obj, Enum):
+		return obj
+	if primitives:
+		return obj.value
+	mod = get_module_name_from_object(obj)
+	return {
+		'__enum__': {
+			# Don't use __instance_type__ here since enums members cannot be created with __new__
+			# Ie we can't rely on class deserialization to read them.
+			'__enum_instance_type__': [mod, type(obj).__name__],
+			'attributes': {
+				'name': obj.name,
+			},
+		},
+	}
+
+
+def noenum_instance_encode(obj, primitives=False):
+	if type(obj.__class__).__name__ == 'EnumMeta':
+		raise NoEnumException(('Trying to encode an object of type {0:} which appears to be '
+			'an enum, but enum support is not enabled, perhaps it is not installed.').format(type(obj)))
+
+
 def class_instance_encode(obj, primitives=False):
 	"""
 	Encodes a class instance to json. Note that it can only be recovered if the environment allows the class to be
@@ -112,12 +140,7 @@ def class_instance_encode(obj, primitives=False):
 		except TypeError:
 			raise TypeError(('instance "{0:}" of class "{1:}" cannot be encoded because it\'s __new__ method '
 				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
-		mod = obj.__class__.__module__
-		if mod == '__main__':
-			mod = None
-			warning(('class {0:} seems to have been defined in the main file; unfortunately this means'
-				' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
-				'decoding').format(obj.__class__))
+		mod = get_module_name_from_object(obj)
 		name = obj.__class__.__name__
 		if hasattr(obj, '__json_encode__'):
 			attrs = obj.__json_encode__()

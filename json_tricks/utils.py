@@ -1,5 +1,7 @@
 
 from collections import OrderedDict
+from importlib import import_module
+from logging import warning
 
 
 class hashodict(OrderedDict):
@@ -49,6 +51,45 @@ class NoPandasException(Exception):
 	""" Trying to use pandas features, but pandas cannot be found. """
 
 
+class NoEnumException(Exception):
+	""" Trying to use enum features, but enum cannot be found. """
+
+
+class ClassInstanceHookBase(object):
+	def __init__(self, cls_lookup_map=None):
+		self.cls_lookup_map = cls_lookup_map or {}
+
+	def get_cls_from_instance_type(self, mod, name):
+		if mod is None:
+			try:
+				Cls = getattr((__import__('__main__')), name)
+			except (ImportError, AttributeError) as err:
+				if name not in self.cls_lookup_map:
+					raise ImportError(('class {0:s} seems to have been exported from the main file, which means '
+						'it has no module/import path set; you need to provide cls_lookup_map which maps names '
+						'to classes').format(name))
+				Cls = self.cls_lookup_map[name]
+		else:
+			imp_err = None
+			try:
+				module = import_module('{0:}'.format(mod, name))
+			except ImportError as err:
+				imp_err = ('encountered import error "{0:}" while importing "{1:}" to decode a json file; perhaps '
+					'it was encoded in a different environment where {1:}.{2:} was available').format(err, mod, name)
+			else:
+				if not hasattr(module, name):
+					imp_err = 'imported "{0:}" but could find "{1:}" inside while decoding a json file (found {2:}'.format(
+						module, name, ', '.join(attr for attr in dir(module) if not attr.startswith('_')))
+				Cls = getattr(module, name)
+			if imp_err:
+				if 'name' in self.cls_lookup_map:
+					Cls = self.cls_lookup_map[name]
+				else:
+					raise ImportError(imp_err)
+
+		return Cls
+
+
 def get_scalar_repr(npscalar):
 	return hashodict((
 		('__ndarray__', npscalar.item()),
@@ -79,3 +120,34 @@ def encode_scalars_inplace(obj):
 	return obj
 
 
+def encode_intenums_inplace(obj):
+	"""
+	Searches a data structure of lists, tuples and dicts for IntEnum
+	and replaces them by their dictionary representation, which can be loaded
+	by json-tricks. This happens in-place (the object is changed, use a copy).
+	"""
+	from enum import IntEnum
+	from json_tricks import encoders
+	if isinstance(obj, IntEnum):
+		return encoders.enum_instance_encode(obj)
+	if isinstance(obj, dict):
+		for key, val in obj.items():
+			obj[key] = encode_intenums_inplace(val)
+		return obj
+	if isinstance(obj, list):
+		for index, val in enumerate(obj):
+			obj[index] = encode_intenums_inplace(val)
+		return obj
+	if isinstance(obj, (tuple, set)):
+		return type(obj)(encode_intenums_inplace(val) for val in obj)
+	return obj
+
+
+def get_module_name_from_object(obj):
+	mod = obj.__class__.__module__
+	if mod == '__main__':
+		mod = None
+		warning(('class {0:} seems to have been defined in the main file; unfortunately this means'
+			' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
+			'decoding').format(obj.__class__))
+	return mod

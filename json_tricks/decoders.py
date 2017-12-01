@@ -1,11 +1,11 @@
 
 from datetime import datetime, date, time, timedelta
 from fractions import Fraction
-from importlib import import_module
 from collections import OrderedDict
 from decimal import Decimal
 from logging import warning
-from json_tricks import NoPandasException, NoNumpyException
+from json_tricks import NoEnumException, NoPandasException, NoNumpyException
+from .utils import ClassInstanceHookBase
 
 
 class DuplicateJsonKeyException(Exception):
@@ -107,46 +107,40 @@ def numeric_types_hook(dct):
 	return dct
 
 
-class ClassInstanceHook(object):
+def noenum_hook(dct):
+	if isinstance(dct, dict) and '__enum__' in dct:
+		raise NoEnumException(('Trying to decode a map which appears to represent a enum '
+			'data structure, but enum support is not enabled, perhaps it is not installed.'))
+	return dct
+
+
+class EnumInstanceHook(ClassInstanceHookBase):
+	"""
+	This hook tries to convert json encoded by enum_instance_encode back to it's original instance.
+	It only works if the environment is the same, e.g. the enum is similarly importable and hasn't changed.
+	"""
+	def __call__(self, dct):
+		if not isinstance(dct, dict):
+			return dct
+		if '__enum__' not in dct:
+			return dct
+		mod, name = dct['__enum__']['__enum_instance_type__']
+		Cls = self.get_cls_from_instance_type(mod, name)
+		return Cls[dct['__enum__']['attributes']['name']]
+
+
+class ClassInstanceHook(ClassInstanceHookBase):
 	"""
 	This hook tries to convert json encoded by class_instance_encoder back to it's original instance.
 	It only works if the environment is the same, e.g. the class is similarly importable and hasn't changed.
 	"""
-	def __init__(self, cls_lookup_map=None):
-		self.cls_lookup_map = cls_lookup_map or {}
-
 	def __call__(self, dct):
 		if not isinstance(dct, dict):
 			return dct
 		if '__instance_type__' not in dct:
 			return dct
 		mod, name = dct['__instance_type__']
-		if mod is None:
-			try:
-				Cls = getattr((__import__('__main__')), name)
-			except (ImportError, AttributeError) as err:
-				if not name in self.cls_lookup_map:
-					raise ImportError(('class {0:s} seems to have been exported from the main file, which means '
-						'it has no module/import path set; you need to provide cls_lookup_map which maps names '
-						'to classes').format(name))
-				Cls = self.cls_lookup_map[name]
-		else:
-			imp_err = None
-			try:
-				module = import_module('{0:}'.format(mod, name))
-			except ImportError as err:
-				imp_err = ('encountered import error "{0:}" while importing "{1:}" to decode a json file; perhaps '
-					'it was encoded in a different environment where {1:}.{2:} was available').format(err, mod, name)
-			else:
-				if not hasattr(module, name):
-					imp_err = 'imported "{0:}" but could find "{1:}" inside while decoding a json file (found {2:}'.format(
-						module, name, ', '.join(attr for attr in dir(module) if not attr.startswith('_')))
-				Cls = getattr(module, name)
-			if imp_err:
-				if 'name' in self.cls_lookup_map:
-					Cls = self.cls_lookup_map[name]
-				else:
-					raise ImportError(imp_err)
+		Cls = self.get_cls_from_instance_type(mod, name)
 		try:
 			obj = Cls.__new__(Cls)
 		except TypeError:
