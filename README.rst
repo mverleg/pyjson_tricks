@@ -9,7 +9,7 @@ The `pyjson-tricks` package brings several pieces of functionality to python han
 3. **Store and load date/times** as a dictionary (including timezone).
 4. **Preserve map order** ``{}`` using ``OrderedDict``.
 5. **Allow for comments** in json files by starting lines with ``#``.
-6. Sets, complex numbers, Decimal, Fraction, compression, duplicate keys, ...
+`6. Sets, complex numbers, Decimal, Fraction, enums, compression, duplicate keys, ...
 
 As well as compression and disallowing duplicate keys.
 
@@ -33,18 +33,18 @@ You can install using
 .. code-block:: bash
 
 	pip install json-tricks  # or e.g. 'json-tricks<3.0' for older versions
-	pip install numpy        # only if you want to use numpy arrays
-	pip install pytz         # only if you want timezone-aware datetimes
+
+Decoding of some data types needs the corresponding package to be installed, e.g. ``numpy`` for arrays, ``pandas`` for dataframes and ``pytz`` for timezone-aware datetimes.
 
 You can import the usual json functions dump(s) and load(s), as well as a separate comment removal function, as follows:
 
 .. code-block:: bash
 
-	from json_tricks.np import dump, dumps, load, loads, strip_comments
+	from json_tricks import dump, dumps, load, loads, strip_comments
 
-If you do not have numpy, you should **``import from json_tricks.nonp`` instead**.
+The exact signatures of these and other functions are in the documentation_.
 
-The exact signatures of these functions are in the documentation_.
+``json-tricks`` supports Python 2.7, and Python 3.4 and later, and is automatically tested on 2.7, 3.4, 3.5 and 3.6. Pypy is supported without numpy and pandas.
 
 Preserve type vs use primitive
 -------------------------------
@@ -231,11 +231,11 @@ Note that this also works with ``slots`` without having to do anything (thanks t
 
 .. code-block:: javascript
 
-    {
-        "__instance_type__": ["module.path", "ClassName"],
-        "slots": {"slotattr": 37},
-        "attributes": {"dictattr": 42}
-    }
+	{
+		"__instance_type__": ["module.path", "ClassName"],
+		"slots": {"slotattr": 37},
+		"attributes": {"dictattr": 42}
+	}
 
 If the instance doesn't serialize automatically, or if you want custom behaviour, then you can implement ``__json__encode__(self)`` and ``__json_decode__(self, **attributes)`` methods, like so:
 
@@ -341,6 +341,7 @@ Other features
 * Sets are serializable and can be loaded. By default the set json representation is sorted, to have a consistent representation.
 * Save and load complex numbers (version 3.2) with ``1+2j`` serializing as ``{'__complex__': [1, 2]}``.
 * Save and load ``Decimal`` and ``Fraction`` (including NaN, infinity, -0 for Decimal).
+* Save and load ``Enum`` (thanks to ``Jenselme``), either built-in in python3.4+, or with the enum34_ package in earlier versions. ``IntEnum`` needs encode_intenums_inplace_.
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
 * ``json_tricks`` can check for duplicate keys in maps by setting ``allow_duplicates`` to False. These are `kind of allowed`_, but are handled inconsistently between json implementations. In Python, for ``dict`` and ``OrderedDict``, duplicate keys are silently overwritten.
 
@@ -362,6 +363,7 @@ Contributions (ideas, issues, pull requests) are welcome!
 .. _benchmark: https://github.com/mverleg/array_storage_benchmark
 .. _`might be added`: https://github.com/mverleg/pyjson_tricks/issues/9
 .. _encode_scalars_inplace: https://json-tricks.readthedocs.io/en/latest/#json_tricks.np_utils.encode_scalars_inplace
-
+.. _encode_intenums_inplace: https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace
+.. _enum34: https://pypi.org/project/enum34/
 
 

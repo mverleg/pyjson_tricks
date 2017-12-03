@@ -15,15 +15,17 @@ if version_info < (2, 7, 0):
 
 setup(
 	name='json_tricks',
-	description='Extra features for Python\'s JSON: comments, order, numpy, pandas, datetimes, and many more! Simple but customizable.',
+	description='Extra features for Python\'s JSON: comments, order, numpy, '
+        + 'pandas, datetimes, and many more! Simple but customizable.',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
 	maintainer='Mark V',
 	author_email='markv.nl.dev@gmail.com',
 	license='Revised BSD License (LICENSE.txt)',
-	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'encode', 'decode',],
-	version='3.10.2',
+	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'pytz',
+		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
+	version='3.11.0',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=False,
@@ -36,10 +38,8 @@ setup(
 		'Operating System :: OS Independent',
 		'Programming Language :: Python',
 		'Programming Language :: Python :: 2',
-		'Programming Language :: Python :: 2.6',  # it should work, but there's a problem with tests
 		'Programming Language :: Python :: 2.7',
 		'Programming Language :: Python :: 3',
-		'Programming Language :: Python :: 3.3',
 		'Programming Language :: Python :: 3.4',
 		'Programming Language :: Python :: 3.5',
 		'Programming Language :: Python :: 3.6',
@@ -54,6 +54,7 @@ setup(
 		# numpy for numpy functionality
 		# pytz for timezones awareness
 		# pandas for data frame functionality
+		# enum34 for enums on python2x
 
 		# pytest for tests
 		# pytest-cov for test coverage
