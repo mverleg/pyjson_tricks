@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from sys import version_info
+from logging import warn
+
 from setuptools import setup
 
 
@@ -12,6 +14,11 @@ requires = []
 if version_info < (2, 7, 0):
 	requires.append('ordereddict')
 
+if (version_info[0] == 2 and version_info[1] < 7) or \
+		(version_info[0] == 3 and version_info[1] < 4) or \
+		version_info[0] not in (2, 3):
+	raise warn('`json_tricks` does not support Python version {}.{}'
+		.format(version_info[0], version_info[1]))
 
 setup(
 	name='json_tricks',

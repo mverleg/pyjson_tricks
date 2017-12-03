@@ -94,7 +94,7 @@ It's not great, but unless the Python json module changes, it's the best that ca
 Running tests
 ---------------------------------------
 
-There are many test environments: with and without pandas, numpy or timezone support, and for each of the supported Python versions. You will need all the Python versions installed, as well as a number of packages available though. You can just install only ``detox`` (``pip install detox``), and others will be installed automatically as dependencies or during tests (like ``numpy``, ``pandas``, ``pytz``, ``pytest``, ``pytest-cov`` and ``tox``).
+There are many test environments: with and without pandas, numpy or timezone support, and for each of the supported Python versions. You will need all the Python versions installed, as well as a number of packages available through pip. You can just install ``detox`` (``pip install detox``), and others will be installed automatically as dependencies or during tests (like ``numpy``, ``pandas``, ``pytz``, ``pytest``, ``pytest-cov`` and ``tox``).
 
 To run all of these tests at once, simply run ``detox`` from the main directory. It usually takes roughly half a minute, but the first time takes longer because packages need to be installed.
 
