@@ -98,6 +98,7 @@ def json_date_time_encode(obj, primitives=False):
 def enum_instance_encode(obj, primitives=False):
 	"""Encodes an enum instance to json. Note that it can only be recovered if the environment allows the enum to be
 	imported in the same way.
+	:param primitives: If true, encode the enum values as primitive (more readable, but cannot be restored automatically).
 	"""
 	from enum import Enum
 	if not isinstance(obj, Enum):
@@ -121,6 +122,7 @@ def noenum_instance_encode(obj, primitives=False):
 	if type(obj.__class__).__name__ == 'EnumMeta':
 		raise NoEnumException(('Trying to encode an object of type {0:} which appears to be '
 			'an enum, but enum support is not enabled, perhaps it is not installed.').format(type(obj)))
+	return obj
 
 
 def class_instance_encode(obj, primitives=False):
