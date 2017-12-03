@@ -19,7 +19,7 @@ except ImportError:
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
 
 
-# todo: warning('`json_tricks.np` is deprecated, you can import directly from `json_tricks`')
+warning('`json_tricks.np` is deprecated, you can import directly from `json_tricks`')
 
 
 DEFAULT_NP_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS    # DEPRECATED

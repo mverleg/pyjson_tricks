@@ -10,10 +10,12 @@ from tests.test_bare import nonpdata
 
 
 COLUMNS = OrderedDict((
-	('name', ('Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliett',)),
+	('name', ('Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf',
+		'Hotel', 'India', 'Juliett',)),
 	('count', linspace(0, 10, 10, dtype=int)),
 	('real', linspace(0, 7.5, 10, dtype=float)),
-	('special', (float('NaN'), float('+inf'), float('-inf'), float('+0'), float('-0'), 1, 2, 3, 4, 5)),
+	('special', (float('NaN'), float('+inf'), float('-inf'), float('+0'),
+		float('-0'), 1, 2, 3, 4, 5)),
 	#todo: other types?
 ))
 

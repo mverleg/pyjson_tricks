@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 class MyTestCls(object):
 	def __init__(self, **kwargs):
 		for k, v in kwargs.items():

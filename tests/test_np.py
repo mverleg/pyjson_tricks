@@ -132,7 +132,6 @@ def test_array_types():
 
 def test_encode_scalar():
 	encd = encode_scalars_inplace([complex128(1+2j)])
-	print(encd)
 	assert isinstance(encd[0], dict)
 	assert encd[0]['__ndarray__'] == 1+2j
 	assert encd[0]['shape'] == ()
@@ -159,8 +158,6 @@ def test_dump_np_scalars():
 	replaced = encode_scalars_inplace(deepcopy(data))
 	json = dumps(replaced)
 	rec = loads(json)
-	print(data)
-	print(rec)
 	assert data[0] == rec[0]
 	assert data[1] == rec[1]
 	assert data[2][0] == rec[2][0]

@@ -6,12 +6,18 @@ from os import fsync
 from sys import exc_info, version
 from .utils import NoNumpyException  # keep 'unused' imports
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
-from .encoders import TricksEncoder, json_date_time_encode, class_instance_encode, ClassInstanceEncoder, \
-	json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, nonumpy_encode, NoNumpyEncoder, \
-	nopandas_encode, pandas_encode, noenum_instance_encode, enum_instance_encode  # keep 'unused' imports
-from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_hook, ClassInstanceHook, \
-	json_complex_hook, json_set_hook, numeric_types_hook, json_numpy_obj_hook, json_nonumpy_obj_hook, \
-	nopandas_hook, pandas_hook, EnumInstanceHook, noenum_hook  # keep 'unused' imports
+from .encoders import TricksEncoder, json_date_time_encode, \
+	class_instance_encode, ClassInstanceEncoder, \
+	json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, \
+	nonumpy_encode, NoNumpyEncoder, \
+	nopandas_encode, pandas_encode, noenum_instance_encode, \
+	enum_instance_encode  # keep 'unused' imports
+from .decoders import DuplicateJsonKeyException, TricksPairHook, \
+	json_date_time_hook, ClassInstanceHook, \
+	json_complex_hook, json_set_hook, numeric_types_hook, json_numpy_obj_hook, \
+	json_nonumpy_obj_hook, \
+	nopandas_hook, pandas_hook, EnumInstanceHook, \
+	noenum_hook  # keep 'unused' imports
 from json import JSONEncoder
 
 
@@ -22,14 +28,16 @@ ENCODING = 'UTF-8'
 
 _cih_instance = ClassInstanceHook()
 _eih_instance = EnumInstanceHook()
-DEFAULT_ENCODERS = [json_date_time_encode, json_complex_encode, json_set_encode, numeric_types_encode, class_instance_encode,]
-DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook, numeric_types_hook, _cih_instance,]
+DEFAULT_ENCODERS = [json_date_time_encode, json_complex_encode, json_set_encode,
+                    numeric_types_encode, class_instance_encode, ]
+DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook,
+                 numeric_types_hook, _cih_instance, ]
 
 
 try:
 	import enum
 except ImportError:
-	DEFAULT_ENCODERS = [noenum_encode,] + DEFAULT_ENCODERS
+	DEFAULT_ENCODERS = [noenum_instance_encode,] + DEFAULT_ENCODERS
 	DEFAULT_HOOKS = [noenum_hook,] + DEFAULT_HOOKS
 else:
 	DEFAULT_ENCODERS = [enum_instance_encode,] + DEFAULT_ENCODERS

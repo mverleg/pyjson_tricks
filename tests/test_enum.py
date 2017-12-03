@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-
+from datetime import datetime
 from enum import Enum, IntEnum
 from json_tricks import dumps, loads, encode_intenums_inplace
 
@@ -68,3 +68,28 @@ def test_encode_int_enum_inplace():
 	assert data['int_member'] == MyIntEnum.int_member
 	assert isinstance(data['list'][0], MyIntEnum)
 	assert isinstance(data['nested']['member'], MyIntEnum)
+
+
+class EnumValueTest(object):
+	alpha = 37
+	def __init__(self, beta):
+		self.beta = beta
+
+
+class CombineComplexTypesEnum(Enum):
+	class_inst = EnumValueTest(beta=42)
+	timepoint = datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7)
+	img = 1j
+
+
+def test_complex_types_enum():
+	obj = [
+		CombineComplexTypesEnum.timepoint,
+		CombineComplexTypesEnum.img,
+		CombineComplexTypesEnum.class_inst,
+	]
+	txt = dumps(encode_intenums_inplace(obj))
+	back = loads(txt)
+	assert obj == back
+
+
