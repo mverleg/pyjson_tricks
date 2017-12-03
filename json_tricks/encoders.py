@@ -95,27 +95,29 @@ def json_date_time_encode(obj, primitives=False):
 	return dct
 
 
-def enum_instance_encode(obj, primitives=False):
+def enum_instance_encode(obj, primitives=False, with_enum_value=False):
 	"""Encodes an enum instance to json. Note that it can only be recovered if the environment allows the enum to be
 	imported in the same way.
 	:param primitives: If true, encode the enum values as primitive (more readable, but cannot be restored automatically).
+	:param with_enum_value: If true, the value of the enum is also exported (it is not used during import, as it should be constant).
 	"""
 	from enum import Enum
 	if not isinstance(obj, Enum):
 		return obj
 	if primitives:
-		return obj.value
+		return {obj.name: obj.value}
 	mod = get_module_name_from_object(obj)
-	return {
-		'__enum__': {
+	representation = dict(
+		__enum__=dict(
 			# Don't use __instance_type__ here since enums members cannot be created with __new__
 			# Ie we can't rely on class deserialization to read them.
-			'__enum_instance_type__': [mod, type(obj).__name__],
-			'attributes': {
-				'name': obj.name,
-			},
-		},
-	}
+			__enum_instance_type__=[mod, type(obj).__name__],
+			name=obj.name,
+		),
+	)
+	if with_enum_value:
+		representation['__enum__']['value'] = obj.value
+	return representation
 
 
 def noenum_instance_encode(obj, primitives=False):

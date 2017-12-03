@@ -24,8 +24,10 @@ except ImportError:
 		from inspect import getargspec
 		def get_arg_names(callable):
 			if type(callable) == partial and version_info[0] == 2:
-				warn("'functools.partial' and 'inspect.getargspec' are not compatible in this Python version; "
-					"ignoring the 'partial' wrapper when inspecting arguments of {}, which can lead to problems".format(callable))
+				if not hasattr(get_arg_names, '__warned_partial_argspec'):
+					get_arg_names.__warned_partial_argspec = True
+					warn("'functools.partial' and 'inspect.getargspec' are not compatible in this Python version; "
+						"ignoring the 'partial' wrapper when inspecting arguments of {}, which can lead to problems".format(callable))
 				return set(getargspec(callable.func).args)
 			argspec = getargspec(callable)
 			return set(argspec.args)

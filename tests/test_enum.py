@@ -3,8 +3,10 @@
 
 import sys
 from datetime import datetime
+from functools import partial
 from enum import Enum, IntEnum
 from json_tricks import dumps, loads, encode_intenums_inplace
+from json_tricks.encoders import enum_instance_encode
 
 
 PY2 = sys.version_info[0] == 2
@@ -29,7 +31,7 @@ def test_enum():
 
 
 def test_enum_instance_global():
-	json = '{"__enum__": {"__enum_instance_type__": [null, "MyEnum"], "attributes": {"name": "member1"}}}'
+	json = '{"__enum__": {"__enum_instance_type__": [null, "MyEnum"], "name": "member1"}}'
 	back = loads(json, cls_lookup_map=globals())
 	assert isinstance(back, MyEnum)
 	assert back == MyEnum.member1
@@ -38,7 +40,7 @@ def test_enum_instance_global():
 def test_enum_primitives():
 	member = MyEnum.member1
 	txt = dumps(member, primitives=True)
-	assert txt == '"VALUE1"'
+	assert txt == '{"member1": "VALUE1"}'
 
 
 def test_encode_int_enum():
@@ -91,5 +93,17 @@ def test_complex_types_enum():
 	txt = dumps(encode_intenums_inplace(obj))
 	back = loads(txt)
 	assert obj == back
+
+
+def test_with_value():
+	obj = [CombineComplexTypesEnum.class_inst, CombineComplexTypesEnum.timepoint]
+	encoder = partial(enum_instance_encode, with_enum_value=True)
+	txt = dumps(obj, extra_obj_encoders=(encoder,))
+	assert '"value":' in txt
+	back = loads(txt, obj_pairs_hooks=())
+	class_inst_encoding = loads(dumps(CombineComplexTypesEnum.class_inst.value), obj_pairs_hooks=())
+	timepoint_encoding = loads(dumps(CombineComplexTypesEnum.timepoint.value), obj_pairs_hooks=())
+	assert back[0]['__enum__']['value'] == class_inst_encoding
+	assert back[1]['__enum__']['value'] == timepoint_encoding
 
 

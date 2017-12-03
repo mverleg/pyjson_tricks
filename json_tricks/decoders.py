@@ -126,7 +126,7 @@ class EnumInstanceHook(ClassInstanceHookBase):
 			return dct
 		mod, name = dct['__enum__']['__enum_instance_type__']
 		Cls = self.get_cls_from_instance_type(mod, name)
-		return Cls[dct['__enum__']['attributes']['name']]
+		return Cls[dct['__enum__']['name']]
 
 
 class ClassInstanceHook(ClassInstanceHookBase):
