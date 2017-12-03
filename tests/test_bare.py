@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import  datetime, time, date, timedelta
 from decimal import Decimal
 from fractions import Fraction
+from functools import partial
 from gzip import GzipFile
 from io import BytesIO, StringIO
 from math import pi, exp
@@ -409,5 +410,34 @@ def with_nondict_hook():
 			return
 		return ValueError()
 	loads('{"key": 42}', extra_obj_pairs_hooks=(test_hook,))
+
+
+def test_custom_enc_dec():
+	""" Test using a custom encoder/decoder. """
+	def silly_enc(obj):
+		return {"val": 42}
+	def silly_dec(dct):
+		if not isinstance(dct, dict):
+			return dct
+		return [37]
+	txt = dumps(lambda x: x * 2, extra_obj_encoders=(silly_enc,))
+	assert txt == '{"val": 42}'
+	back = loads(txt, extra_obj_pairs_hooks=(silly_dec,))
+	assert back == [37]
+
+
+def test_lambda_partial():
+	""" Test that a custom encoder/decoder works when wrapped in functools.partial,
+	    which caused problems before because inspect.getargspec does not support it. """
+	obj = dict(alpha=37.42, beta=[1, 2, 4, 8, 16, 32])
+	enc_dec_lambda = partial(lambda x, y: x, y=0)
+	txt = dumps(obj, extra_obj_encoders=(enc_dec_lambda,))
+	back = loads(txt, extra_obj_pairs_hooks=(enc_dec_lambda,))
+	assert obj == back
+	def enc_dec_fun(obj, primitives=False, another=True):
+		return obj
+	txt = dumps(obj, extra_obj_encoders=(partial(enc_dec_fun, another=True),))
+	back = loads(txt, extra_obj_pairs_hooks=(partial(enc_dec_fun, another=True),))
+	assert obj == back
 
 
