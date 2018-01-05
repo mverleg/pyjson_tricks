@@ -32,8 +32,9 @@ setup(
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'pytz',
 		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
-	version='3.11.0',
-	packages=['json_tricks'],
+	version='3.11.1',
+	packages=['json_tricks', 'tests'],
+	data_files = [("", ["LICENSE.txt"]), ("", ["README.txt"]), ("", ["tox.ini"])],
 	include_package_data=True,
 	zip_safe=False,
 	classifiers=[
