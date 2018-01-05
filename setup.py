@@ -34,7 +34,7 @@ setup(
 		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
 	version='3.11.1',
 	packages=['json_tricks', 'tests'],
-	data_files = [("", ["LICENSE.txt"]), ("", ["README.txt"]), ("", ["tox.ini"])],
+	data_files = [("", ["LICENSE.txt"]), ("", ["README.rst"]), ("", ["tox.ini"])],
 	include_package_data=True,
 	zip_safe=False,
 	classifiers=[
