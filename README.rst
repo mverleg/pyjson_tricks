@@ -9,7 +9,7 @@ The `pyjson-tricks` package brings several pieces of functionality to python han
 3. **Store and load date/times** as a dictionary (including timezone).
 4. **Preserve map order** ``{}`` using ``OrderedDict``.
 5. **Allow for comments** in json files by starting lines with ``#``.
-`6. Sets, complex numbers, Decimal, Fraction, enums, compression, duplicate keys, ...
+6. Sets, complex numbers, Decimal, Fraction, enums, compression, duplicate keys, ...
 
 As well as compression and disallowing duplicate keys.
 
@@ -348,9 +348,9 @@ Other features
 Usage & contributions
 ---------------------------------------
 
-Revised BSD License; at your own risk, you can mostly do whatever you want with this code, just don't use my name for promotion and do keep the license file.
+Code is under `Revised BSD License`_ so you can use it for most purposes including commercially.
 
-Contributions (ideas, issues, pull requests) are welcome!
+Contributions are very welcome! Bug reports, feature suggestions and code contributions help this project become more useful for everyone! There is a short `contribution guide`_.
 
 Tests
 ---------------------------------------
@@ -373,5 +373,7 @@ To run the tests manually for your version, see `this guide`_.
 .. _encode_intenums_inplace: https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace
 .. _enum34: https://pypi.org/project/enum34/
 .. _`this guide`: https://github.com/mverleg/pyjson_tricks/blob/master/tests/run_locally.rst
+.. _`Revised BSD License`: https://github.com/mverleg/pyjson_tricks/blob/master/LICENSE.txt
+.. _`contribution guide`: https://github.com/mverleg/pyjson_tricks/blob/master/CONTRIBUTING.txt
 
 

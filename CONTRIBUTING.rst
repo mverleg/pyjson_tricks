@@ -2,7 +2,9 @@
 Contributing
 ===============================
 
-Contributions are very welcome! This can be done through:
+Contributions are very welcome! Bug reports, feature suggestions and code contributions help this project become more useful for everyone!
+
+Contributing can be done through:
 
 * Reporting bugs (issues_)
 * Suggesting features (issues_)
@@ -12,6 +14,7 @@ Contributions are very welcome! This can be done through:
 
 There are only few things to keep in mind:
 
+* Your contributions become `BSD-licensed`_
 * Discuss features in an issue before contributing code.
 * Automated tests are required to go live, not necessarily to commit.
 * Try to follow the `code conventions`_.
@@ -20,6 +23,7 @@ There are only few things to keep in mind:
 
 .. _issues: https://github.com/mverleg/pyjson_tricks/issues
 .. _`pull request`: https://github.com/mverleg/pyjson_tricks/pulls
+.. _`BSD-licensed`: https://github.com/mverleg/pyjson_tricks/blob/master/LICENSE.txt
 .. _`Be nice`: https://github.com/mverleg/pyjson_tricks/blob/master/CODE_OF_CONDUCT.rst
 .. _`code conventions`: https://www.python.org/dev/peps/pep-0008/
 
