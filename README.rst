@@ -44,7 +44,7 @@ You can import the usual json functions dump(s) and load(s), as well as a separa
 
 The exact signatures of these and other functions are in the documentation_.
 
-``json-tricks`` supports Python 2.7, and Python 3.4 and later, and is automatically tested on 2.7, 3.4, 3.5 and 3.6. Pypy is supported without numpy and pandas.
+``json-tricks`` supports Python 2.7, and Python 3.4 and later, and is automatically tested on 2.7, 3.4, 3.5 and 3.6. Pypy is supported without numpy and pandas. Pandas doesn't support 3.4.
 
 Preserve type vs use primitive
 -------------------------------
@@ -352,8 +352,15 @@ Revised BSD License; at your own risk, you can mostly do whatever you want with 
 
 Contributions (ideas, issues, pull requests) are welcome!
 
+Tests
+---------------------------------------
+
+Tests are run automatically for commits to the repository for all supported versions. This is the status:
+
 .. image:: https://travis-ci.org/mverleg/pyjson_tricks.svg?branch=master
 	:target: https://travis-ci.org/mverleg/pyjson_tricks
+
+To run the tests manually for your version, see `this guide`_.
 
 .. _HJSON: https://github.com/hjson/hjson-py
 .. _documentation: http://json-tricks.readthedocs.org/en/latest/#main-components
@@ -365,5 +372,6 @@ Contributions (ideas, issues, pull requests) are welcome!
 .. _encode_scalars_inplace: https://json-tricks.readthedocs.io/en/latest/#json_tricks.np_utils.encode_scalars_inplace
 .. _encode_intenums_inplace: https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace
 .. _enum34: https://pypi.org/project/enum34/
+.. _`this guide`: https://github.com/mverleg/pyjson_tricks/blob/master/tests/run_locally.rst
 
 
