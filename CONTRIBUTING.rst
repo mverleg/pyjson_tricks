@@ -10,11 +10,12 @@ Contributions are very welcome! This can be done through:
 * Implementing features (`pull request`_)
 * Telling a friend :)
 
-If you plan to contribute some code, it's recommended to make sure an issue for the bug or feature exists and has been discussed. Otherwise there is a chance that your contribution is not in line with the vision for this project, and might be rejected on that basis.
+There are only few things to keep in mind:
 
-Any significant changes should be covered by automated tests before they will be made available through ``pip``. However, you may contribute features without tests if you're willing to wait for someone else to add the tests.
-
-Other than that, the process is flexible and not unlike those at other projects. `Be nice`_ and try to follow the `code conventions`_, that's it!
+* Discuss features in an issue before contributing code.
+* Automated tests are required to go live, not necessarily to commit.
+* Try to follow the `code conventions`_.
+* `Be nice`_.
 
 
 .. _issues: https://github.com/mverleg/pyjson_tricks/issues
