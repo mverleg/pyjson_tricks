@@ -1,0 +1,2 @@
+include LICENSE.txt README.rst tox.ini
+recursive-include tests
