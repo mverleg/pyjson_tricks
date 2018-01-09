@@ -10,7 +10,7 @@ Contributing can be done through:
 * Suggesting features (issues_)
 * Fixing bugs (`pull request`_)
 * Implementing features (`pull request`_)
-* Reviewing `pull request`_s
+* Reviewing a `pull request`_
 * Telling a friend :)
 
 There are only few things to keep in mind:
