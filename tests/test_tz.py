@@ -14,14 +14,14 @@ import pytz
 
 DTOBJ = [
 	datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7),
-	datetime(year=1988, month=3, day=15, minute=3, second=59, microsecond=7, tzinfo=pytz.UTC),
-	datetime(year=1988, month=3, day=15, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam')),
+	pytz.UTC.localize(datetime(year=1988, month=3, day=15, minute=3, second=59, microsecond=7)),
+	pytz.timezone('Europe/Amsterdam').localize(datetime(year=1988, month=3, day=15, microsecond=7)),
 	date(year=1988, month=3, day=15),
 	time(hour=8, minute=3, second=59, microsecond=123),
 	time(hour=8, second=59, microsecond=123, tzinfo=pytz.timezone('Europe/Amsterdam')),
 	timedelta(days=2, seconds=3599),
 	timedelta(days=0, seconds=-42, microseconds=123),
-	[{'obj': [datetime(year=1988, month=3, day=15, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))]}],
+	[{'obj': [pytz.timezone('Europe/Amsterdam').localize(datetime(year=1988, month=3, day=15, microsecond=7))]}],
 ]
 
 
@@ -35,7 +35,7 @@ def test_tzaware_date_time():
 	txt = '{"__datetime__": null, "year": 1988, "month": 3, "day": 15, "hour": 8, "minute": 3, ' \
 			'"second": 59, "microsecond": 7, "tzinfo": "Europe/Amsterdam"}'
 	obj = loads(txt)
-	assert obj == datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
+	assert obj == pytz.timezone('Europe/Amsterdam').localize(datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7))
 
 
 def test_tzaware_naive_date_time():
@@ -48,7 +48,26 @@ def test_tzaware_naive_date_time():
 		elif isinstance(bck, (timedelta,)):
 			assert isinstance(bck, float)
 			assert bck == orig.total_seconds()
-	dt = datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7, tzinfo=pytz.timezone('Europe/Amsterdam'))
-	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007+00:20'
+	dt = pytz.timezone('Europe/Amsterdam').localize(datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7))
+	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007+01:00'
+
+
+def test_avoiding_tz_datettime_problem():
+	"""
+	There's a weird problem (bug? feature?) when passing timezone object to datetime constructor. This tests checks that json_tricks doesn't suffer from this problem.
+	https://github.com/mverleg/pyjson_tricks/issues/41  /  https://stackoverflow.com/a/25390097/723090
+	"""
+	tzdt = datetime(2007, 12, 5, 6, 30, 0, 1)
+	tzdt = pytz.timezone('US/Pacific').localize(tzdt)
+	back = loads(dumps([tzdt]))[0]
+	assert pytz.utc.normalize(tzdt) == pytz.utc.normalize(back), \
+		"Mismatch due to pytz localizing error {} != {}".format(
+			pytz.utc.normalize(tzdt), pytz.utc.normalize(back))
+
+	## Not sure if this affects timezones; localize and normalize don't apply
+	# tdt = time(12, 0, 0, 0, tzinfo=pytz.timezone('US/Pacific'))
+	# back = loads(dumps([tdt]))[0]
+	# assert tdt == back, \
+	# 	"Mismatch due to pytz localizing error {} != {}".format(tdt, back)
 
 

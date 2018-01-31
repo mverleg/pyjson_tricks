@@ -72,9 +72,12 @@ def json_date_time_hook(dct):
 			microsecond=dct.get('microsecond', 0), tzinfo=tzinfo)
 	elif '__datetime__' in dct:
 		tzinfo = get_tz(dct)
-		return datetime(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0),
+		dt = datetime(year=dct.get('year', 0), month=dct.get('month', 0), day=dct.get('day', 0),
 			hour=dct.get('hour', 0), minute=dct.get('minute', 0), second=dct.get('second', 0),
-			microsecond=dct.get('microsecond', 0), tzinfo=tzinfo)
+			microsecond=dct.get('microsecond', 0))
+		if tzinfo is None:
+			return dt
+		return tzinfo.localize(dt)
 	elif '__timedelta__' in dct:
 		return timedelta(days=dct.get('days', 0), seconds=dct.get('seconds', 0),
 			microseconds=dct.get('microseconds', 0))
