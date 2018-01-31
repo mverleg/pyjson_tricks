@@ -64,10 +64,4 @@ def test_avoiding_tz_datettime_problem():
 		"Mismatch due to pytz localizing error {} != {}".format(
 			pytz.utc.normalize(tzdt), pytz.utc.normalize(back))
 
-	## Not sure if this affects timezones; localize and normalize don't apply
-	# tdt = time(12, 0, 0, 0, tzinfo=pytz.timezone('US/Pacific'))
-	# back = loads(dumps([tdt]))[0]
-	# assert tdt == back, \
-	# 	"Mismatch due to pytz localizing error {} != {}".format(tdt, back)
-
 
