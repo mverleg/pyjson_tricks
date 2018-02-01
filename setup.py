@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import version_info
-from logging import warn
+from logging import warning
 
 from setuptools import setup
 
@@ -17,7 +17,7 @@ if version_info < (2, 7, 0):
 if (version_info[0] == 2 and version_info[1] < 7) or \
 		(version_info[0] == 3 and version_info[1] < 4) or \
 		version_info[0] not in (2, 3):
-	raise warn('`json_tricks` does not support Python version {}.{}'
+	raise warning('`json_tricks` does not support Python version {}.{}'
 		.format(version_info[0], version_info[1]))
 
 setup(
@@ -32,7 +32,7 @@ setup(
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'pytz',
 		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
-	version='3.11.2',
+	version='3.11.3',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=True,

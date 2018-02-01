@@ -13,3 +13,5 @@
 /.tox/
 .coverage
 coverage.xml
+.pytest_cache/
+
