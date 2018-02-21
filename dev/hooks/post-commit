@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
+
+"""
+This git hooks makes sure a tag is created each time the version is increased.
+
+To enable it on git 2.9+, use::
+
+	chmod u+x dev/hooks/*
+	git config core.hooksPath dev/hooks
+
+On older versions, copy or symlink the hooks to `.git/hooks`
+"""
+
+from re import findall
+from sys import stderr
+from subprocess import Popen, PIPE
+from os.path import exists
+
+
+def git(cmd):
+	"""
+	Run a git command and return the output.
+	"""
+	out, err = Popen('git {0:s}'.format(cmd), shell=True, stdout=PIPE, stderr=PIPE).communicate()
+	assert not err.strip()
+	return out.decode('utf-8')
+
+
+def get_existing_versions():
+	"""
+	Get all versions for which there is a tag.
+	"""
+	return set(tag.strip().lstrip('v') for tag in
+			git('tag --list --format "%(refname:short)"').splitlines())
+
+
+def get_current_version():
+	"""
+	Get the current version of the project, according to package file.
+	PWD is the root of the git project.
+	"""
+	if exists('setup.py'):
+		with open('setup.py', 'r') as fh:
+			res = findall(r'\n[^#\n]*version\s*=[\'"]([\w.-_]+)[\'"]', fh.read())
+		assert len(res) != 0, 'Did not find version inside setup.py'
+		assert len(res) < 2, 'Found multiple versions inside setup.py'
+		return res[0].strip().lstrip('v')
+	return None
+
+
+def version_tag():
+	"""
+	Create a tag for the current version if there isn't one yet.
+	"""
+	version = get_current_version()
+	if version is None:
+		""" No version found. """
+		return
+	versions = get_existing_versions()
+	if version in versions:
+		""" Version already tagged. """
+		return
+	print('CREATING TAG {0:} (use `git tag --delete {0:}` if not desired)'.format(version))
+	git('tag v{0:}'.format(version))
+
+
+try:
+	exit(version_tag())
+except Exception as err:
+	stderr.write(err)
+	exit(1)
+
