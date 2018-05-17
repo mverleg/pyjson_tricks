@@ -19,7 +19,6 @@ def _fallback_wrapper(encoder):
 	@wraps(encoder)
 	def fallback_encoder(obj, is_changed, **kwargs):
 		if is_changed:
-			print('>>> WRAPPER: CHANGED')
 			return obj
 		return encoder(obj, is_changed=is_changed, **kwargs)
 	return fallback_encoder
@@ -29,14 +28,10 @@ def fallback_ignore_unknown(obj, is_changed=None, fallback_value=None):
 	"""
 	This encoder returns None if the object isn't changed by another encoder and isn't a primitive.
 	"""
-	print('>>> start')
 	if is_changed:
-		print('>>> changed')
 		return obj
 	if obj is None or isinstance(obj, (int, float, str_type, bool, list, dict)):
-		print('>>> primitive')
 		return obj
-	print('>>> else = ', obj)
 	return fallback_value
 
 

@@ -459,9 +459,7 @@ def test_fallback_hooks():
 		('li', [1, 2, 3]),
 		('lock', RLock()),
 	)), fallback_encoders=[fallback_ignore_unknown])
-	print('>>> json =', json)  # TODO
 	bck = loads(json)
-	print('>>> bck =', bck)  # TODO
 	assert bck == OrderedDict((
 		('li', [1, 2, 3]),
 		('lock', None),
