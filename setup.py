@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from sys import version_info
-from logging import warn
+from logging import warning
 
 from setuptools import setup
 
@@ -17,13 +17,13 @@ if version_info < (2, 7, 0):
 if (version_info[0] == 2 and version_info[1] < 7) or \
 		(version_info[0] == 3 and version_info[1] < 4) or \
 		version_info[0] not in (2, 3):
-	raise warn('`json_tricks` does not support Python version {}.{}'
+	raise warning('`json_tricks` does not support Python version {}.{}'
 		.format(version_info[0], version_info[1]))
 
 setup(
 	name='json_tricks',
 	description='Extra features for Python\'s JSON: comments, order, numpy, '
-        + 'pandas, datetimes, and many more! Simple but customizable.',
+		+ 'pandas, datetimes, and many more! Simple but customizable.',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
@@ -69,6 +69,3 @@ setup(
 		# detox for parallel tests
 		# sphinx for documentation
 )
-
-
-
