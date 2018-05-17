@@ -1,11 +1,43 @@
 
 from datetime import datetime, date, time, timedelta
 from fractions import Fraction
+from functools import wraps
 from logging import warning
 from json import JSONEncoder
-from sys import version
+from sys import version, stderr
 from decimal import Decimal
-from .utils import hashodict, call_with_optional_kwargs, get_module_name_from_object, NoEnumException, NoPandasException, NoNumpyException
+from .utils import hashodict, call_with_optional_kwargs, \
+	get_module_name_from_object, NoEnumException, NoPandasException, \
+	NoNumpyException, str_type
+
+
+def _fallback_wrapper(encoder):
+	"""
+	This decorator makes an encoder run only if the current object hasn't been changed yet.
+	(Changed-ness is checked with is_changed which is based on identity with `id`).
+	"""
+	@wraps(encoder)
+	def fallback_encoder(obj, is_changed, **kwargs):
+		if is_changed:
+			print('>>> WRAPPER: CHANGED')
+			return obj
+		return encoder(obj, is_changed=is_changed, **kwargs)
+	return fallback_encoder
+
+
+def fallback_ignore_unknown(obj, is_changed=None, fallback_value=None):
+	"""
+	This encoder returns None if the object isn't changed by another encoder and isn't a primitive.
+	"""
+	print('>>> start')
+	if is_changed:
+		print('>>> changed')
+		return obj
+	if obj is None or isinstance(obj, (int, float, str_type, bool, list, dict)):
+		print('>>> primitive')
+		return obj
+	print('>>> else = ', obj)
+	return fallback_value
 
 
 class TricksEncoder(JSONEncoder):
@@ -16,14 +48,18 @@ class TricksEncoder(JSONEncoder):
 	Each encoder should make any appropriate changes and return an object,
 	changed or not. This will be passes to the other encoders.
 	"""
-	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, **json_kwargs):
+	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, fallback_encoders=(), **json_kwargs):
 		"""
 		:param obj_encoders: An iterable of functions or encoder instances to try.
-		:param silence_typeerror: If set to True, ignore the TypeErrors that Encoder instances throw (default False).
+		:param silence_typeerror: DEPRECATED - If set to True, ignore the TypeErrors that Encoder instances throw (default False).
 		"""
+		if silence_typeerror and not getattr(TricksEncoder, '_deprecated_silence_typeerror'):
+			TricksEncoder._deprecated_silence_typeerror = True
+			stderr.write('TricksEncoder.silence_typeerror is deprecated and may be removed in a future version\n')
 		self.obj_encoders = []
 		if obj_encoders:
 			self.obj_encoders = list(obj_encoders)
+		self.obj_encoders.extend(_fallback_wrapper(encoder) for encoder in list(fallback_encoders))
 		self.silence_typeerror = silence_typeerror
 		self.primitives = primitives
 		super(TricksEncoder, self).__init__(**json_kwargs)
@@ -44,18 +80,19 @@ class TricksEncoder(JSONEncoder):
 			if hasattr(encoder, 'default'):
 				#todo: write test for this scenario (maybe ClassInstanceEncoder?)
 				try:
-					obj = call_with_optional_kwargs(encoder.default, obj, primitives=self.primitives)
+					obj = call_with_optional_kwargs(encoder.default, obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
 				except TypeError as err:
 					if not self.silence_typeerror:
 						raise
 			elif hasattr(encoder, '__call__'):
-				obj = call_with_optional_kwargs(encoder, obj, primitives=self.primitives)
+				obj = call_with_optional_kwargs(encoder, obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
 			else:
 				raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(encoder))
 		if id(obj) == prev_id:
-			#todo: test
-			raise TypeError('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]'.format(
-				type(obj), self.__class__.__name__, ', '.join(str(encoder) for encoder in self.obj_encoders)))
+			raise TypeError(('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]. '
+				'You can add an encoders for this type using `extra_obj_encoders`. If you want to \'skip\' this '
+				'object, consider using `fallback_encoders` like `str` or `lambda o: None`.').format(
+					type(obj), self.__class__.__name__, ', '.join(str(encoder) for encoder in self.obj_encoders)))
 		return obj
 
 
@@ -145,6 +182,9 @@ def class_instance_encode(obj, primitives=False):
 			raise TypeError(('instance "{0:}" of class "{1:}" cannot be encoded because it\'s __new__ method '
 				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
 		mod = get_module_name_from_object(obj)
+		if mod == 'threading':
+			# In Python2, threading objects get serialized, which is probably unsafe
+			return obj
 		name = obj.__class__.__name__
 		if hasattr(obj, '__json_encode__'):
 			attrs = obj.__json_encode__()

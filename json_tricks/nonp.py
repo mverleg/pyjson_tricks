@@ -3,26 +3,23 @@ from gzip import GzipFile
 from io import BytesIO
 from json import loads as json_loads
 from os import fsync
-from sys import exc_info, version
-from .utils import NoNumpyException  # keep 'unused' imports
-from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
+from sys import exc_info
+
+from json_tricks.utils import is_py3
+from .utils import str_type, NoNumpyException  # keep 'unused' imports
+from .comment import strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, \
-	class_instance_encode, ClassInstanceEncoder, \
-	json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, \
-	nonumpy_encode, NoNumpyEncoder, \
-	nopandas_encode, pandas_encode, noenum_instance_encode, \
+	class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, \
+	nonumpy_encode, nopandas_encode, pandas_encode, noenum_instance_encode, \
 	enum_instance_encode  # keep 'unused' imports
-from .decoders import DuplicateJsonKeyException, TricksPairHook, \
+from .decoders import TricksPairHook, \
 	json_date_time_hook, ClassInstanceHook, \
 	json_complex_hook, json_set_hook, numeric_types_hook, json_numpy_obj_hook, \
 	json_nonumpy_obj_hook, \
 	nopandas_hook, pandas_hook, EnumInstanceHook, \
 	noenum_hook  # keep 'unused' imports
-from json import JSONEncoder
 
 
-is_py3 = (version[:2] == '3.')
-str_type = str if is_py3 else (basestring, unicode,)
 ENCODING = 'UTF-8'
 
 
@@ -68,7 +65,7 @@ DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS   # DEPRECATED
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
-		primitives=False, compression=None, allow_nan=False, conv_str_byte=False, **jsonkwargs):
+		primitives=False, compression=None, allow_nan=False, conv_str_byte=False, fallback_encoders=(), **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -77,6 +74,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	:param cls: The json encoder class to use, defaults to NoNumpyEncoder which gives a warning for numpy arrays.
 	:param obj_encoders: Iterable of encoders to use to convert arbitrary objects into json-able promitives.
 	:param extra_obj_encoders: Like `obj_encoders` but on top of them: use this to add encoders without replacing defaults. Since v3.5 these happen before default encoders.
+	:param fallback_encoders: These are extra `obj_encoders` that 1) are ran after all others and 2) only run if the object hasn't yet been changed.
 	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default False).
 	:param conv_str_byte: Try to automatically convert between strings and bytes (assuming utf-8) (default False).
 	:return: The string containing the json-encoded version of obj.
@@ -87,7 +85,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 		raise TypeError('`extra_obj_encoders` should be a tuple in `json_tricks.dump(s)`')
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	txt = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
-		primitives=primitives, **jsonkwargs).encode(obj)
+		primitives=primitives, fallback_encoders=fallback_encoders, **jsonkwargs).encode(obj)
 	if not is_py3 and isinstance(txt, str):
 		txt = unicode(txt, ENCODING)
 	if not compression:
@@ -103,7 +101,8 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
-		 primitives=False, compression=None, force_flush=False, allow_nan=False, conv_str_byte=False, **jsonkwargs):
+		primitives=False, compression=None, force_flush=False, allow_nan=False, conv_str_byte=False,
+		fallback_encoders=(), **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -114,7 +113,8 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 	The other arguments are identical to `dumps`.
 	"""
 	txt = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
-		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte, **jsonkwargs)
+		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte,
+        fallback_encoders=fallback_encoders, **jsonkwargs)
 	if isinstance(fp, str_type):
 		fh = open(fp, 'wb+')
 	else:
@@ -135,7 +135,8 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 					if isinstance(txt, str_type):
 						txt = txt.encode(ENCODING)
 	try:
-		if 'b' not in getattr(fh, 'mode', 'b?') and not isinstance(txt, str_type) and compression:
+		if 'b' not in getattr(fh, 'mode', 'b?') and not isinstance(txt,
+		                                                           str_type) and compression:
 			raise IOError('If compression is enabled, the file must be opened in binary mode.')
 		try:
 			fh.write(txt)

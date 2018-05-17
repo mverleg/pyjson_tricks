@@ -6,7 +6,6 @@ from tempfile import mkdtemp
 from numpy import arange, ones, array, array_equal, finfo, iinfo
 from os.path import join
 from numpy.core.umath import exp
-from json_tricks import dumps, loads
 from json_tricks.np_utils import encode_scalars_inplace
 from json_tricks.np import dump, dumps, load, loads
 from .test_class import MyTestCls

@@ -3,7 +3,7 @@ from collections import OrderedDict
 from functools import partial
 from importlib import import_module
 from logging import warning, warn
-from sys import version_info
+from sys import version_info, version
 
 
 class hashodict(OrderedDict):
@@ -159,3 +159,8 @@ def get_module_name_from_object(obj):
 			' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
 			'decoding').format(obj.__class__))
 	return mod
+
+
+is_py3 = (version[:2] == '3.')
+str_type = str if is_py3 else (basestring, unicode,)
+

@@ -12,7 +12,11 @@ from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
 from pytest import raises
-from json_tricks.nonp import strip_comments, dump, dumps, load, loads, DuplicateJsonKeyException, is_py3, ENCODING
+
+from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
+from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
+	ENCODING
+from json_tricks.utils import is_py3
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, SlotsABCDict, SlotsABC
 
 
@@ -441,3 +445,24 @@ def test_lambda_partial():
 	assert obj == back
 
 
+def test_hooks_not_too_eager():
+	from threading import RLock
+	with raises(TypeError, message='There is no hook to serialize RLock, so '
+			'this should fail, otherwise some hook is too eager.'):
+		dumps([RLock()])
+
+
+def test_fallback_hooks():
+	from threading import RLock
+
+	json = dumps(OrderedDict((
+		('li', [1, 2, 3]),
+		('lock', RLock()),
+	)), fallback_encoders=[fallback_ignore_unknown])
+	print('>>> json =', json)  # TODO
+	bck = loads(json)
+	print('>>> bck =', bck)  # TODO
+	assert bck == OrderedDict((
+		('li', [1, 2, 3]),
+		('lock', None),
+	))
