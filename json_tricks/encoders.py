@@ -171,11 +171,14 @@ def class_instance_encode(obj, primitives=False):
 			raise TypeError('class "{0:s}" does not have a __new__ method; '.format(obj.__class__) +
 				('perhaps it is an old-style class not derived from `object`; add `object` as a base class to encode it.'
 					if (version[:2] == '2.') else 'this should not happen in Python3'))
+		if type(obj) == type(lambda: 0):
+			raise TypeError('instance "{0:}" of class "{1:}" cannot be encoded because it appears to be a lambda or function.'
+				.format(obj, obj.__class__))
 		try:
 			obj.__new__(obj.__class__)
 		except TypeError:
-			raise TypeError(('instance "{0:}" of class "{1:}" cannot be encoded because it\'s __new__ method '
-				'cannot be called, perhaps it requires extra parameters').format(obj, obj.__class__))
+			raise TypeError(('instance "{0:}" of class "{1:}" cannot be encoded, perhaps because it\'s __new__ method '
+				'cannot be called because it requires extra parameters').format(obj, obj.__class__))
 		mod = get_module_name_from_object(obj)
 		if mod == 'threading':
 			# In Python2, threading objects get serialized, which is probably unsafe
