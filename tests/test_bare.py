@@ -464,3 +464,21 @@ def test_fallback_hooks():
 		('li', [1, 2, 3]),
 		('lock', None),
 	))
+
+
+def test_empty_string_with_url():
+	""" Originally for https://github.com/mverleg/pyjson_tricks/issues/51 """
+	txt = '{"foo": "", "bar": "http://google.com"}'
+	assert txt == strip_comments(txt), strip_comments(txt)
+	txt = '{"foo": "", "bar": "http://google.com"}'
+	assert txt == dumps(loads(txt, ignore_comments=False))
+	assert txt == dumps(loads(txt, ignore_comments=True))
+	txt = '{"a": "", "b": "//", "c": ""}'
+	assert txt == dumps(loads(txt))
+	txt = '{"a": "", "b": "/*", "c": ""}'
+	assert txt == dumps(loads(txt))
+	txt = '{"//": "//"}'
+	assert txt == dumps(loads(txt))
+	txt = '{"///": "////*/*"}'
+	assert txt == dumps(loads(txt))
+
