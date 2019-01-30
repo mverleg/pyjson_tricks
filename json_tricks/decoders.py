@@ -5,7 +5,7 @@ from collections import OrderedDict
 from decimal import Decimal
 from logging import warning
 from json_tricks import NoEnumException, NoPandasException, NoNumpyException
-from .utils import ClassInstanceHookBase
+from .utils import ClassInstanceHookBase, nested_index
 
 
 class DuplicateJsonKeyException(Exception):
@@ -237,7 +237,7 @@ def json_numpy_obj_hook(dct):
 	if not '__ndarray__' in dct:
 		return dct
 	try:
-		from numpy import asarray
+		from numpy import asarray, empty, ndindex
 		import numpy as nptypes
 	except ImportError:
 		raise NoNumpyException('Trying to decode a map which appears to represent a numpy '
@@ -246,6 +246,12 @@ def json_numpy_obj_hook(dct):
 	if 'Corder' in dct:
 		order = 'C' if dct['Corder'] else 'F'
 	if dct['shape']:
+		if dct['dtype'] == 'object':
+			dec_data = dct['__ndarray__']
+			arr = empty(dct['shape'], dtype=dct['dtype'], order=order)
+			for indx in ndindex(arr.shape):
+				arr[indx] = nested_index(dec_data, indx)
+			return arr
 		return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
 	else:
 		dtype = getattr(nptypes, dct['dtype'])
