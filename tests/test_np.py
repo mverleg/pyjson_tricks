@@ -178,4 +178,11 @@ def test_ndarray_object_nesting():
 	assert before.dtype == before.dtype
 	assert array_equal(before[0, 0], after[0, 0])
 	# With nested lists
-	# TODO @mark:
+	before = zeros((2, 2,), dtype=object)
+	for i in ndindex(before.shape):
+		before[i] = [1, 2, 3]
+	after = loads(dumps(before))
+	assert before.shape == after.shape, \
+		'shape of array changed for nested ndarrays:\n{}'.format(dumps(before, indent=2))
+	assert before.dtype == before.dtype
+	assert array_equal(before[0, 0], after[0, 0])
