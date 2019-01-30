@@ -11,7 +11,7 @@ from json_tricks.np import dump, dumps, load, loads
 from .test_class import MyTestCls
 from .test_bare import cls_instance
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
-	float16, float32, float64, complex64, complex128
+	float16, float32, float64, complex64, complex128, zeros, ndindex
 
 
 DTYPES = (int8, int16, int32, int64, uint8, uint16, uint32, uint64,
@@ -166,3 +166,11 @@ def test_dump_np_scalars():
 	assert data[2] == tuple(rec[2])
 
 
+def test_ndarray_object_nesting():
+	# based on issue 53
+	before = zeros((2, 2,), dtype=object)
+	for i in ndindex(before.shape):
+		before[i] = array([1, 2, 3])
+	after = loads(dumps(before))
+	assert before.shape == after.shape, \
+		'shape of array changed for nested object ndarray: {}'.format(dumps(before))
