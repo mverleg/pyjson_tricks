@@ -161,6 +161,12 @@ def get_module_name_from_object(obj):
 	return mod
 
 
+def nested_index(collection, indices):
+	for i in indices:
+		collection = collection[i]
+	return collection
+
+
 is_py3 = (version[:2] == '3.')
 str_type = str if is_py3 else (basestring, unicode,)
 
