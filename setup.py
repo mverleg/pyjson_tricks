@@ -32,7 +32,7 @@ setup(
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'pytz',
 		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
-	version='3.12.3',
+	version='3.12.4',
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=True,
