@@ -228,7 +228,7 @@ def json_complex_encode(obj, primitives=False):
 def numeric_types_encode(obj, primitives=False):
 	"""
 	Encode Decimal and Fraction.
-	
+
 	:param primitives: Encode decimals and fractions as standard floats. You may lose precision. If you do this, you may need to enable `allow_nan` (decimals always allow NaNs but floats do not).
 	"""
 	if isinstance(obj, Decimal):
@@ -248,6 +248,17 @@ def numeric_types_encode(obj, primitives=False):
 				('denominator', obj.denominator),
 			))
 	return obj
+
+
+def pathlib_encode(obj, primitives=False):
+		from pathlib import Path
+		if not isinstance(obj, Path):
+				return obj
+
+		if primitives:
+				return str(obj)
+
+		return {'__pathlib__': str(obj)}
 
 
 class ClassInstanceEncoder(JSONEncoder):
@@ -325,11 +336,11 @@ def nopandas_encode(obj):
 def numpy_encode(obj, primitives=False):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
-	
+
 	Encodes numpy scalar types as Python equivalents. Special encoding is not possible,
 	because int64 (in py2) and float64 (in py2 and py3) are subclasses of primitives,
 	which never reach the encoder.
-	
+
 	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
 	"""
 	from numpy import ndarray, generic
@@ -357,8 +368,8 @@ class NumpyEncoder(ClassInstanceEncoder):
 	"""
 	JSON encoder for numpy arrays.
 	"""
-	SHOW_SCALAR_WARNING = True  # show a warning that numpy scalar serialization is experimental
-	
+	SHOW_SCALAR_WARNING = True	# show a warning that numpy scalar serialization is experimental
+
 	def default(self, obj, *args, **kwargs):
 		"""
 		If input object is a ndarray it will be converted into a dict holding
@@ -387,5 +398,3 @@ class NoNumpyEncoder(JSONEncoder):
 		warning('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`')  #todo
 		obj = nonumpy_encode(obj)
 		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)
-
-
