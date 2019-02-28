@@ -26,9 +26,9 @@ ENCODING = 'UTF-8'
 _cih_instance = ClassInstanceHook()
 _eih_instance = EnumInstanceHook()
 DEFAULT_ENCODERS = [json_date_time_encode, json_complex_encode, json_set_encode,
-										numeric_types_encode, class_instance_encode, ]
+					numeric_types_encode, class_instance_encode, ]
 DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook,
-										numeric_types_hook, _cih_instance, ]
+				numeric_types_hook, _cih_instance, ]
 
 
 try:
@@ -60,9 +60,11 @@ else:
 	DEFAULT_HOOKS = [pandas_hook,] + DEFAULT_HOOKS
 
 try:
-		import pathlib
+    import pathlib
 except:
-	DEFAULT_ENCODERS = [nopathlib_encode,] + DEFAULT_ENCODERS
+    # No need to include a "nopathlib_encode" hook since we would not encounter
+    # the Path object if pathlib isn't available. However, we *could* encounter
+    # a serialized Path object (produced by a version of Python with pathlib).
 	DEFAULT_HOOKS = [nopathlib_hook,] + DEFAULT_HOOKS
 else:
 	DEFAULT_ENCODERS = [pathlib_encode,] + DEFAULT_ENCODERS

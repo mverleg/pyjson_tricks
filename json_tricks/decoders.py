@@ -118,20 +118,20 @@ def noenum_hook(dct):
 
 
 def pathlib_hook(dct):
-		if not isinstance(dct, dict):
-				return dct
-		if not '__pathlib__' in dct:
-				return dct
-		from pathlib import Path
-		return Path(dct['__pathlib__'])
+	if not isinstance(dct, dict):
+		return dct
+	if not '__pathlib__' in dct:
+		return dct
+	from pathlib import Path
+	return Path(dct['__pathlib__'])
 
 
 def nopathlib_hook(dct):
-		if isinstance(dct, dict) and '__pathlib__' in dct:
-				raise NoPathlib(('Trying to decode a map which appears to represent a '
-								'pathlib.Path data structure, but pathlib support '
-								'is not enabled.'))
-		return dct
+	if isinstance(dct, dict) and '__pathlib__' in dct:
+		raise NoPathlib(('Trying to decode a map which appears to represent a '
+						'pathlib.Path data structure, but pathlib support '
+						'is not enabled.'))
+	return dct
 
 
 class EnumInstanceHook(ClassInstanceHookBase):

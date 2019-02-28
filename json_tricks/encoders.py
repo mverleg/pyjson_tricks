@@ -251,14 +251,14 @@ def numeric_types_encode(obj, primitives=False):
 
 
 def pathlib_encode(obj, primitives=False):
-		from pathlib import Path
-		if not isinstance(obj, Path):
-				return obj
+    from pathlib import Path
+    if not isinstance(obj, Path):
+        return obj
 
-		if primitives:
-				return str(obj)
+    if primitives:
+        return str(obj)
 
-		return {'__pathlib__': str(obj)}
+    return {'__pathlib__': str(obj)}
 
 
 class ClassInstanceEncoder(JSONEncoder):
