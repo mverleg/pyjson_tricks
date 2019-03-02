@@ -6,8 +6,8 @@ This tests Paths, which need pathlib.
 """
 
 from pathlib import Path
+
 from json_tricks import dumps, loads
-from json_tricks.utils import is_py3
 
 
 # These paths are not necessarily actual paths that exist, but are sufficient
@@ -25,15 +25,15 @@ PATHS = [
 ]
 
 
-if is_py3:
-    def test_path():
-        json = dumps(PATHS)
-        back = loads(json)
-        assert PATHS == back
+def test_path():
+    json = dumps(PATHS)
+    back = loads(json)
+    assert PATHS == back
 
-        for orig, bck in zip(PATHS, back):
-            assert orig == bck
+    for orig, bck in zip(PATHS, back):
+        assert orig == bck
 
-        txt = '{"__pathlib__": "."}'
-        obj = loads(txt)
-        assert obj == Path()
+    txt = '{"__pathlib__": "."}'
+    obj = loads(txt)
+    assert obj == Path()
+

@@ -344,7 +344,7 @@ Other features
 * Save and load ``Enum`` (thanks to ``Jenselme``), either built-in in python3.4+, or with the enum34_ package in earlier versions. ``IntEnum`` needs encode_intenums_inplace_.
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
 * ``json_tricks`` can check for duplicate keys in maps by setting ``allow_duplicates`` to False. These are `kind of allowed`_, but are handled inconsistently between json implementations. In Python, for ``dict`` and ``OrderedDict``, duplicate keys are silently overwritten.
-* Save and load ``pathlib.Path`` objects (e.g., the current path, `Path('.')`, serializes as ``{"__pathlib__": "."}``).
+* Save and load ``pathlib.Path`` objects (e.g., the current path, `Path('.')`, serializes as ``{"__pathlib__": "."}``) (thanks to ``bburan``).
 
 Usage & contributions
 ---------------------------------------
