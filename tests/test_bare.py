@@ -11,7 +11,7 @@ from io import BytesIO, StringIO
 from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
-from pytest import raises
+from pytest import raises, fail
 
 from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
@@ -447,9 +447,12 @@ def test_lambda_partial():
 
 def test_hooks_not_too_eager():
 	from threading import RLock
-	with raises(TypeError, message='There is no hook to serialize RLock, so '
-			'this should fail, otherwise some hook is too eager.'):
+	with raises(TypeError):
 		dumps([RLock()])
+		# TypeError did not get raised, so show a message
+		# (https://github.com/pytest-dev/pytest/issues/3974)
+		fail('There is no hook to serialize RLock, so this should fail, '
+			'otherwise some hook is too eager.')
 
 
 def test_fallback_hooks():
