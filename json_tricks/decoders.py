@@ -117,6 +117,23 @@ def noenum_hook(dct):
 	return dct
 
 
+def pathlib_hook(dct):
+	if not isinstance(dct, dict):
+		return dct
+	if not '__pathlib__' in dct:
+		return dct
+	from pathlib import Path
+	return Path(dct['__pathlib__'])
+
+
+def nopathlib_hook(dct):
+	if isinstance(dct, dict) and '__pathlib__' in dct:
+		raise NoPathlib(('Trying to decode a map which appears to represent a '
+						'pathlib.Path data structure, but pathlib support '
+						'is not enabled.'))
+	return dct
+
+
 class EnumInstanceHook(ClassInstanceHookBase):
 	"""
 	This hook tries to convert json encoded by enum_instance_encode back to it's original instance.
@@ -214,7 +231,7 @@ def pandas_hook(dct):
 			name=meta['name'],
 			dtype=dtype(meta['type']),
 		)
-	return dct  # impossible
+	return dct	# impossible
 
 
 def nopandas_hook(dct):

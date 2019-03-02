@@ -63,6 +63,10 @@ class NoEnumException(Exception):
 	""" Trying to use enum features, but enum cannot be found. """
 
 
+class NoPathlibException(Exception):
+	""" Trying to use pathlib features, but pathlib cannot be found. """
+
+
 class ClassInstanceHookBase(object):
 	def __init__(self, cls_lookup_map=None):
 		self.cls_lookup_map = cls_lookup_map or {}
