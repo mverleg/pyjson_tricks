@@ -11,13 +11,13 @@ from .comment import strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, \
 	class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, \
 	nonumpy_encode, nopandas_encode, pandas_encode, noenum_instance_encode, \
-	enum_instance_encode  # keep 'unused' imports
+	enum_instance_encode, pathlib_encode # keep 'unused' imports
 from .decoders import TricksPairHook, \
 	json_date_time_hook, ClassInstanceHook, \
 	json_complex_hook, json_set_hook, numeric_types_hook, json_numpy_obj_hook, \
 	json_nonumpy_obj_hook, \
 	nopandas_hook, pandas_hook, EnumInstanceHook, \
-	noenum_hook  # keep 'unused' imports
+	noenum_hook, pathlib_hook, nopathlib_hook  # keep 'unused' imports
 
 
 ENCODING = 'UTF-8'
@@ -26,9 +26,9 @@ ENCODING = 'UTF-8'
 _cih_instance = ClassInstanceHook()
 _eih_instance = EnumInstanceHook()
 DEFAULT_ENCODERS = [json_date_time_encode, json_complex_encode, json_set_encode,
-                    numeric_types_encode, class_instance_encode, ]
+					numeric_types_encode, class_instance_encode, ]
 DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook,
-                 numeric_types_hook, _cih_instance, ]
+				numeric_types_hook, _cih_instance, ]
 
 
 try:
@@ -59,9 +59,20 @@ else:
 	DEFAULT_ENCODERS = [pandas_encode,] + DEFAULT_ENCODERS
 	DEFAULT_HOOKS = [pandas_hook,] + DEFAULT_HOOKS
 
+try:
+    import pathlib
+except:
+    # No need to include a "nopathlib_encode" hook since we would not encounter
+    # the Path object if pathlib isn't available. However, we *could* encounter
+    # a serialized Path object (produced by a version of Python with pathlib).
+	DEFAULT_HOOKS = [nopathlib_hook,] + DEFAULT_HOOKS
+else:
+	DEFAULT_ENCODERS = [pathlib_encode,] + DEFAULT_ENCODERS
+	DEFAULT_HOOKS = [pathlib_hook,] + DEFAULT_HOOKS
 
-DEFAULT_NONP_ENCODERS = [nonumpy_encode,] + DEFAULT_ENCODERS    # DEPRECATED
-DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS   # DEPRECATED
+
+DEFAULT_NONP_ENCODERS = [nonumpy_encode,] + DEFAULT_ENCODERS		# DEPRECATED
+DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS		# DEPRECATED
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
@@ -109,12 +120,12 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 	:param fp: File handle or path to write to.
 	:param compression: The gzip compression level, or None for no compression.
 	:param force_flush: If True, flush the file handle used, when possibly also in the operating system (default False).
-	
+
 	The other arguments are identical to `dumps`.
 	"""
 	txt = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
 		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte,
-        fallback_encoders=fallback_encoders, **jsonkwargs)
+				fallback_encoders=fallback_encoders, **jsonkwargs)
 	if isinstance(fp, str_type):
 		fh = open(fp, 'wb+')
 	else:
@@ -125,9 +136,9 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 			except TypeError:
 				pass
 				# if not isinstance(txt, str_type):
-				# 	# Cannot write bytes, so must be in text mode, but we didn't get a text
-				# 	if not compression:
-				# 		txt = txt.decode(ENCODING)
+				#		# Cannot write bytes, so must be in text mode, but we didn't get a text
+				#		if not compression:
+				#			txt = txt.decode(ENCODING)
 			else:
 				try:
 					fh.write(u'')
@@ -136,7 +147,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 						txt = txt.encode(ENCODING)
 	try:
 		if 'b' not in getattr(fh, 'mode', 'b?') and not isinstance(txt,
-		                                                           str_type) and compression:
+																															 str_type) and compression:
 			raise IOError('If compression is enabled, the file must be opened in binary mode.')
 		try:
 			fh.write(txt)
