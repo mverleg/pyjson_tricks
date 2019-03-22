@@ -42,15 +42,6 @@ else:
 		return set(sig.parameters.keys())
 
 
-def call_with_optional_kwargs(callable, *args, **optional_kwargs):
-	accepted_kwargs = get_arg_names(callable)
-	use_kwargs = {}
-	for key, val in optional_kwargs.items():
-		if key in accepted_kwargs:
-			use_kwargs[key] = val
-	return callable(*args, **use_kwargs)
-
-
 class NoNumpyException(Exception):
 	""" Trying to use numpy features, but numpy cannot be found. """
 
