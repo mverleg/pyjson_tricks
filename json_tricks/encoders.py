@@ -6,7 +6,7 @@ from logging import warning
 from json import JSONEncoder
 from sys import version, stderr
 from decimal import Decimal
-from .utils import hashodict, call_with_optional_kwargs, \
+from .utils import hashodict, get_arg_names, \
 	get_module_name_from_object, NoEnumException, NoPandasException, \
 	NoNumpyException, str_type
 
@@ -35,6 +35,21 @@ def fallback_ignore_unknown(obj, is_changed=None, fallback_value=None):
 	return fallback_value
 
 
+def filtered_wrapper(encoder):
+	"""
+	Filter kwargs in valls to encoeder.
+	"""
+	if hasattr(encoder, "default"):
+		encoder = encoder.default
+	elif not hasattr(encoder, '__call__'):
+		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
+	names = get_arg_names(encoder)
+	
+	def wrapper(*args, **kwargs):
+		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
+	return wrapper
+
+
 class TricksEncoder(JSONEncoder):
 	"""
 	Encoder that runs any number of encoder functions or instances on
@@ -55,6 +70,7 @@ class TricksEncoder(JSONEncoder):
 		if obj_encoders:
 			self.obj_encoders = list(obj_encoders)
 		self.obj_encoders.extend(_fallback_wrapper(encoder) for encoder in list(fallback_encoders))
+		self.obj_encoders = [filtered_wrapper(enc) for enc in self.obj_encoders]
 		self.silence_typeerror = silence_typeerror
 		self.primitives = primitives
 		super(TricksEncoder, self).__init__(**json_kwargs)
@@ -72,17 +88,7 @@ class TricksEncoder(JSONEncoder):
 		"""
 		prev_id = id(obj)
 		for encoder in self.obj_encoders:
-			if hasattr(encoder, 'default'):
-				#todo: write test for this scenario (maybe ClassInstanceEncoder?)
-				try:
-					obj = call_with_optional_kwargs(encoder.default, obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
-				except TypeError as err:
-					if not self.silence_typeerror:
-						raise
-			elif hasattr(encoder, '__call__'):
-				obj = call_with_optional_kwargs(encoder, obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
-			else:
-				raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(encoder))
+			obj = encoder(obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
 		if id(obj) == prev_id:
 			raise TypeError(('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]. '
 				'You can add an encoders for this type using `extra_obj_encoders`. If you want to \'skip\' this '
