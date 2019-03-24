@@ -21,6 +21,8 @@ There are only few things to keep in mind:
 * Try to follow the `code conventions`_.
 * `Be nice`_.
 
+Feel free to add yourself in the README if you send a pull request! Either at the specific feature ("thanks to NAME"), or in "Usage & contributions".
+
 
 .. _issues: https://github.com/mverleg/pyjson_tricks/issues
 .. _`pull request`: https://github.com/mverleg/pyjson_tricks/pulls

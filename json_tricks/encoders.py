@@ -37,7 +37,7 @@ def fallback_ignore_unknown(obj, is_changed=None, fallback_value=None):
 
 def filtered_wrapper(encoder):
 	"""
-	Filter kwargs in valls to encoeder.
+	Filter kwargs passed to encoder.
 	"""
 	if hasattr(encoder, "default"):
 		encoder = encoder.default

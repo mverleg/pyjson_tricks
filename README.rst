@@ -353,6 +353,8 @@ Code is under `Revised BSD License`_ so you can use it for most purposes includi
 
 Contributions are very welcome! Bug reports, feature suggestions and code contributions help this project become more useful for everyone! There is a short `contribution guide`_.
 
+Contributors not yet mentioned: ``janLo`` (performance boost).
+
 Tests
 ---------------------------------------
 
