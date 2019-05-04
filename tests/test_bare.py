@@ -160,6 +160,33 @@ def test_compression_with_comments():
 	assert ref == data3
 
 
+def test_comments_issue57():
+	import json
+	txt1 = r'\"#'
+	# Check that the standard json library works
+	print('standard', json.dumps(txt1))  # TODO @mark: THIS CODE IS TEMPORARY!
+	json.loads(json.dumps(txt1))
+	# Check that comment stripping works
+	quoted = f'"${txt1}"'
+	assert quoted == strip_comments(quoted)
+	# Test json-tricks without comment removal
+	print('tricks', dumps(txt1))  # TODO @mark: THIS CODE IS TEMPORARY!
+	loads(dumps(txt1), ignore_comments=False)
+	# Test json-tricks with comment removal
+	loads(dumps(txt1), ignore_comments=True)
+
+	txt2 = 'a.b("\\\\", "/")\nc = \'"{}"\'.d(e)\nf.g("#")\n'
+	# Check that the standard json library works
+	json.loads(json.dumps(txt2))
+	# Check that comment stripping works
+	quoted = f'"${txt2}"'
+	assert quoted == strip_comments(quoted)
+	# Test json-tricks without comment removal
+	loads(dumps(txt2, ignore_comments=False))
+	# Test json-tricks with comment removal
+	loads(dumps(txt2, ignore_comments=True))
+
+
 def test_order():
 	json = dumps(ordered_map)
 	data2 = loads(json, preserve_order=True)

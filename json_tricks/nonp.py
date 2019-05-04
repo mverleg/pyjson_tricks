@@ -60,11 +60,11 @@ else:
 	DEFAULT_HOOKS = [pandas_hook,] + DEFAULT_HOOKS
 
 try:
-    import pathlib
+	import pathlib
 except:
-    # No need to include a "nopathlib_encode" hook since we would not encounter
-    # the Path object if pathlib isn't available. However, we *could* encounter
-    # a serialized Path object (produced by a version of Python with pathlib).
+	# No need to include a "nopathlib_encode" hook since we would not encounter
+	# the Path object if pathlib isn't available. However, we *could* encounter
+	# a serialized Path object (produced by a version of Python with pathlib).
 	DEFAULT_HOOKS = [nopathlib_hook,] + DEFAULT_HOOKS
 else:
 	DEFAULT_ENCODERS = [pathlib_encode,] + DEFAULT_ENCODERS
