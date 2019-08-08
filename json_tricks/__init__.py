@@ -13,6 +13,10 @@ from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_
 	json_nonumpy_obj_hook, pathlib_hook
 from .nonp import dumps, dump, loads, load
 
+from os.path import join as _join, dirname as _dirname
+with open(_join(_dirname(__file__), '../VERSION'), 'r') as fh:
+	__version__ = fh.read().strip()
+
 
 try:
 	# find_module takes just as long as importing, so no optimization possible

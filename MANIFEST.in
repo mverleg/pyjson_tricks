@@ -1,2 +1,2 @@
 include LICENSE.txt README.rst tox.ini
-recursive-include tests *.py *.rst
+recursive-include tests *.py *.rst VERSION

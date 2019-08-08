@@ -9,6 +9,8 @@ from setuptools import setup
 with open('README.rst', 'r') as fh:
 	readme = fh.read()
 
+with open('VERSION', 'r') as fh:
+	version = fh.read().strip()
 
 requires = []
 if version_info < (2, 7, 0):
@@ -32,7 +34,7 @@ setup(
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'pytz',
 		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
-	version='3.13.1',
+	version=version,
 	packages=['json_tricks'],
 	include_package_data=True,
 	zip_safe=True,
