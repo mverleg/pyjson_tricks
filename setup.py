@@ -9,8 +9,9 @@ from setuptools import setup
 with open('README.rst', 'r') as fh:
 	readme = fh.read()
 
-with open('VERSION', 'r') as fh:
-	version = fh.read().strip()
+# with open('json_tricks/_version.py', 'r') as fh:
+# 	version = fh.read().strip()
+from json_tricks._version import VERSION
 
 requires = []
 if version_info < (2, 7, 0):
@@ -25,7 +26,7 @@ if (version_info[0] == 2 and version_info[1] < 7) or \
 setup(
 	name='json_tricks',
 	description='Extra features for Python\'s JSON: comments, order, numpy, '
-		+ 'pandas, datetimes, and many more! Simple but customizable.',
+		'pandas, datetimes, and many more! Simple but customizable.',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
@@ -34,9 +35,13 @@ setup(
 	license='Revised BSD License (LICENSE.txt)',
 	keywords=['json', 'numpy', 'OrderedDict', 'comments', 'pandas', 'pytz',
 		'enum', 'encode', 'decode', 'serialize', 'deserialize'],
-	version=version,
+	version=VERSION,
 	packages=['json_tricks'],
-	include_package_data=True,
+	package_data=dict(
+		json_tricks=['LICENSE.txt', 'README.rst', 'VERSION'],
+		# tests=['tests/*.py'],
+	),
+	# include_package_data=True,
 	zip_safe=True,
 	classifiers=[
 		'Development Status :: 5 - Production/Stable',
@@ -56,19 +61,7 @@ setup(
 		'Programming Language :: Python :: Implementation :: CPython',
 		'Programming Language :: Python :: Implementation :: PyPy',
 		'Topic :: Software Development :: Libraries :: Python Modules',
-		# 'Topic :: Documentation',
-		# 'Topic :: Documentation :: Sphinx',
 		# 'Topic :: Utilities',
 	],
 	install_requires=requires,
-		# numpy for numpy functionality
-		# pytz for timezones awareness
-		# pandas for data frame functionality
-		# enum34 for enums on python2x
-
-		# pytest for tests
-		# pytest-cov for test coverage
-		# tox for tests
-		# detox for parallel tests
-		# sphinx for documentation
 )
