@@ -400,6 +400,10 @@ def test_str_unicode_bytes():
 	if is_py3:
 		with raises(TypeError) as err:
 			loads(text.encode('utf-8'))
+		if 'ExceptionInfo' in str(type(err)):
+			# This check is needed because the type of err varies between versions
+			# For some reason, isinstance(..., py.code.ExceptionInfo) does not work
+			err = err.value
 		assert 'Cannot automatically encode' in str(err)
 		assert loads(text.encode('utf-8'), conv_str_byte=True) == pyrepr
 	else:
