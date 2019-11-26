@@ -193,4 +193,5 @@ def test_dtype_object():
 	arr = array(['a', 'b', 'c'], dtype=object)
 	json = dumps(arr)
 	back = loads(json)
-	assert back == arr
+	assert array_equal(back, arr)
+
