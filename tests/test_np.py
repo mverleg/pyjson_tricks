@@ -186,3 +186,12 @@ def test_ndarray_object_nesting():
 		'shape of array changed for nested ndarrays:\n{}'.format(dumps(before, indent=2))
 	assert before.dtype == before.dtype
 	assert array_equal(before[0, 0], after[0, 0])
+
+
+def test_dtype_object():
+	# Based on issue 64
+	arr = array(['a', 'b', 'c'], dtype=object)
+	json = dumps(arr)
+	back = loads(json)
+	assert array_equal(back, arr)
+

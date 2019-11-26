@@ -259,7 +259,7 @@ def json_numpy_obj_hook(dct):
 	except ImportError:
 		raise NoNumpyException('Trying to decode a map which appears to represent a numpy '
 			'array, but numpy appears not to be installed.')
-	order = 'A'
+	order = None
 	if 'Corder' in dct:
 		order = 'C' if dct['Corder'] else 'F'
 	if dct['shape']:
