@@ -316,7 +316,7 @@ def pandas_encode(obj, primitives=False):
 			))
 		repr['index'] = tuple(obj.index.values)
 		for k, name in enumerate(obj.columns.values):
-			repr[name] = tuple(obj.ix[:, k].values)
+			repr[name] = tuple(obj.iloc[:, k].values)
 		return repr
 	if isinstance(obj, Series):
 		repr = hashodict()

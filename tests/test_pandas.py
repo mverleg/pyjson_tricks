@@ -24,7 +24,7 @@ def test_pandas_dataframe():
 	df = DataFrame(COLUMNS, columns=tuple(COLUMNS.keys()))
 	txt = dumps(df, allow_nan=True)
 	back = loads(txt)
-	assert isnan(back.ix[0, -1])
+	assert isnan(back.iloc[0, -1])
 	assert (df.equals(back))
 	assert (df.dtypes == back.dtypes).all()
 	df = DataFrame(COLUMNS, columns=tuple(COLUMNS.keys()))
