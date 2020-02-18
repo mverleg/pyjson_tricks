@@ -48,6 +48,33 @@ def test_file_handle():
 	assert data3 == nonpdata
 
 
+def test_mix_handle_str_path():
+	# Based on issue 68
+	data = {"fun": 1.1234567891234567e-13}
+	path = join(mkdtemp(), 'test_mix_handle_str_path.json')
+	dump(data, open(path, "w"))
+	back = load(path)
+	assert data == back
+
+
+def test_mix_handle_bin_path():
+	# Based on issue 68
+	data = {"fun": 1.1234567891234567e-13}
+	path = join(mkdtemp(), 'test_mix_handle_bin_path.json')
+	if is_py3:
+		with raises(TypeError):
+			dump(data, open(path, "wb"))
+
+
+def test_mix_path_handle():
+	# Based on issue 68
+	data = {"fun": 1.1234567891234567e-13}
+	path = join(mkdtemp(), 'test_mix_path_handle.json')
+	dump(data, path)
+	# back = load(open(path, "r"))
+	# assert data == back
+
+
 def test_file_handle_types():
 	path = join(mkdtemp(), 'pytest-text.json')
 	for conv_str_byte in [True, False]:
@@ -395,8 +422,8 @@ def test_primitive_naive_date_time():
 
 
 def test_str_unicode_bytes():
-	text, pyrepr = u'{"mykey": "你好"}', {"mykey": u"你好"}
-	assert loads(text) == pyrepr
+	text, obj = u'{"mykey": "你好"}', {"mykey": u"你好"}
+	assert loads(text) == obj
 	if is_py3:
 		with raises(TypeError) as err:
 			loads(text.encode('utf-8'))
@@ -404,8 +431,8 @@ def test_str_unicode_bytes():
 			# This check is needed because the type of err varies between versions
 			# For some reason, isinstance(..., py.code.ExceptionInfo) does not work
 			err = err.value
-		assert 'Cannot automatically encode' in str(err)
-		assert loads(text.encode('utf-8'), conv_str_byte=True) == pyrepr
+		assert 'The input was of non-string type' in str(err)
+		assert loads(text.encode('utf-8'), conv_str_byte=True) == obj
 	else:
 		assert loads('{"mykey": "nihao"}') == {'mykey': 'nihao'}
 

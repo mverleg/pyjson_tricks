@@ -127,7 +127,10 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte,
 				fallback_encoders=fallback_encoders, **jsonkwargs)
 	if isinstance(fp, str_type):
-		fh = open(fp, 'wb+')
+		if compression:
+			fh = open(fp, 'wb+')
+		else:
+			fh = open(fp, 'w+')
 	else:
 		fh = fp
 		if conv_str_byte:
@@ -146,8 +149,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 					if isinstance(txt, str_type):
 						txt = txt.encode(ENCODING)
 	try:
-		if 'b' not in getattr(fh, 'mode', 'b?') and not isinstance(txt,
-																															 str_type) and compression:
+		if compression and 'b' not in getattr(fh, 'mode', 'b?') and not isinstance(txt, str_type):
 			raise IOError('If compression is enabled, the file must be opened in binary mode.')
 		try:
 			fh.write(txt)
@@ -200,9 +202,12 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 		if conv_str_byte:
 			string = string.decode(ENCODING)
 		else:
-			raise TypeError(('Cannot automatically encode object of type "{0:}" in `json_tricks.load(s)` since '
-				'the encoding is not known. You should instead encode the bytes to a string and pass that '
-				'string to `load(s)`, for example bytevar.encode("utf-8") if utf-8 is the encoding.').format(type(string)))
+			raise TypeError(('The input was of non-string type "{0:}" in `json_tricks.load(s)`. '
+				'Bytes cannot be automatically decoding since the encoding is not known. Recommended '
+				'way is to instead encode the bytes to a string and pass that string to `load(s)`, '
+				'for example bytevar.encode("utf-8") if utf-8 is the encoding. Alternatively you can '
+				'force an attempt by passing conv_str_byte=True, but this may cause decoding issues.')
+					.format(type(string)))
 	if ignore_comments:
 		string = strip_comments(string)
 	obj_pairs_hooks = tuple(obj_pairs_hooks)
@@ -224,7 +229,14 @@ def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_
 	"""
 	try:
 		if isinstance(fp, str_type):
-			with open(fp, 'rb') as fh:
+			if decompression is not None:
+				open_binary = bool(decompression)
+			else:
+				with open(fp, 'rb') as fh:
+					# This attempts to detect gzip mode; gzip should always
+					# have this header, and text json can't have it.
+					open_binary = (fh.read(2) == b'\x1f\x8b')
+			with open(fp, 'rb' if open_binary else 'r') as fh:
 				string = fh.read()
 		else:
 			string = fp.read()
