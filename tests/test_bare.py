@@ -61,8 +61,9 @@ def test_mix_handle_bin_path():
 	# Based on issue 68
 	data = {"fun": 1.1234567891234567e-13}
 	path = join(mkdtemp(), 'test_mix_handle_bin_path.json')
-	with raises(TypeError):
-		dump(data, open(path, "wb"))
+	if is_py3:
+		with raises(TypeError):
+			dump(data, open(path, "wb"))
 
 
 def test_mix_path_handle():
