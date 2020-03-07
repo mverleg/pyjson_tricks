@@ -20,7 +20,6 @@ from json_tricks.utils import is_py3
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, SlotsABCDict, SlotsABC
 
 
-
 nonpdata = {
 	'my_array': list(range(20)),
 	'my_map': dict((chr(k), k) for k in range(97, 123)),
@@ -71,8 +70,6 @@ def test_mix_path_handle():
 	data = {"fun": 1.1234567891234567e-13}
 	path = join(mkdtemp(), 'test_mix_path_handle.json')
 	dump(data, path)
-	# back = load(open(path, "r"))
-	# assert data == back
 
 
 def test_file_handle_types():
@@ -340,6 +337,7 @@ def test_special_floats():
 	"""
 	special_floats = [float('NaN'), float('Infinity'), -float('Infinity'), float('+0'), float('-0')]
 	txt = dumps(special_floats, allow_nan=True)
+	assert txt == "[NaN, Infinity, -Infinity, 0.0, -0.0]"
 	res = loads(txt)
 	for x, y in zip(special_floats, res):
 		""" Use strings since `+0 == -1` and `NaN != NaN` """
