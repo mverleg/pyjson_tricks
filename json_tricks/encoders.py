@@ -340,7 +340,7 @@ def nopandas_encode(obj):
 	return obj
 
 
-def numpy_encode(obj, primitives=False):
+def numpy_encode(obj, primitives=False, properties=None):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
 
@@ -355,6 +355,15 @@ def numpy_encode(obj, primitives=False):
 		if primitives:
 			return obj.tolist()
 		else:
+			properties = properties or {}
+			use_compact = properties.get('ndarray_compact', False)
+			if not use_compact and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
+				numpy_encode._warned_compact = True
+				warning('storing ndarray in text format while compression in enabled; in the next major version of '
+					'json_tricks, the default will change to compact format in compressed mode; to already use '
+					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
+					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9')
+			print('use_compact={}'.format(use_compact))
 			dct = hashodict((
 				('__ndarray__', obj.tolist()),
 				('dtype', str(obj.dtype)),
@@ -369,6 +378,31 @@ def numpy_encode(obj, primitives=False):
 			warning('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
 		return obj.item()
 	return obj
+
+
+#TODO @mark: decode->encode
+def _bin_str_to_ndarray(data, order, shape, dtype):
+	"""
+	From base64 encoded, gzipped binary data to ndarray.
+	"""
+	import gzip
+	try:
+		from base64 import standard_b64decode
+	except ImportError:
+		raise NoNumpyException('Trying to decode compressed numpy format, but function base64.b85decode '
+							   'could not be imported. This function is available by default in python 3.4 and higher.')
+	from numpy import frombuffer
+
+	assert order is None, 'specifying order is not (yet) supported for binary numpy format'
+	if data.startswith('b64.gz:'):
+		data = standard_b64decode(data[7:])
+		data = gzip.decompress(data)
+	elif data.startswith('b64:'):
+		data = standard_b64decode(data[4:])
+	else:
+		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
+	data = frombuffer(data, dtype=dtype)
+	return data.reshape(shape)
 
 
 class NumpyEncoder(ClassInstanceEncoder):
