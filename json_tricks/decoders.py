@@ -276,20 +276,24 @@ def json_numpy_obj_hook(dct):
 
 def _bin_str_to_ndarray(data, order, shape, dtype):
 	"""
-	From base85 encoded, gzipped binary data to ndarray.
+	From base64 encoded, gzipped binary data to ndarray.
 	"""
 	import gzip
 	try:
-		from base64 import b85decode
+		from base64 import standard_b64decode
 	except ImportError:
 		raise NoNumpyException('Trying to decode compressed numpy format, but function base64.b85decode '
 			'could not be imported. This function is available by default in python 3.4 and higher.')
 	from numpy import frombuffer
 
 	assert order is None, 'specifying order is not (yet) supported for binary numpy format'
-	assert data.startswith('b85.gz:')
-	data = b85decode(data[7:])
-	data = gzip.decompress(data)
+	if data.startswith('b64.gz:'):
+		data = standard_b64decode(data[7:])
+		data = gzip.decompress(data)
+	elif data.startswith('b64:'):
+		data = standard_b64decode(data[4:])
+	else:
+		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
 	data = frombuffer(data, dtype=dtype)
 	return data.reshape(shape)
 
