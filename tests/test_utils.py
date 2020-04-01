@@ -31,3 +31,25 @@ def test_nested_index():
 		pass
 	else:
 		raise AssertionError('indexing more than nesting level should yield IndexError')
+
+
+def base85_vsbase64_performance():
+	from base64 import b85encode, urlsafe_b64encode
+	from random import getrandbits
+	test_data = bytearray(getrandbits(8) for _ in range(10_000_000))
+	from timeit import default_timer
+	print('')
+
+	start = default_timer()
+	for _ in range(20):
+		urlsafe_b64encode(test_data)
+	end = default_timer()
+	print('urlsafe_b64encode took {} s'.format(end - start))
+
+	start = default_timer()
+	for _ in range(20):
+		b85encode(test_data)
+	end = default_timer()
+	print('b85encode took {} s'.format(end - start))
+
+	# Result on local PC in 2020: base84 is 27x slower to encode
