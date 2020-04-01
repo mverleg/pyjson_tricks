@@ -162,6 +162,11 @@ def nested_index(collection, indices):
 	return collection
 
 
+def dict_default(dictionary, key, default_value):
+	if key not in dictionary:
+		dictionary[key] = default_value
+
+
 is_py3 = (version[:2] == '3.')
 str_type = str if is_py3 else (basestring, unicode,)
 

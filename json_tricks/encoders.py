@@ -58,7 +58,7 @@ class TricksEncoder(JSONEncoder):
 	Each encoder should make any appropriate changes and return an object,
 	changed or not. This will be passes to the other encoders.
 	"""
-	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, fallback_encoders=(), **json_kwargs):
+	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, fallback_encoders=(), properties=None, **json_kwargs):
 		"""
 		:param obj_encoders: An iterable of functions or encoder instances to try.
 		:param silence_typeerror: DEPRECATED - If set to True, ignore the TypeErrors that Encoder instances throw (default False).
@@ -72,6 +72,7 @@ class TricksEncoder(JSONEncoder):
 		self.obj_encoders.extend(_fallback_wrapper(encoder) for encoder in list(fallback_encoders))
 		self.obj_encoders = [filtered_wrapper(enc) for enc in self.obj_encoders]
 		self.silence_typeerror = silence_typeerror
+		self.properties = properties
 		self.primitives = primitives
 		super(TricksEncoder, self).__init__(**json_kwargs)
 
@@ -88,7 +89,7 @@ class TricksEncoder(JSONEncoder):
 		"""
 		prev_id = id(obj)
 		for encoder in self.obj_encoders:
-			obj = encoder(obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
+			obj = encoder(obj, primitives=self.primitives, is_changed=id(obj) != prev_id, properties=self.properties)
 		if id(obj) == prev_id:
 			raise TypeError(('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]. '
 				'You can add an encoders for this type using `extra_obj_encoders`. If you want to \'skip\' this '

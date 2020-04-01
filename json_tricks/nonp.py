@@ -5,7 +5,7 @@ from json import loads as json_loads
 from os import fsync
 from sys import exc_info
 
-from json_tricks.utils import is_py3
+from json_tricks.utils import is_py3, dict_default
 from .utils import str_type, NoNumpyException  # keep 'unused' imports
 from .comment import strip_comments  # keep 'unused' imports
 from .encoders import TricksEncoder, json_date_time_encode, \
@@ -31,6 +31,7 @@ DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook,
 				numeric_types_hook, _cih_instance, ]
 
 
+#TODO @mark: add properties to all built-in encoders (for speed - but it should keep working without)
 try:
 	import enum
 except ImportError:
@@ -60,11 +61,11 @@ else:
 	DEFAULT_HOOKS = [pandas_hook,] + DEFAULT_HOOKS
 
 try:
-    import pathlib
+	import pathlib
 except:
-    # No need to include a "nopathlib_encode" hook since we would not encounter
-    # the Path object if pathlib isn't available. However, we *could* encounter
-    # a serialized Path object (produced by a version of Python with pathlib).
+	# No need to include a "nopathlib_encode" hook since we would not encounter
+	# the Path object if pathlib isn't available. However, we *could* encounter
+	# a serialized Path object (produced by a version of Python with pathlib).
 	DEFAULT_HOOKS = [nopathlib_hook,] + DEFAULT_HOOKS
 else:
 	DEFAULT_ENCODERS = [pathlib_encode,] + DEFAULT_ENCODERS
@@ -76,7 +77,8 @@ DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS		# DEPRECATED
 
 
 def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
-		primitives=False, compression=None, allow_nan=False, conv_str_byte=False, fallback_encoders=(), **jsonkwargs):
+		primitives=False, compression=None, allow_nan=False, conv_str_byte=False, fallback_encoders=(),
+		properties=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -88,6 +90,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	:param fallback_encoders: These are extra `obj_encoders` that 1) are ran after all others and 2) only run if the object hasn't yet been changed.
 	:param allow_nan: Allow NaN and Infinity values, which is a (useful) violation of the JSON standard (default False).
 	:param conv_str_byte: Try to automatically convert between strings and bytes (assuming utf-8) (default False).
+	:param properties: A dictionary of properties that is passed to each encoder that will accept it.
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to `cls`. Note that `sort_keys` should be false if you want to preserve order.
@@ -95,8 +98,13 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	if not hasattr(extra_obj_encoders, '__iter__'):
 		raise TypeError('`extra_obj_encoders` should be a tuple in `json_tricks.dump(s)`')
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
+	properties = properties or {}
+	dict_default(properties, 'primitives', primitives)
+	dict_default(properties, 'compression', compression)
+	dict_default(properties, 'allow_nan', allow_nan)
 	txt = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
-		primitives=primitives, fallback_encoders=fallback_encoders, **jsonkwargs).encode(obj)
+		primitives=primitives, fallback_encoders=fallback_encoders,
+	  	properties=properties, **jsonkwargs).encode(obj)
 	if not is_py3 and isinstance(txt, str):
 		txt = unicode(txt, ENCODING)
 	if not compression:
@@ -113,7 +121,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 
 def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
 		primitives=False, compression=None, force_flush=False, allow_nan=False, conv_str_byte=False,
-		fallback_encoders=(), **jsonkwargs):
+		fallback_encoders=(), properties=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -125,7 +133,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 	"""
 	txt = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
 		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte,
-				fallback_encoders=fallback_encoders, **jsonkwargs)
+		fallback_encoders=fallback_encoders, **jsonkwargs)
 	if isinstance(fp, str_type):
 		if compression:
 			fh = open(fp, 'wb+')

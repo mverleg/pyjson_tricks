@@ -264,17 +264,17 @@ def json_numpy_obj_hook(dct):
 	data_json = dct['__ndarray__']
 	if dct['shape']:
 		if dct['dtype'] == 'object':
-			return lists_of_obj_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+			return _lists_of_obj_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 		if isinstance(data_json, str_type):
 			#TODO @mark: warning about changing default
-			bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+			_bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 		else:
-			return lists_of_numbers_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+			return _lists_of_numbers_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 	else:
-		scalar_to_numpy(data_json, dct['dtype'])
+		_scalar_to_numpy(data_json, dct['dtype'])
 
 
-def bin_str_to_ndarray(data, order, shape, dtype):
+def _bin_str_to_ndarray(data, order, shape, dtype):
 	"""
 	From base85 encoded, gzipped binary data to ndarray.
 	"""
@@ -294,7 +294,7 @@ def bin_str_to_ndarray(data, order, shape, dtype):
 	return data.reshape(shape)
 
 
-def lists_of_numbers_to_ndarray(data, order, shape, dtype):
+def _lists_of_numbers_to_ndarray(data, order, shape, dtype):
 	"""
 	From nested list of numbers to ndarray.
 	"""
@@ -305,7 +305,7 @@ def lists_of_numbers_to_ndarray(data, order, shape, dtype):
 	return arr
 
 
-def lists_of_obj_to_ndarray(data, order, shape, dtype):
+def _lists_of_obj_to_ndarray(data, order, shape, dtype):
 	"""
 	From nested list of objects (that aren't native numpy numbers) to ndarray.
 	"""
@@ -317,7 +317,7 @@ def lists_of_obj_to_ndarray(data, order, shape, dtype):
 	return arr
 
 
-def scalar_to_numpy(data, dtype):
+def _scalar_to_numpy(data, dtype):
 	"""
 	From scalar value to numpy type.
 	"""
