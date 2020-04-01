@@ -44,7 +44,7 @@ def filtered_wrapper(encoder):
 	elif not hasattr(encoder, '__call__'):
 		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
 	names = get_arg_names(encoder)
-	
+
 	def wrapper(*args, **kwargs):
 		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
 	return wrapper
@@ -393,13 +393,16 @@ def _ndarray_to_bin_str(array):
 	from base64 import standard_b64encode
 	assert array.flags['C_CONTIGUOUS'], 'only C memory order is (currently) supported for compact ndarray format'
 
+	original_size = array.size * array.itemsize
 	header = 'b64:'
 	data = array.data
 	small = gzip.compress(data)
-	if len(small) < 0.9 * len(data) and len(small) < len(data) - 32:
+	print(len(small), original_size)
+	if len(small) < 0.9 * original_size and len(small) < original_size - 32:
 		header = 'b64.gz:'
 		data = small
-	return header + standard_b64encode(data)
+	data = standard_b64encode(data)
+	return header + data.decode('ascii')
 
 
 class NumpyEncoder(ClassInstanceEncoder):
