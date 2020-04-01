@@ -356,16 +356,21 @@ def numpy_encode(obj, primitives=False, properties=None):
 			return obj.tolist()
 		else:
 			properties = properties or {}
-			use_compact = properties.get('ndarray_compact', False)
+			use_compact = properties.get('ndarray_compact', None)
+			if use_compact is None:
+				use_compact = obj.size > 16
 			if not use_compact and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
 				warning('storing ndarray in text format while compression in enabled; in the next major version of '
 					'json_tricks, the default will change to compact format in compressed mode; to already use '
 					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
 					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9')
-			print('use_compact={}'.format(use_compact))
+			if use_compact:
+				data_json = _ndarray_to_bin_str(obj)
+			else:
+				data_json = obj.tolist()
 			dct = hashodict((
-				('__ndarray__', obj.tolist()),
+				('__ndarray__', data_json),
 				('dtype', str(obj.dtype)),
 				('shape', obj.shape),
 			))
@@ -380,29 +385,21 @@ def numpy_encode(obj, primitives=False, properties=None):
 	return obj
 
 
-#TODO @mark: decode->encode
-def _bin_str_to_ndarray(data, order, shape, dtype):
+def _ndarray_to_bin_str(array):
 	"""
-	From base64 encoded, gzipped binary data to ndarray.
+	From ndarray to base64 encoded, gzipped binary data.
 	"""
 	import gzip
-	try:
-		from base64 import standard_b64decode
-	except ImportError:
-		raise NoNumpyException('Trying to decode compressed numpy format, but function base64.b85decode '
-							   'could not be imported. This function is available by default in python 3.4 and higher.')
-	from numpy import frombuffer
+	from base64 import standard_b64encode
+	assert array.flags['C_CONTIGUOUS'], 'only C memory order is (currently) supported for compact ndarray format'
 
-	assert order is None, 'specifying order is not (yet) supported for binary numpy format'
-	if data.startswith('b64.gz:'):
-		data = standard_b64decode(data[7:])
-		data = gzip.decompress(data)
-	elif data.startswith('b64:'):
-		data = standard_b64decode(data[4:])
-	else:
-		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
-	data = frombuffer(data, dtype=dtype)
-	return data.reshape(shape)
+	header = 'b64:'
+	data = array.data
+	small = gzip.compress(data)
+	if len(small) < 0.9 * len(data) and len(small) < len(data) - 32:
+		header = 'b64.gz:'
+		data = small
+	return header + standard_b64encode(data)
 
 
 class NumpyEncoder(ClassInstanceEncoder):

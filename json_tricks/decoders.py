@@ -279,14 +279,10 @@ def _bin_str_to_ndarray(data, order, shape, dtype):
 	From base64 encoded, gzipped binary data to ndarray.
 	"""
 	import gzip
-	try:
-		from base64 import standard_b64decode
-	except ImportError:
-		raise NoNumpyException('Trying to decode compressed numpy format, but function base64.b85decode '
-			'could not be imported. This function is available by default in python 3.4 and higher.')
+	from base64 import standard_b64decode
 	from numpy import frombuffer
 
-	assert order is None, 'specifying order is not (yet) supported for binary numpy format'
+	assert order is 'C', 'specifying different memory order is not (yet) supported for binary numpy format'
 	if data.startswith('b64.gz:'):
 		data = standard_b64decode(data[7:])
 		data = gzip.decompress(data)
