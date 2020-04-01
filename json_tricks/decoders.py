@@ -1,11 +1,11 @@
-
+from base64 import urlsafe_b64decode, a85decode
 from datetime import datetime, date, time, timedelta
 from fractions import Fraction
 from collections import OrderedDict
 from decimal import Decimal
 from logging import warning
 from json_tricks import NoEnumException, NoPandasException, NoNumpyException
-from .utils import ClassInstanceHookBase, nested_index
+from .utils import ClassInstanceHookBase, nested_index, str_type
 
 
 class DuplicateJsonKeyException(Exception):
@@ -254,25 +254,76 @@ def json_numpy_obj_hook(dct):
 	if not '__ndarray__' in dct:
 		return dct
 	try:
-		from numpy import asarray, empty, ndindex
-		import numpy as nptypes
+		import numpy
 	except ImportError:
 		raise NoNumpyException('Trying to decode a map which appears to represent a numpy '
 			'array, but numpy appears not to be installed.')
 	order = None
 	if 'Corder' in dct:
 		order = 'C' if dct['Corder'] else 'F'
+	data_json = dct['__ndarray__']
 	if dct['shape']:
 		if dct['dtype'] == 'object':
-			dec_data = dct['__ndarray__']
-			arr = empty(dct['shape'], dtype=dct['dtype'], order=order)
-			for indx in ndindex(arr.shape):
-				arr[indx] = nested_index(dec_data, indx)
-			return arr
-		return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
+			return lists_of_obj_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+		if isinstance(data_json, str_type):
+			#TODO @mark: warning about changing default
+			bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+		else:
+			return lists_of_numbers_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 	else:
-		dtype = getattr(nptypes, dct['dtype'])
-		return dtype(dct['__ndarray__'])
+		scalar_to_numpy(data_json, dct['dtype'])
+
+
+def bin_str_to_ndarray(data, order, shape, dtype):
+	"""
+	From base85 encoded, gzipped binary data to ndarray.
+	"""
+	import gzip
+	try:
+		from base64 import b85decode
+	except ImportError:
+		raise NoNumpyException('Trying to decode compressed numpy format, but function base64.b85decode '
+			'could not be imported. This function is available by default in python 3.4 and higher.')
+	from numpy import frombuffer
+
+	assert order is None, 'specifying order is not (yet) supported for binary numpy format'
+	assert data.startswith('b85.gz:')
+	data = b85decode(data[7:])
+	data = gzip.decompress(data)
+	data = frombuffer(data, dtype=dtype)
+	return data.reshape(shape)
+
+
+def lists_of_numbers_to_ndarray(data, order, shape, dtype):
+	"""
+	From nested list of numbers to ndarray.
+	"""
+	from numpy import asarray
+	arr = asarray(data, dtype=dtype, order=order)
+	if shape != arr.shape:
+		warning('size mismatch decoding numpy array: expected {}, got {}'.format(shape, arr.shape))
+	return arr
+
+
+def lists_of_obj_to_ndarray(data, order, shape, dtype):
+	"""
+	From nested list of objects (that aren't native numpy numbers) to ndarray.
+	"""
+	from numpy import empty, ndindex
+	arr = empty(shape, dtype=dtype, order=order)
+	dec_data = data
+	for indx in ndindex(arr.shape):
+		arr[indx] = nested_index(dec_data, indx)
+	return arr
+
+
+def scalar_to_numpy(data, dtype):
+	"""
+	From scalar value to numpy type.
+	"""
+	import numpy as nptypes
+	dtype = getattr(nptypes, dtype)
+	return dtype(data)
 
 
 def json_nonumpy_obj_hook(dct):
