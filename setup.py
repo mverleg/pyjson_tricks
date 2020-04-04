@@ -2,6 +2,7 @@
 
 from sys import version_info
 from logging import warning
+from warnings import warn
 
 from setuptools import setup
 
@@ -20,7 +21,7 @@ if version_info < (2, 7, 0):
 if (version_info[0] == 2 and version_info[1] < 7) or \
 		(version_info[0] == 3 and version_info[1] < 4) or \
 		version_info[0] not in (2, 3):
-	raise warning('`json_tricks` does not support Python version {}.{}'
+	raise warn('`json_tricks` does not support Python version {}.{}'
 		.format(version_info[0], version_info[1]))
 
 setup(
@@ -58,6 +59,7 @@ setup(
 		'Programming Language :: Python :: 3.5',
 		'Programming Language :: Python :: 3.6',
 		'Programming Language :: Python :: 3.7',
+		'Programming Language :: Python :: 3.8',
 		'Programming Language :: Python :: Implementation :: CPython',
 		'Programming Language :: Python :: Implementation :: PyPy',
 		'Topic :: Software Development :: Libraries :: Python Modules',

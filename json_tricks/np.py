@@ -3,7 +3,7 @@
 This file exists for backward compatibility reasons.
 """
 
-from logging import warning
+from warnings import warn
 from .nonp import NoNumpyException, DEFAULT_ENCODERS, DEFAULT_HOOKS, dumps, dump, loads, load  # keep 'unused' imports
 from .utils import hashodict, NoPandasException
 from .comment import strip_comment_line_with_symbol, strip_comments  # keep 'unused' imports
@@ -19,7 +19,7 @@ except ImportError:
 		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
 
 
-warning('`json_tricks.np` is deprecated, you can import directly from `json_tricks`')
+warn('`json_tricks.np` is deprecated, you can import directly from `json_tricks`', DeprecationWarning)
 
 
 DEFAULT_NP_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS    # DEPRECATED

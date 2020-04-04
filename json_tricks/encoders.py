@@ -6,6 +6,8 @@ from logging import warning
 from json import JSONEncoder
 from sys import version, stderr
 from decimal import Decimal
+from warnings import warn
+
 from .utils import hashodict, get_arg_names, \
 	get_module_name_from_object, NoEnumException, NoPandasException, \
 	NoNumpyException, str_type
@@ -303,11 +305,6 @@ def json_set_encode(obj, primitives=False):
 
 def pandas_encode(obj, primitives=False):
 	from pandas import DataFrame, Series
-	if isinstance(obj, (DataFrame, Series)):
-		#todo: this is experimental
-		if not getattr(pandas_encode, '_warned', False):
-			pandas_encode._warned = True
-			warning('Pandas dumping support in json-tricks is experimental and may change in future versions.')
 	if isinstance(obj, DataFrame):
 		repr = hashodict()
 		if not primitives:
@@ -361,10 +358,10 @@ def numpy_encode(obj, primitives=False, properties=None):
 				use_compact = obj.size > 16
 			if not use_compact and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
-				warning('storing ndarray in text format while compression in enabled; in the next major version of '
+				warn('storing ndarray in text format while compression in enabled; in the next major version of '
 					'json_tricks, the default will change to compact format in compressed mode; to already use '
 					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
-					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9')
+					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9', DeprecationWarning)
 			if use_compact:
 				data_json = _ndarray_to_bin_str(obj)
 			else:
@@ -380,7 +377,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 	elif isinstance(obj, generic):
 		if NumpyEncoder.SHOW_SCALAR_WARNING:
 			NumpyEncoder.SHOW_SCALAR_WARNING = False
-			warning('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
+			warn('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
 		return obj.item()
 	return obj
 
@@ -416,7 +413,7 @@ class NumpyEncoder(ClassInstanceEncoder):
 		If input object is a ndarray it will be converted into a dict holding
 		data type, shape and the data. The object can be restored using json_numpy_obj_hook.
 		"""
-		warning('`NumpyEncoder` is deprecated, use `numpy_encode`')  #todo
+		warn('`NumpyEncoder` is deprecated, use `numpy_encode`', DeprecationWarning)
 		obj = numpy_encode(obj)
 		return super(NumpyEncoder, self).default(obj, *args, **kwargs)
 
@@ -436,6 +433,6 @@ class NoNumpyEncoder(JSONEncoder):
 	See `nonumpy_encode`.
 	"""
 	def default(self, obj, *args, **kwargs):
-		warning('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`')  #todo
+		warn('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`', DeprecationWarning)
 		obj = nonumpy_encode(obj)
 		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)

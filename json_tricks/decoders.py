@@ -1,9 +1,9 @@
-from base64 import urlsafe_b64decode, a85decode
-from datetime import datetime, date, time, timedelta
-from fractions import Fraction
 from collections import OrderedDict
+from datetime import datetime, date, time, timedelta
 from decimal import Decimal
-from logging import warning
+from fractions import Fraction
+from warnings import warn
+
 from json_tricks import NoEnumException, NoPandasException, NoNumpyException
 from .utils import ClassInstanceHookBase, nested_index, str_type
 
@@ -198,10 +198,6 @@ def pandas_hook(dct):
 		return dct
 	if '__pandas_dataframe__' not in dct and '__pandas_series__' not in dct:
 		return dct
-	# todo: this is experimental
-	if not getattr(pandas_hook, '_warned', False):
-		pandas_hook._warned = True
-		warning('Pandas loading support in json-tricks is experimental and may change in future versions.')
 	if '__pandas_dataframe__' in dct:
 		try:
 			from pandas import DataFrame
@@ -301,7 +297,7 @@ def _lists_of_numbers_to_ndarray(data, order, shape, dtype):
 	from numpy import asarray
 	arr = asarray(data, dtype=dtype, order=order)
 	if shape != arr.shape:
-		warning('size mismatch decoding numpy array: expected {}, got {}'.format(shape, arr.shape))
+		warn('size mismatch decoding numpy array: expected {}, got {}'.format(shape, arr.shape))
 	return arr
 
 
