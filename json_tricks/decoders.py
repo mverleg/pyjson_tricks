@@ -279,7 +279,8 @@ def _bin_str_to_ndarray(data, order, shape, dtype):
 	from base64 import standard_b64decode
 	from numpy import frombuffer
 
-	assert order is 'C', 'specifying different memory order is not (yet) supported for binary numpy format'
+	assert order in [None, 'C'], 'specifying different memory order is not (yet) supported ' \
+		'for binary numpy format (got order = {})'.format(order)
 	if data.startswith('b64.gz:'):
 		data = standard_b64decode(data[7:])
 		data = gzip.decompress(data)

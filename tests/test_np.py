@@ -10,6 +10,7 @@ from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
 from numpy.core.umath import exp
+from numpy.testing import assert_equal
 
 from json_tricks import numpy_encode
 from json_tricks.np import dump, dumps, load, loads
@@ -170,6 +171,14 @@ def test_dump_np_scalars():
 	assert data[2] == tuple(rec[2])
 
 
+def test_compact():
+	data = [array(list(2**(x + 0.5) for x in range(-30, +31)))]
+	json = dumps(data, compression=True, properties={'ndarray_compact': True})
+	print(gzip.decompress(json))  #TODO @mark: TEMPORARY! REMOVE THIS!
+	back = loads(json)
+	assert_equal(data, back)
+
+
 def test_ndarray_object_nesting():
 	# Based on issue 53
 	# With nested ndarrays
@@ -203,7 +212,7 @@ def test_dtype_object():
 def test_compact_mode_unspecified():
 	# Other tests may have raised deprecation warning, so reset the cache here
 	numpy_encode._warned_compact = False
-	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
+	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	with warns(JsonTricksDeprecation):
 		gz_json_1 = dumps(data, compression=True)
 	# noinspection PyTypeChecker
@@ -212,33 +221,35 @@ def test_compact_mode_unspecified():
 	assert len(captured) == 0
 	assert gz_json_1 == gz_json_2
 	json = gzip.decompress(gz_json_1).decode('ascii')
-	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
+	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
 def test_encode_disable_compact():
-	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
+	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties={'ndarray_compact': False})
 	json = gzip.decompress(gz_json).decode('ascii')
-	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
+	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
 def test_encode_enable_compact():
-	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
+	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties={'ndarray_compact': True})
 	json = gzip.decompress(gz_json).decode('ascii')
-	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
+	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
 def test_encode_compact_cutoff():
-	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
+	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties={'ndarray_compact': 5})
 	json = gzip.decompress(gz_json).decode('ascii')
-	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
+	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
+
+#TODO @mark: compression true/false
 
 #TODO @mark: decode
 #TODO @mark: README

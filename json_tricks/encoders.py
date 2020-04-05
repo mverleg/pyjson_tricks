@@ -354,8 +354,8 @@ def numpy_encode(obj, primitives=False, properties=None):
 			use_compact = properties.get('ndarray_compact', None)
 			if use_compact is None and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
-				warnings.warn('storing ndarray in text format while compression in enabled; in the next major version of '
-					'json_tricks, the default when using compression will change to compact mode; to already use '
+				warnings.warn('storing ndarray in text format while compression in enabled; in the next major version '
+					'of json_tricks, the default when using compression will change to compact mode; to already use '
 					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
 					'to silence this warning, pass `properties={"ndarray_compact": False}`; '
 					'see issue https://github.com/mverleg/pyjson_tricks/issues/73', JsonTricksDeprecation)
