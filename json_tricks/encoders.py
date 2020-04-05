@@ -354,14 +354,14 @@ def numpy_encode(obj, primitives=False, properties=None):
 		else:
 			properties = properties or {}
 			use_compact = properties.get('ndarray_compact', None)
-			if use_compact is None:
-				use_compact = obj.size > 16
-			if not use_compact and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
+			if use_compact is None and properties.get('compression', True) and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
 				warn('storing ndarray in text format while compression in enabled; in the next major version of '
 					'json_tricks, the default will change to compact format in compressed mode; to already use '
 					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
 					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9', DeprecationWarning)
+			if use_compact is True:
+				use_compact = obj.size > 16
 			if use_compact:
 				data_json = _ndarray_to_bin_str(obj)
 			else:
@@ -390,6 +390,7 @@ def _ndarray_to_bin_str(array):
 	from base64 import standard_b64encode
 	assert array.flags['C_CONTIGUOUS'], 'only C memory order is (currently) supported for compact ndarray format'
 
+	#TODO @mark: don't compress if overall json is already compressed
 	original_size = array.size * array.itemsize
 	header = 'b64:'
 	data = array.data
