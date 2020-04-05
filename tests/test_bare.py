@@ -57,6 +57,29 @@ def test_mix_handle_str_path():
 	assert data == back
 
 
+
+def test_wrong_arg_order():
+	# Based on a problem from https://github.com/mverleg/array_storage_benchmark
+	li = [[1.0, 2.0], [3.0, 4.0]]
+	map = {"a": 1}
+	path = join(mkdtemp(), 'pytest-np.json.gz')
+	msg = 'json-tricks dump arguments are in the wrong order: provide the data to be serialized before file handle'
+	with raises(ValueError) as ex:
+		with open(path, 'wb+') as fh:
+			dump(fh, li)
+	assert msg in ex.value.args[0]
+	with raises(ValueError) as ex:
+		dump(path, li)
+	assert msg in ex.value.args[0]
+	with raises(ValueError) as ex:
+		with open(path, 'wb+') as fh:
+			dump(fh, map)
+	assert msg in ex.value.args[0]
+	with raises(ValueError) as ex:
+		dump(path, map)
+	assert msg in ex.value.args[0]
+
+
 def test_mix_handle_bin_path():
 	# Based on issue 68
 	data = {"fun": 1.1234567891234567e-13}

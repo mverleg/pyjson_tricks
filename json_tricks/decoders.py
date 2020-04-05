@@ -258,15 +258,17 @@ def json_numpy_obj_hook(dct):
 	if 'Corder' in dct:
 		order = 'C' if dct['Corder'] else 'F'
 	data_json = dct['__ndarray__']
-	if dct['shape']:
-		if dct['dtype'] == 'object':
-			return _lists_of_obj_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+	shape = tuple(dct['shape'])
+	nptype = dct['dtype']
+	if shape:
+		if nptype == 'object':
+			return _lists_of_obj_to_ndarray(data_json, order, shape, nptype)
 		if isinstance(data_json, str_type):
-			return _bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+			return _bin_str_to_ndarray(data_json, order, shape, nptype)
 		else:
-			return _lists_of_numbers_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+			return _lists_of_numbers_to_ndarray(data_json, order, shape, nptype)
 	else:
-		return _scalar_to_numpy(data_json, dct['dtype'])
+		return _scalar_to_numpy(data_json, nptype)
 
 
 def _bin_str_to_ndarray(data, order, shape, dtype):

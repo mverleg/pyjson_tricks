@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import gzip
-from base64 import standard_b64encode
+
 from copy import deepcopy
 from os.path import join
 from tempfile import mkdtemp
-from time import sleep
 
 from _pytest.recwarn import warns
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
@@ -13,11 +11,12 @@ from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
 from numpy.core.umath import exp
 from numpy.testing import assert_equal
+from pytest import raises
 
 from json_tricks import numpy_encode
 from json_tricks.np import dump, dumps, load, loads
 from json_tricks.np_utils import encode_scalars_inplace
-from json_tricks.utils import JsonTricksDeprecation, gzip_compress, gzip_decompress
+from json_tricks.utils import JsonTricksDeprecation, gzip_decompress
 from .test_bare import cls_instance
 from .test_class import MyTestCls
 
@@ -41,8 +40,8 @@ npdata = {
 
 def _numpy_equality(d2):
 	assert npdata.keys() == d2.keys()
-	assert (npdata['vector'] == d2['vector']).all()
-	assert (npdata['matrix'] == d2['matrix']).all()
+	assert_equal(npdata['vector'], d2['vector'])
+	assert_equal(npdata['matrix'], d2['matrix'])
 	assert npdata['vector'].dtype == d2['vector'].dtype
 	assert npdata['matrix'].dtype == d2['matrix'].dtype
 
@@ -72,6 +71,13 @@ def test_file_numpy():
 	with open(path, 'rb') as fh:
 		data2 = load(fh, decompression=True)
 	_numpy_equality(data2)
+
+
+def test_compressed_to_disk():
+	arr = [array([[1.0, 2.0], [3.0, 4.0]])]
+	path = join(mkdtemp(), 'pytest-np.json.gz')
+	with open(path, 'wb+') as fh:
+		dump(arr, fh, compression=True, properties={'ndarray_compact': True})
 
 
 mixed_data = {
@@ -273,7 +279,6 @@ def test_decode_compact_mixed_compactness():
 		'true}, {"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 	data = loads(json)
 	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)]))
-
 
 
 def test_decode_compact_inline_compression():

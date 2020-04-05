@@ -127,6 +127,8 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 
 	The other arguments are identical to `dumps`.
 	"""
+	if (isinstance(obj, str_type) or hasattr(obj, 'write')) and isinstance(fp, (list, dict)):
+		raise ValueError('json-tricks dump arguments are in the wrong order: provide the data to be serialized before file handle')
 	txt = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
 		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte,
 		fallback_encoders=fallback_encoders, properties=properties, **jsonkwargs)
