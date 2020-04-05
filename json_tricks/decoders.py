@@ -3,10 +3,9 @@ from collections import OrderedDict
 from datetime import datetime, date, time, timedelta
 from decimal import Decimal
 from fractions import Fraction
-from warnings import warn
 
 from json_tricks import NoEnumException, NoPandasException, NoNumpyException
-from .utils import ClassInstanceHookBase, nested_index, str_type
+from .utils import ClassInstanceHookBase, nested_index, str_type, gzip_decompress
 
 
 class DuplicateJsonKeyException(Exception):
@@ -274,7 +273,6 @@ def _bin_str_to_ndarray(data, order, shape, dtype):
 	"""
 	From base64 encoded, gzipped binary data to ndarray.
 	"""
-	import gzip
 	from base64 import standard_b64decode
 	from numpy import frombuffer
 
@@ -282,7 +280,7 @@ def _bin_str_to_ndarray(data, order, shape, dtype):
 		'for binary numpy format (got order = {})'.format(order)
 	if data.startswith('b64.gz:'):
 		data = standard_b64decode(data[7:])
-		data = gzip.decompress(data)
+		data = gzip_decompress(data)
 	elif data.startswith('b64:'):
 		data = standard_b64decode(data[4:])
 	else:

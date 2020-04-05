@@ -9,8 +9,8 @@ from sys import version_info, version
 
 class JsonTricksDeprecation(UserWarning):
 	""" Special deprecation warning because the built-in one is ignored by default """
-	def __init__(self, msg) -> None:
-		super().__init__(msg)
+	def __init__(self, msg):
+		super(JsonTricksDeprecation, self).__init__(msg)
 
 
 class hashodict(OrderedDict):
@@ -176,7 +176,7 @@ def dict_default(dictionary, key, default_value):
 
 def gzip_compress(data, compresslevel):
 	"""
-	Do gzip compression, without the timestamp.
+	Do gzip compression, without the timestamp. Similar to gzip.compress, but without timestamp, and also before py3.2.
 	"""
 	buf = io.BytesIO()
 	with gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel, mtime=0) as fh:
@@ -184,7 +184,12 @@ def gzip_compress(data, compresslevel):
 	return buf.getvalue()
 
 
-gzip_decompress = gzip.decompress
+def gzip_decompress(data):
+	"""
+	Do gzip decompression, without the timestamp. Just like gzip.decompress, but that's py3.2+.
+	"""
+	with gzip.GzipFile(fileobj=io.BytesIO(data)) as f:
+		return f.read()
 
 
 is_py3 = (version[:2] == '3.')
