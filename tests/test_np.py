@@ -199,58 +199,38 @@ def test_dtype_object():
 
 
 def test_compact_mode_unspecified():
-	data = [array([
-		1.0, 2.0, 3.0, 4.0, 5.0, 6.0,
-		7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-		13.0, 14.0, 15.0, 16.0, 17.0, 18.0,
-	]), array([pi, exp(1)])]
+	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
 	with deprecated_call():
 		gz_json = dumps(data, compression=True)
 	json = gzip.decompress(gz_json).decode('ascii')
-	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, ' \
-   		'12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0], "dtype": "float64", "shape": [18]}, ' \
+	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
-def test_compact_disable():
-	data = [array([
-		1.0, 2.0, 3.0, 4.0, 5.0, 6.0,
-		7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
-		13.0, 14.0, 15.0, 16.0, 17.0, 18.0,
-	]), array([pi, exp(1)])]
+def test_encode_disable_compact():
+	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties={'ndarray_compact': False})
 	json = gzip.decompress(gz_json).decode('ascii')
-	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, ' \
-   		'12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0], "dtype": "float64", "shape": [18]}, ' \
+	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
-def test_compact_encode_small():
-	data = []
-	json = dumps(data, compression=True, properties={'ndarray_compact': True})
-	raise NotImplemented
+def test_encode_enable_compact():
+	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
+	gz_json = dumps(data, compression=True, properties={'ndarray_compact': True})
+	json = gzip.decompress(gz_json).decode('ascii')
+	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
+		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
-def test_compact_encode_large():
-	pass
-	raise NotImplemented
+def test_encode_compact_cutoff():
+	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
+	gz_json = dumps(data, compression=True, properties={'ndarray_compact': 5})
+	json = gzip.decompress(gz_json).decode('ascii')
+	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
+		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
-def test_compact_decode_small():
-	pass
-	raise NotImplemented
-
-
-def test_compact_decode_large():
-	pass
-	raise NotImplemented
-
-
-def test_compact_compress_decompress():
-	pass
-	raise NotImplemented
-
-
+#TODO @mark: decode
 #TODO @mark: README
-
 
