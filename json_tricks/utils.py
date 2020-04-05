@@ -1,3 +1,5 @@
+import gzip
+import io
 import warnings
 from collections import OrderedDict
 from functools import partial
@@ -170,6 +172,19 @@ def nested_index(collection, indices):
 def dict_default(dictionary, key, default_value):
 	if key not in dictionary:
 		dictionary[key] = default_value
+
+
+def gzip_compress(data, compresslevel):
+	"""
+	Do gzip compression, without the timestamp.
+	"""
+	buf = io.BytesIO()
+	with gzip.GzipFile(fileobj=buf, mode='wb', compresslevel=compresslevel, mtime=0) as fh:
+		fh.write(data)
+	return buf.getvalue()
+
+
+gzip_decompress = gzip.decompress
 
 
 is_py3 = (version[:2] == '3.')

@@ -8,7 +8,7 @@ from decimal import Decimal
 
 from .utils import hashodict, get_arg_names, \
 	get_module_name_from_object, NoEnumException, NoPandasException, \
-	NoNumpyException, str_type, JsonTricksDeprecation
+	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress
 
 
 def _fallback_wrapper(encoder):
@@ -352,18 +352,21 @@ def numpy_encode(obj, primitives=False, properties=None):
 		else:
 			properties = properties or {}
 			use_compact = properties.get('ndarray_compact', None)
-			if use_compact is None and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
+			json_compression = bool(properties.get('compression', False))
+			if use_compact is None and json_compression and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
 				warnings.warn('storing ndarray in text format while compression in enabled; in the next major version '
 					'of json_tricks, the default when using compression will change to compact mode; to already use '
 					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
 					'to silence this warning, pass `properties={"ndarray_compact": False}`; '
 					'see issue https://github.com/mverleg/pyjson_tricks/issues/73', JsonTricksDeprecation)
-			# Property 'use_compact' may also be an integer, in which
+			# Property 'use_compact' may also be an integer, in which case it's the number of
+			# elements from which compact storage is used.
 			if isinstance(use_compact, int) and not isinstance(use_compact, bool):
 				use_compact = obj.size >= use_compact
 			if use_compact:
-				data_json = _ndarray_to_bin_str(obj)
+				# If the overall json file is compressed, then don't compress the array.
+				data_json = _ndarray_to_bin_str(obj, do_compress=not json_compression)
 			else:
 				data_json = obj.tolist()
 			dct = hashodict((
@@ -382,7 +385,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 	return obj
 
 
-def _ndarray_to_bin_str(array):
+def _ndarray_to_bin_str(array, do_compress):
 	"""
 	From ndarray to base64 encoded, gzipped binary data.
 	"""
@@ -390,15 +393,15 @@ def _ndarray_to_bin_str(array):
 	from base64 import standard_b64encode
 	assert array.flags['C_CONTIGUOUS'], 'only C memory order is (currently) supported for compact ndarray format'
 
-	#TODO @mark: don't compress if overall json is already compressed
 	original_size = array.size * array.itemsize
 	header = 'b64:'
 	data = array.data
-	small = gzip.compress(data)
-	print(len(small), original_size)
-	if len(small) < 0.9 * original_size and len(small) < original_size - 32:
-		header = 'b64.gz:'
-		data = small
+	if do_compress:
+		print(standard_b64encode(data))  #TODO @mark: TEMPORARY! REMOVE THIS!
+		small = gzip_compress(data, compresslevel=9)
+		if len(small) < 0.9 * original_size and len(small) < original_size - 32:
+			header = 'b64.gz:'
+			data = small
 	data = standard_b64encode(data)
 	return header + data.decode('ascii')
 

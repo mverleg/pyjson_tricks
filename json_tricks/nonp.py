@@ -113,7 +113,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 		compression = 5
 	txt = txt.encode(ENCODING)
 	sh = BytesIO()
-	with GzipFile(mode='wb', fileobj=sh, compresslevel=compression) as zh:
+	with GzipFile(mode='wb', fileobj=sh, compresslevel=compression, mtime=0) as zh:
 		zh.write(txt)
 	gzstring = sh.getvalue()
 	return gzstring
@@ -133,7 +133,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 	"""
 	txt = dumps(obj, sort_keys=sort_keys, cls=cls, obj_encoders=obj_encoders, extra_obj_encoders=extra_obj_encoders,
 		primitives=primitives, compression=compression, allow_nan=allow_nan, conv_str_byte=conv_str_byte,
-		fallback_encoders=fallback_encoders, **jsonkwargs)
+		fallback_encoders=fallback_encoders, properties=properties, **jsonkwargs)
 	if isinstance(fp, str_type):
 		if compression:
 			fh = open(fp, 'wb+')
