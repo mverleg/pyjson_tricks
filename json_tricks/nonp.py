@@ -214,7 +214,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 					.format(type(string)))
 	if ignore_comments or ignore_comments is None:
 		new_string = strip_comments(string)
-		if ignore_comments is None and getattr(loads, '_ignore_comments_warned', False) and string != new_string:
+		if ignore_comments is None and not getattr(loads, '_ignore_comments_warned', False) and string != new_string:
 			warnings.warn('`json_tricks.load(s)` stripped some comments, but `ignore_comments` was '
 				'not passed; in the next major release, the behaviour when `ignore_comments` is not '
 				'passed will change; it is recommended to explicitly pass `ignore_comments=True` if '

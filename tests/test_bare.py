@@ -144,6 +144,12 @@ test_json_without_comments = """{
 }
 """
 
+test_object_for_comment_strings = {
+	"hello": "Wor#d", "Bye": "\"M#rk\"", "yes\\\"": 5,
+	"quote": "\"th#t's\" what she said",
+	"list": [1, 1, "#", "\"", "\\", 8], "dict": {"q": 7}
+}
+
 test_json_duplicates = """{"test": 42, "test": 37}"""
 
 
@@ -167,7 +173,7 @@ def test_ignore_comments_deprecation():
 	with warns(None) as captured:
 		loaded = loads(test_json_with_comments)
 	assert len(captured) == 0
-	assert loaded == test_json_without_comments
+	assert loaded == test_object_for_comment_strings
 
 	# Passing a string without comments should not have a warning
 	loads._ignore_comments_warned_ = False
@@ -182,15 +188,15 @@ def test_ignore_comments_deprecation():
 	with warns(None) as captured:
 		loaded = loads(test_json_with_comments, ignore_comments=True)
 	assert len(captured) == 0
-	assert loaded == test_json_without_comments
+	assert loaded == test_object_for_comment_strings
 
 	# Passing False for argument explicitly should not have a warning
 	loads._ignore_comments_warned_ = False
 	# noinspection PyTypeChecker
 	with warns(None) as captured:
-		loaded = loads(test_json_with_comments, ignore_comments=False)
+		loaded = loads(test_json_without_comments, ignore_comments=False)
 	assert len(captured) == 0
-	assert loaded == test_json_with_comments
+	assert loaded == test_object_for_comment_strings
 
 
 ordered_map = OrderedDict((
