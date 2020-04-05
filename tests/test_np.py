@@ -2,19 +2,21 @@
 # -*- coding: utf-8 -*-
 import gzip
 from copy import deepcopy
-from tempfile import mkdtemp
-from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from os.path import join
-from numpy.core.umath import exp
-from pytest import deprecated_call
+from tempfile import mkdtemp
 
-from json_tricks.np_utils import encode_scalars_inplace
-from json_tricks.np import dump, dumps, load, loads
-from .test_class import MyTestCls
-from .test_bare import cls_instance
+from _pytest.recwarn import warns
+from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
+from numpy.core.umath import exp
 
+from json_tricks import numpy_encode
+from json_tricks.np import dump, dumps, load, loads
+from json_tricks.np_utils import encode_scalars_inplace
+from json_tricks.utils import JsonTricksDeprecation
+from .test_bare import cls_instance
+from .test_class import MyTestCls
 
 DTYPES = (int8, int16, int32, int64, uint8, uint16, uint32, uint64,
 	float16, float32, float64, complex64, complex128)
@@ -199,10 +201,17 @@ def test_dtype_object():
 
 
 def test_compact_mode_unspecified():
+	# Other tests may have raised deprecation warning, so reset the cache here
+	numpy_encode._warned_compact = False
 	data = [array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]), array([pi, exp(1)])]
-	with deprecated_call():
-		gz_json = dumps(data, compression=True)
-	json = gzip.decompress(gz_json).decode('ascii')
+	with warns(JsonTricksDeprecation):
+		gz_json_1 = dumps(data, compression=True)
+	# noinspection PyTypeChecker
+	with warns(None) as captured:
+		gz_json_2 = dumps(data, compression=True)
+	assert len(captured) == 0
+	assert gz_json_1 == gz_json_2
+	json = gzip.decompress(gz_json_1).decode('ascii')
 	assert json == '[{"__ndarray__": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0], "dtype": "float64", "shape": [6]}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
