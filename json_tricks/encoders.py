@@ -1,16 +1,14 @@
-
+import warnings
 from datetime import datetime, date, time, timedelta
 from fractions import Fraction
 from functools import wraps
-from logging import warning
 from json import JSONEncoder
 from sys import version, stderr
 from decimal import Decimal
-from warnings import warn
 
 from .utils import hashodict, get_arg_names, \
 	get_module_name_from_object, NoEnumException, NoPandasException, \
-	NoNumpyException, str_type
+	NoNumpyException, str_type, JsonTricksDeprecation
 
 
 def _fallback_wrapper(encoder):
@@ -354,22 +352,18 @@ def numpy_encode(obj, primitives=False, properties=None):
 		else:
 			properties = properties or {}
 			use_compact = properties.get('ndarray_compact', None)
-			print('original use compact', use_compact)  #TODO @mark:
-			if use_compact is None and properties.get('compression', True) and not getattr(numpy_encode, '_warned_compact', False):
+			if use_compact is None and properties.get('compression', False) and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
-				warn('storing ndarray in text format while compression in enabled; in the next major version of '
+				warnings.warn('storing ndarray in text format while compression in enabled; in the next major version of '
 					'json_tricks, the default will change to compact format in compressed mode; to already use '
 					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
-					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9', DeprecationWarning)
+					'to silence this warning, use `properties={"ndarray_compact": False}`; see issue #9', JsonTricksDeprecation)
 			# Property 'use_compact' may also be an integer, in which
 			if isinstance(use_compact, int) and not isinstance(use_compact, bool):
-				print('update use compact', use_compact)  #TODO @mark:
 				use_compact = obj.size >= use_compact
 			if use_compact:
-				print('use compact true', use_compact)  #TODO @mark:
 				data_json = _ndarray_to_bin_str(obj)
 			else:
-				print('use compact false', use_compact)  #TODO @mark:
 				data_json = obj.tolist()
 			dct = hashodict((
 				('__ndarray__', data_json),
@@ -382,7 +376,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 	elif isinstance(obj, generic):
 		if NumpyEncoder.SHOW_SCALAR_WARNING:
 			NumpyEncoder.SHOW_SCALAR_WARNING = False
-			warn('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
+			warnings.warn('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
 		return obj.item()
 	return obj
 
@@ -419,7 +413,7 @@ class NumpyEncoder(ClassInstanceEncoder):
 		If input object is a ndarray it will be converted into a dict holding
 		data type, shape and the data. The object can be restored using json_numpy_obj_hook.
 		"""
-		warn('`NumpyEncoder` is deprecated, use `numpy_encode`', DeprecationWarning)
+		warnings.warn('`NumpyEncoder` is deprecated, use `numpy_encode`', JsonTricksDeprecation)
 		obj = numpy_encode(obj)
 		return super(NumpyEncoder, self).default(obj, *args, **kwargs)
 
@@ -439,6 +433,6 @@ class NoNumpyEncoder(JSONEncoder):
 	See `nonumpy_encode`.
 	"""
 	def default(self, obj, *args, **kwargs):
-		warn('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`', DeprecationWarning)
+		warnings.warn('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`', JsonTricksDeprecation)
 		obj = nonumpy_encode(obj)
 		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)

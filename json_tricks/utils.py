@@ -1,9 +1,14 @@
-
+import warnings
 from collections import OrderedDict
 from functools import partial
 from importlib import import_module
-from warnings import warn
 from sys import version_info, version
+
+
+class JsonTricksDeprecation(UserWarning):
+	""" Special deprecation warning because the built-in one is ignored by default """
+	def __init__(self, msg) -> None:
+		super().__init__(msg)
 
 
 class hashodict(OrderedDict):
@@ -26,7 +31,7 @@ except ImportError:
 			if type(callable) == partial and version_info[0] == 2:
 				if not hasattr(get_arg_names, '__warned_partial_argspec'):
 					get_arg_names.__warned_partial_argspec = True
-					warn("'functools.partial' and 'inspect.getargspec' are not compatible in this Python version; "
+					warnings.warn("'functools.partial' and 'inspect.getargspec' are not compatible in this Python version; "
 						"ignoring the 'partial' wrapper when inspecting arguments of {}, which can lead to problems".format(callable))
 				return set(getargspec(callable.func).args)
 			argspec = getargspec(callable)
@@ -150,7 +155,7 @@ def get_module_name_from_object(obj):
 	mod = obj.__class__.__module__
 	if mod == '__main__':
 		mod = None
-		warn(('class {0:} seems to have been defined in the main file; unfortunately this means'
+		warnings.warn(('class {0:} seems to have been defined in the main file; unfortunately this means'
 			' that it\'s module/import path is unknown, so you might have to provide cls_lookup_map when '
 			'decoding').format(obj.__class__))
 	return mod

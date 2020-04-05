@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from sys import version_info
-from logging import warning
-from warnings import warn
+import warnings
 
 from setuptools import setup
-
 
 with open('README.rst', 'r') as fh:
 	readme = fh.read()
@@ -21,7 +19,7 @@ if version_info < (2, 7, 0):
 if (version_info[0] == 2 and version_info[1] < 7) or \
 		(version_info[0] == 3 and version_info[1] < 4) or \
 		version_info[0] not in (2, 3):
-	raise warn('`json_tricks` does not support Python version {}.{}'
+	raise warnings.warn('`json_tricks` does not support Python version {}.{}'
 		.format(version_info[0], version_info[1]))
 
 setup(
