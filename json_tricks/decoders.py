@@ -264,11 +264,11 @@ def json_numpy_obj_hook(dct):
 			return _lists_of_obj_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 		if isinstance(data_json, str_type):
 			#TODO @mark: warning about changing default
-			_bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
+			return _bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 		else:
 			return _lists_of_numbers_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 	else:
-		_scalar_to_numpy(data_json, dct['dtype'])
+		return _scalar_to_numpy(data_json, dct['dtype'])
 
 
 def _bin_str_to_ndarray(data, order, shape, dtype):
