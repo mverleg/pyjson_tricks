@@ -263,7 +263,6 @@ def json_numpy_obj_hook(dct):
 		if dct['dtype'] == 'object':
 			return _lists_of_obj_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 		if isinstance(data_json, str_type):
-			#TODO @mark: warning about changing default
 			return _bin_str_to_ndarray(data_json, order, dct['shape'], dct['dtype'])
 		else:
 			return _lists_of_numbers_to_ndarray(data_json, order, dct['shape'], dct['dtype'])

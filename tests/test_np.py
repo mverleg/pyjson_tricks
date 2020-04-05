@@ -267,8 +267,6 @@ def test_encode_compact_no_inline_compression():
 		'"dtype": "float64", "shape": [2, 2], "Corder": true}]'
 
 
-#TODO @mark: README
-
 def test_decode_compact_mixed_compactness():
 	json = '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
 		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \

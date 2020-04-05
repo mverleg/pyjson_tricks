@@ -52,7 +52,7 @@ Features
 Numpy arrays
 +++++++++++++++++++++++++++++++++++++++
 
-The array is encoded in sort-of-readable and very flexible and portable format, like so:
+When not compressed, the array is encoded in sort-of-readable and very flexible and portable format, like so:
 
 .. code-block:: python
 
@@ -74,13 +74,34 @@ this yields:
 
 which will be converted back to a numpy array when using ``json_tricks.loads``. Note that the memory order (``Corder``) is only stored in v3.1 and later and for arrays with at least 2 dimensions.
 
-As you've seen, this uses the magic key ``__ndarray__``. Don't use ``__ndarray__`` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
+As you see, this uses the magic key ``__ndarray__``. Don't use ``__ndarray__`` as a dictionary key unless you're trying to make a numpy array (and know what you're doing).
 
-Numpy scalars are also serialized (v3.5+). They are represented by the closest python primitive type. A special representation was not feasible, because Python's json implementation serializes some numpy types as primitives, without consulting custom encoders. If you want to preverse the exact numpy type, use encode_scalars_inplace_.
+Numpy scalars are also serialized (v3.5+). They are represented by the closest python primitive type. A special representation was not feasible, because Python's json implementation serializes some numpy types as primitives, without consulting custom encoders. If you want to preserve the exact numpy type, use encode_scalars_inplace_.
 
-**Performance**: this method has slow write times similar to other human-readable formats, although read time is worse than csv. File size (with compression) is high on a relative scale, but it's only around 30% above binary. See this benchmark_ (it's called JSONGzip). A binary alternative `might be added`_, but is not yet available.
+There is also a compressed format. From the next major release, this will be default when using compression. For now you can use it as:
 
-This implementation is inspired by an answer by tlausch on stackoverflow_ that you could read for details.
+.. code-block:: python
+
+    dumps(data, compression=True, properties={'ndarray_compact': True})
+
+This compressed format encodes the array data in base64, with gzip compression for the array, unless 1) compression has little effect for that array, or 2) the whole file is already compressed. If you only want compact format for large arrays, pass the number of elements to `ndarray_compact`.
+
+Example:
+
+.. code-block:: python
+
+    data = [linspace(0, 10, 9), array([pi, exp(1)])]
+    dumps(data, compression=False, properties={'ndarray_compact': 8})
+
+    [{
+       "__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgQAZf7CE0iwOE5oPSIlBaEkrLQegGRShfxQEAz7QFikgAAAA=",
+       "dtype": "float64",
+       "shape": [9]
+     }, {
+       "__ndarray__": [3.141592653589793, 2.718281828459045],
+       "dtype": "float64",
+       "shape": [2]
+     }]
 
 Class instances
 +++++++++++++++++++++++++++++++++++++++

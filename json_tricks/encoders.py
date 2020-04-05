@@ -397,9 +397,8 @@ def _ndarray_to_bin_str(array, do_compress):
 	header = 'b64:'
 	data = array.data
 	if do_compress:
-		print(standard_b64encode(data))  #TODO @mark: TEMPORARY! REMOVE THIS!
 		small = gzip_compress(data, compresslevel=9)
-		if len(small) < 0.9 * original_size and len(small) < original_size - 32:
+		if len(small) < 0.9 * original_size and len(small) < original_size - 8:
 			header = 'b64.gz:'
 			data = small
 	data = standard_b64encode(data)
