@@ -12,12 +12,13 @@ from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
 
+from _pytest.recwarn import warns
 from pytest import raises, fail
 
 from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
 	ENCODING
-from json_tricks.utils import is_py3, gzip_compress
+from json_tricks.utils import is_py3, gzip_compress, JsonTricksDeprecation
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, \
 	SlotsABCDict, SlotsABC
 
@@ -151,6 +152,45 @@ def test_strip_comments():
 	assert valid == test_json_without_comments
 	valid = strip_comments(test_json_with_comments.replace('#', '//'))
 	assert valid == test_json_without_comments.replace('#', '//')
+
+
+def test_ignore_comments_deprecation():
+	# https://github.com/mverleg/pyjson_tricks/issues/74
+
+	# First time should have deprecation warning
+	loads._ignore_comments_warned_ = False
+	with warns(JsonTricksDeprecation):
+		loads(test_json_with_comments)
+
+	# Second time there should be no warning
+	# noinspection PyTypeChecker
+	with warns(None) as captured:
+		loaded = loads(test_json_with_comments)
+	assert len(captured) == 0
+	assert loaded == test_json_without_comments
+
+	# Passing a string without comments should not have a warning
+	loads._ignore_comments_warned_ = False
+	# noinspection PyTypeChecker
+	with warns(None) as captured:
+		loaded = loads(test_json_without_comments)
+	assert len(captured) == 0
+
+	# Passing True for argument explicitly should not have a warning
+	loads._ignore_comments_warned_ = False
+	# noinspection PyTypeChecker
+	with warns(None) as captured:
+		loaded = loads(test_json_with_comments, ignore_comments=True)
+	assert len(captured) == 0
+	assert loaded == test_json_without_comments
+
+	# Passing False for argument explicitly should not have a warning
+	loads._ignore_comments_warned_ = False
+	# noinspection PyTypeChecker
+	with warns(None) as captured:
+		loaded = loads(test_json_with_comments, ignore_comments=False)
+	assert len(captured) == 0
+	assert loaded == test_json_with_comments
 
 
 ordered_map = OrderedDict((
