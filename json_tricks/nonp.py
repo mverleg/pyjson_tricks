@@ -199,7 +199,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	if decompression is None:
 		decompression = isinstance(string, bytes) and string[:2] == b'\x1f\x8b'
 	if decompression:
-		string = gzip_decompress(string)
+		string = gzip_decompress(string).decode(ENCODING)
 	if not isinstance(string, str_type):
 		if conv_str_byte:
 			string = string.decode(ENCODING)

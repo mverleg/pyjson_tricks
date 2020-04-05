@@ -176,7 +176,6 @@ def test_dump_np_scalars():
 def test_compact():
 	data = [array(list(2**(x + 0.5) for x in range(-30, +31)))]
 	json = dumps(data, compression=True, properties={'ndarray_compact': True})
-	print(gzip_decompress(json).decode('ascii'))  #TODO @mark: TEMPORARY! REMOVE THIS!
 	back = loads(json)
 	assert_equal(data, back)
 
