@@ -173,13 +173,6 @@ def test_dump_np_scalars():
 	assert data[2] == tuple(rec[2])
 
 
-def test_compact():
-	data = [array(list(2**(x + 0.5) for x in range(-30, +31)))]
-	json = dumps(data, compression=True, properties={'ndarray_compact': True})
-	back = loads(json)
-	assert_equal(data, back)
-
-
 def test_ndarray_object_nesting():
 	# Based on issue 53
 	# With nested ndarrays
@@ -226,6 +219,13 @@ def test_compact_mode_unspecified():
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
+def test_compact():
+	data = [array(list(2**(x + 0.5) for x in range(-30, +31)))]
+	json = dumps(data, compression=True, properties={'ndarray_compact': True})
+	back = loads(json)
+	assert_equal(data, back)
+
+
 def test_encode_disable_compact():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties={'ndarray_compact': False})
@@ -252,15 +252,6 @@ def test_encode_compact_cutoff():
 		'true}, {"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 
 
-def test_gzip_buffer_determinism():
-	#TODO @mark: TEMPORARY! REMOVE THIS!
-	data = array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]])
-	small = standard_b64encode(gzip_compress(data.data, compresslevel=9))
-	for _ in range(1000):
-		assert small == standard_b64encode(gzip_compress(data.data, compresslevel=9))
-		assert small == b'H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA=='
-
-
 def test_encode_compact_inline_compression():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]])]
 	json = dumps(data, compression=False, properties={'ndarray_compact': True})
@@ -276,6 +267,25 @@ def test_encode_compact_no_inline_compression():
 		'"dtype": "float64", "shape": [2, 2], "Corder": true}]'
 
 
-#TODO @mark: decode
 #TODO @mark: README
 
+def test_decode_compact_mixed_compactness():
+	json = '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
+		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+		'true}, {"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
+	data = loads(json)
+	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)]))
+
+
+
+def test_decode_compact_inline_compression():
+	json = '[{"__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", "dtype": "float64", "shape": [4, 4], "Corder": true}]'
+	data = loads(json)
+	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]]))
+
+
+def test_decode_compact_no_inline_compression():
+	json = '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEA=", ' \
+		'"dtype": "float64", "shape": [2, 2], "Corder": true}]'
+	data = loads(json)
+	assert_equal(data[0], array([[1.0, 2.0], [3.0, 4.0]]))
