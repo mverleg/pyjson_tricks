@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
-from datetime import  datetime, time, date, timedelta
+from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
@@ -11,14 +11,15 @@ from io import BytesIO, StringIO
 from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
+
 from pytest import raises, fail
 
 from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
 	ENCODING
-from json_tricks.utils import is_py3
-from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, SlotsABCDict, SlotsABC
-
+from json_tricks.utils import is_py3, gzip_compress
+from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, \
+	SlotsABCDict, SlotsABC
 
 nonpdata = {
 	'my_array': list(range(20)),
@@ -169,14 +170,11 @@ def test_flush_no_errors():
 
 
 def test_compression_with_comments():
-	sh = BytesIO()
 	if is_py3:
 		test_json = bytes(test_json_with_comments, encoding=ENCODING)
 	else:
 		test_json = test_json_with_comments
-	with GzipFile(mode='wb', fileobj=sh, compresslevel=9) as zh:
-		zh.write(test_json)
-	json = sh.getvalue()
+	json = gzip_compress(test_json, compresslevel=9)
 	ref = loads(test_json_without_comments)
 	data2 = loads(json, decompression=True)
 	assert ref == data2

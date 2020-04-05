@@ -266,10 +266,7 @@ def test_encode_compact_inline_compression():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]])]
 	json = dumps(data, compression=False, properties={'ndarray_compact': True})
 	assert 'b64.gz:' in json, 'If the overall file is not compressed and there are significant savings, then do inline gzip compression.'
-	print(json)
-	assert json == '[{"__ndarray__": "b64.gz:H4sIAFPDiV4C/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", "dtype": "float64", "shape": [4, 4], "Corder": true}]'
-	# ('[{"__ndarray__": '\n '"b64.gz:H4sIAFLCiV4C/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", '\n '"dtype": "float64", "shape": [4, 4], "Corder": true}]')
-	# ('[{"__ndarray__": '\n '"b64.gz:H4sIAKzBiV4C/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", '\n '"dtype": "float64", "shape": [4, 4], "Corder": true}]')
+	assert json == '[{"__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", "dtype": "float64", "shape": [4, 4], "Corder": true}]'
 
 
 def test_encode_compact_no_inline_compression():

@@ -1,13 +1,12 @@
 
-from gzip import GzipFile
-from io import BytesIO
 from json import loads as json_loads
 from os import fsync
 from sys import exc_info
 
-from json_tricks.utils import is_py3, dict_default
+from json_tricks.utils import is_py3, dict_default, gzip_compress, gzip_decompress
 from .utils import str_type, NoNumpyException  # keep 'unused' imports
 from .comment import strip_comments  # keep 'unused' imports
+#TODO @mark: imports removed?
 from .encoders import TricksEncoder, json_date_time_encode, \
 	class_instance_encode, json_complex_encode, json_set_encode, numeric_types_encode, numpy_encode, \
 	nonumpy_encode, nopandas_encode, pandas_encode, noenum_instance_encode, \
@@ -112,10 +111,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	if compression is True:
 		compression = 5
 	txt = txt.encode(ENCODING)
-	sh = BytesIO()
-	with GzipFile(mode='wb', fileobj=sh, compresslevel=compression, mtime=0) as zh:
-		zh.write(txt)
-	gzstring = sh.getvalue()
+	gzstring = gzip_compress(txt, compresslevel=compression)
 	return gzstring
 
 
@@ -203,9 +199,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	if decompression is None:
 		decompression = isinstance(string, bytes) and string[:2] == b'\x1f\x8b'
 	if decompression:
-		with GzipFile(fileobj=BytesIO(string), mode='rb') as zh:
-			string = zh.read()
-			string = string.decode(ENCODING)
+		string = gzip_decompress(string)
 	if not isinstance(string, str_type):
 		if conv_str_byte:
 			string = string.decode(ENCODING)
