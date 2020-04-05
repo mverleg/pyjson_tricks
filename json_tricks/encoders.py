@@ -1,14 +1,14 @@
-
+import warnings
 from datetime import datetime, date, time, timedelta
 from fractions import Fraction
 from functools import wraps
-from logging import warning
 from json import JSONEncoder
 from sys import version, stderr
 from decimal import Decimal
+
 from .utils import hashodict, get_arg_names, \
 	get_module_name_from_object, NoEnumException, NoPandasException, \
-	NoNumpyException, str_type
+	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress
 
 
 def _fallback_wrapper(encoder):
@@ -44,7 +44,7 @@ def filtered_wrapper(encoder):
 	elif not hasattr(encoder, '__call__'):
 		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
 	names = get_arg_names(encoder)
-	
+
 	def wrapper(*args, **kwargs):
 		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
 	return wrapper
@@ -58,7 +58,7 @@ class TricksEncoder(JSONEncoder):
 	Each encoder should make any appropriate changes and return an object,
 	changed or not. This will be passes to the other encoders.
 	"""
-	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, fallback_encoders=(), **json_kwargs):
+	def __init__(self, obj_encoders=None, silence_typeerror=False, primitives=False, fallback_encoders=(), properties=None, **json_kwargs):
 		"""
 		:param obj_encoders: An iterable of functions or encoder instances to try.
 		:param silence_typeerror: DEPRECATED - If set to True, ignore the TypeErrors that Encoder instances throw (default False).
@@ -72,6 +72,7 @@ class TricksEncoder(JSONEncoder):
 		self.obj_encoders.extend(_fallback_wrapper(encoder) for encoder in list(fallback_encoders))
 		self.obj_encoders = [filtered_wrapper(enc) for enc in self.obj_encoders]
 		self.silence_typeerror = silence_typeerror
+		self.properties = properties
 		self.primitives = primitives
 		super(TricksEncoder, self).__init__(**json_kwargs)
 
@@ -88,7 +89,7 @@ class TricksEncoder(JSONEncoder):
 		"""
 		prev_id = id(obj)
 		for encoder in self.obj_encoders:
-			obj = encoder(obj, primitives=self.primitives, is_changed=id(obj) != prev_id)
+			obj = encoder(obj, primitives=self.primitives, is_changed=id(obj) != prev_id, properties=self.properties)
 		if id(obj) == prev_id:
 			raise TypeError(('Object of type {0:} could not be encoded by {1:} using encoders [{2:s}]. '
 				'You can add an encoders for this type using `extra_obj_encoders`. If you want to \'skip\' this '
@@ -302,11 +303,6 @@ def json_set_encode(obj, primitives=False):
 
 def pandas_encode(obj, primitives=False):
 	from pandas import DataFrame, Series
-	if isinstance(obj, (DataFrame, Series)):
-		#todo: this is experimental
-		if not getattr(pandas_encode, '_warned', False):
-			pandas_encode._warned = True
-			warning('Pandas dumping support in json-tricks is experimental and may change in future versions.')
 	if isinstance(obj, DataFrame):
 		repr = hashodict()
 		if not primitives:
@@ -339,7 +335,7 @@ def nopandas_encode(obj):
 	return obj
 
 
-def numpy_encode(obj, primitives=False):
+def numpy_encode(obj, primitives=False, properties=None):
 	"""
 	Encodes numpy `ndarray`s as lists with meta data.
 
@@ -354,8 +350,27 @@ def numpy_encode(obj, primitives=False):
 		if primitives:
 			return obj.tolist()
 		else:
+			properties = properties or {}
+			use_compact = properties.get('ndarray_compact', None)
+			json_compression = bool(properties.get('compression', False))
+			if use_compact is None and json_compression and not getattr(numpy_encode, '_warned_compact', False):
+				numpy_encode._warned_compact = True
+				warnings.warn('storing ndarray in text format while compression in enabled; in the next major version '
+					'of json_tricks, the default when using compression will change to compact mode; to already use '
+					'that smaller format, pass `properties={"ndarray_compact": True}` to json_tricks.dump; '
+					'to silence this warning, pass `properties={"ndarray_compact": False}`; '
+					'see issue https://github.com/mverleg/pyjson_tricks/issues/73', JsonTricksDeprecation)
+			# Property 'use_compact' may also be an integer, in which case it's the number of
+			# elements from which compact storage is used.
+			if isinstance(use_compact, int) and not isinstance(use_compact, bool):
+				use_compact = obj.size >= use_compact
+			if use_compact:
+				# If the overall json file is compressed, then don't compress the array.
+				data_json = _ndarray_to_bin_str(obj, do_compress=not json_compression)
+			else:
+				data_json = obj.tolist()
 			dct = hashodict((
-				('__ndarray__', obj.tolist()),
+				('__ndarray__', data_json),
 				('dtype', str(obj.dtype)),
 				('shape', obj.shape),
 			))
@@ -365,9 +380,29 @@ def numpy_encode(obj, primitives=False):
 	elif isinstance(obj, generic):
 		if NumpyEncoder.SHOW_SCALAR_WARNING:
 			NumpyEncoder.SHOW_SCALAR_WARNING = False
-			warning('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
+			warnings.warn('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
 		return obj.item()
 	return obj
+
+
+def _ndarray_to_bin_str(array, do_compress):
+	"""
+	From ndarray to base64 encoded, gzipped binary data.
+	"""
+	import gzip
+	from base64 import standard_b64encode
+	assert array.flags['C_CONTIGUOUS'], 'only C memory order is (currently) supported for compact ndarray format'
+
+	original_size = array.size * array.itemsize
+	header = 'b64:'
+	data = array.data
+	if do_compress:
+		small = gzip_compress(data, compresslevel=9)
+		if len(small) < 0.9 * original_size and len(small) < original_size - 8:
+			header = 'b64.gz:'
+			data = small
+	data = standard_b64encode(data)
+	return header + data.decode('ascii')
 
 
 class NumpyEncoder(ClassInstanceEncoder):
@@ -381,7 +416,7 @@ class NumpyEncoder(ClassInstanceEncoder):
 		If input object is a ndarray it will be converted into a dict holding
 		data type, shape and the data. The object can be restored using json_numpy_obj_hook.
 		"""
-		warning('`NumpyEncoder` is deprecated, use `numpy_encode`')  #todo
+		warnings.warn('`NumpyEncoder` is deprecated, use `numpy_encode`', JsonTricksDeprecation)
 		obj = numpy_encode(obj)
 		return super(NumpyEncoder, self).default(obj, *args, **kwargs)
 
@@ -401,6 +436,6 @@ class NoNumpyEncoder(JSONEncoder):
 	See `nonumpy_encode`.
 	"""
 	def default(self, obj, *args, **kwargs):
-		warning('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`')  #todo
+		warnings.warn('`NoNumpyEncoder` is deprecated, use `nonumpy_encode`', JsonTricksDeprecation)
 		obj = nonumpy_encode(obj)
 		return super(NoNumpyEncoder, self).default(obj, *args, **kwargs)

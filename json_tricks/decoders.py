@@ -1,11 +1,11 @@
-
-from datetime import datetime, date, time, timedelta
-from fractions import Fraction
+import warnings
 from collections import OrderedDict
+from datetime import datetime, date, time, timedelta
 from decimal import Decimal
-from logging import warning
+from fractions import Fraction
+
 from json_tricks import NoEnumException, NoPandasException, NoNumpyException
-from .utils import ClassInstanceHookBase, nested_index
+from .utils import ClassInstanceHookBase, nested_index, str_type, gzip_decompress
 
 
 class DuplicateJsonKeyException(Exception):
@@ -198,10 +198,6 @@ def pandas_hook(dct):
 		return dct
 	if '__pandas_dataframe__' not in dct and '__pandas_series__' not in dct:
 		return dct
-	# todo: this is experimental
-	if not getattr(pandas_hook, '_warned', False):
-		pandas_hook._warned = True
-		warning('Pandas loading support in json-tricks is experimental and may change in future versions.')
 	if '__pandas_dataframe__' in dct:
 		try:
 			from pandas import DataFrame
@@ -254,25 +250,77 @@ def json_numpy_obj_hook(dct):
 	if not '__ndarray__' in dct:
 		return dct
 	try:
-		from numpy import asarray, empty, ndindex
-		import numpy as nptypes
+		import numpy
 	except ImportError:
 		raise NoNumpyException('Trying to decode a map which appears to represent a numpy '
 			'array, but numpy appears not to be installed.')
 	order = None
 	if 'Corder' in dct:
 		order = 'C' if dct['Corder'] else 'F'
-	if dct['shape']:
-		if dct['dtype'] == 'object':
-			dec_data = dct['__ndarray__']
-			arr = empty(dct['shape'], dtype=dct['dtype'], order=order)
-			for indx in ndindex(arr.shape):
-				arr[indx] = nested_index(dec_data, indx)
-			return arr
-		return asarray(dct['__ndarray__'], dtype=dct['dtype'], order=order)
+	data_json = dct['__ndarray__']
+	shape = tuple(dct['shape'])
+	nptype = dct['dtype']
+	if shape:
+		if nptype == 'object':
+			return _lists_of_obj_to_ndarray(data_json, order, shape, nptype)
+		if isinstance(data_json, str_type):
+			return _bin_str_to_ndarray(data_json, order, shape, nptype)
+		else:
+			return _lists_of_numbers_to_ndarray(data_json, order, shape, nptype)
 	else:
-		dtype = getattr(nptypes, dct['dtype'])
-		return dtype(dct['__ndarray__'])
+		return _scalar_to_numpy(data_json, nptype)
+
+
+def _bin_str_to_ndarray(data, order, shape, dtype):
+	"""
+	From base64 encoded, gzipped binary data to ndarray.
+	"""
+	from base64 import standard_b64decode
+	from numpy import frombuffer
+
+	assert order in [None, 'C'], 'specifying different memory order is not (yet) supported ' \
+		'for binary numpy format (got order = {})'.format(order)
+	if data.startswith('b64.gz:'):
+		data = standard_b64decode(data[7:])
+		data = gzip_decompress(data)
+	elif data.startswith('b64:'):
+		data = standard_b64decode(data[4:])
+	else:
+		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
+	data = frombuffer(data, dtype=dtype)
+	return data.reshape(shape)
+
+
+def _lists_of_numbers_to_ndarray(data, order, shape, dtype):
+	"""
+	From nested list of numbers to ndarray.
+	"""
+	from numpy import asarray
+	arr = asarray(data, dtype=dtype, order=order)
+	if shape != arr.shape:
+		warnings.warn('size mismatch decoding numpy array: expected {}, got {}'.format(shape, arr.shape))
+	return arr
+
+
+def _lists_of_obj_to_ndarray(data, order, shape, dtype):
+	"""
+	From nested list of objects (that aren't native numpy numbers) to ndarray.
+	"""
+	from numpy import empty, ndindex
+	arr = empty(shape, dtype=dtype, order=order)
+	dec_data = data
+	for indx in ndindex(arr.shape):
+		arr[indx] = nested_index(dec_data, indx)
+	return arr
+
+
+def _scalar_to_numpy(data, dtype):
+	"""
+	From scalar value to numpy type.
+	"""
+	import numpy as nptypes
+	dtype = getattr(nptypes, dtype)
+	return dtype(data)
 
 
 def json_nonumpy_obj_hook(dct):

@@ -4,11 +4,7 @@
 Main components
 ---------------------------------------
 
-Note that these functions exist as two versions, the full version with numpy (np) and the version without requirements (nonp) that doesn't do nunpy encoding/decoding.
-
-If you import these functions directly from json_tricks, e.g. ``from json_tricks import dumps``, then it will select np if numpy is available, and nonp otherwise. You can use ``json_tricks.NUMPY_MODE`` to see if numpy mode is being used.
-
-This dual behaviour can lead to confusion, so it is recommended that you import directly from np or nonp.
+Support for numpy, pandas and other libraries should work automatically if those libraries are installed. They are not installed automatically as dependencies because `json-tricks` can be used without them.
 
 dumps
 +++++++++++++++++++++++++++++++++++++++
