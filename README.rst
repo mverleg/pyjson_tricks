@@ -227,6 +227,8 @@ As a note on performance_, both dicts and OrderedDicts have the same scaling for
 Comments
 +++++++++++++++++++++++++++++++++++++++
 
+*Warning: in the next major version, comment parsing will be opt-in, not default anymore (for performance reasons). Update your code now to pass `ignore_comments=True` explicitly if you want comment parsing.*
+
 This package uses ``#`` and ``//`` for comments, which seem to be the most common conventions, though only the latter is valid javascript.
 
 For example, you could call ``loads`` on the following string::

@@ -11,7 +11,6 @@ from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
 from numpy.core.umath import exp
 from numpy.testing import assert_equal
-from pytest import raises
 
 from json_tricks import numpy_encode
 from json_tricks.np import dump, dumps, load, loads

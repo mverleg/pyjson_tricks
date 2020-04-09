@@ -1,9 +1,9 @@
-
+import warnings
 from json import loads as json_loads
 from os import fsync
 from sys import exc_info
 
-from json_tricks.utils import is_py3, dict_default, gzip_compress, gzip_decompress
+from json_tricks.utils import is_py3, dict_default, gzip_compress, gzip_decompress, JsonTricksDeprecation
 from .utils import str_type, NoNumpyException  # keep 'unused' imports
 from .comment import strip_comments  # keep 'unused' imports
 #TODO @mark: imports removed?
@@ -176,7 +176,7 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 	return txt
 
 
-def loads(string, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
+def loads(string, preserve_order=True, ignore_comments=None, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
 		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
@@ -212,8 +212,16 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 				'for example bytevar.encode("utf-8") if utf-8 is the encoding. Alternatively you can '
 				'force an attempt by passing conv_str_byte=True, but this may cause decoding issues.')
 					.format(type(string)))
-	if ignore_comments:
-		string = strip_comments(string)
+	if ignore_comments or ignore_comments is None:
+		new_string = strip_comments(string)
+		if ignore_comments is None and not getattr(loads, '_ignore_comments_warned', False) and string != new_string:
+			warnings.warn('`json_tricks.load(s)` stripped some comments, but `ignore_comments` was '
+				'not passed; in the next major release, the behaviour when `ignore_comments` is not '
+				'passed will change; it is recommended to explicitly pass `ignore_comments=True` if '
+				'you want to strip comments; see https://github.com/mverleg/pyjson_tricks/issues/74',
+				JsonTricksDeprecation)
+			loads._ignore_comments_warned = True
+		string = new_string
 	obj_pairs_hooks = tuple(obj_pairs_hooks)
 	_cih_instance.cls_lookup_map = cls_lookup_map or {}
 	_eih_instance.cls_lookup_map = cls_lookup_map or {}
@@ -222,7 +230,7 @@ def loads(string, preserve_order=True, ignore_comments=True, decompression=None,
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 
 
-def load(fp, preserve_order=True, ignore_comments=True, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
+def load(fp, preserve_order=True, ignore_comments=None, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
 		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
