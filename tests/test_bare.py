@@ -326,6 +326,24 @@ def test_cls_attributes_unchanged():
 	SuperClass.cls_attr = 37
 
 
+def test_cls_cls_lookup_map():
+	class LocalCls:
+		def __init__(self, val):
+			self.value = val
+	original = [LocalCls(37), LocalCls(42)]
+	txt = dumps(original)
+	print(txt)
+	back = loads(txt)
+
+	# for inputobj, outputobj in zip(slots, res):
+	# 	assert isinstance(outputobj, SlotsBase)
+	# 	assert inputobj == outputobj
+	# referenceobj = SlotsBase()
+	# for outputobj in res[1:]:
+	# 	assert outputobj != referenceobj
+	# json = '{"__instance_type__": [null, "CustomEncodeCls"], "attributes": {"relevant": 137}}'
+	# loads(json, cls_lookup_map=globals())
+
 def test_cls_slots():
 	slots = [SlotsBase(), SlotsDictABC(), SlotsStr(), SlotsABCDict(), SlotsABC()]
 	txt = dumps(slots)
