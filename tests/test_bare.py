@@ -326,23 +326,33 @@ def test_cls_attributes_unchanged():
 	SuperClass.cls_attr = 37
 
 
-def test_cls_cls_lookup_map():
+def test_cls_lookup_map_fail():
 	class LocalCls:
 		def __init__(self, val):
 			self.value = val
 	original = [LocalCls(37), LocalCls(42)]
 	txt = dumps(original)
-	print(txt)
-	back = loads(txt)
+	with raises(ImportError) as err:
+		loads(txt)
+	assert 'LocalCls' in err.value.msg
+	assert 'cls_lookup_map' in err.value.msg
+	with raises(ImportError) as err:
+		loads(txt, cls_lookup_map=globals())
+	assert 'LocalCls' in err.value.msg
+	assert 'cls_lookup_map' in err.value.msg
 
-	# for inputobj, outputobj in zip(slots, res):
-	# 	assert isinstance(outputobj, SlotsBase)
-	# 	assert inputobj == outputobj
-	# referenceobj = SlotsBase()
-	# for outputobj in res[1:]:
-	# 	assert outputobj != referenceobj
-	# json = '{"__instance_type__": [null, "CustomEncodeCls"], "attributes": {"relevant": 137}}'
-	# loads(json, cls_lookup_map=globals())
+
+def test_cls_lookup_map_success():
+	class LocalCls:
+		def __init__(self, val):
+			self.value = val
+	original = [LocalCls(37), LocalCls(42)]
+	txt = dumps(original)
+	back = loads(txt, cls_lookup_map=dict(LocalCls=LocalCls))
+	assert len(original) == len(back) == 2
+	assert original[0].value == back[0].value
+	assert original[1].value == back[1].value
+
 
 def test_cls_slots():
 	slots = [SlotsBase(), SlotsDictABC(), SlotsStr(), SlotsABCDict(), SlotsABC()]
