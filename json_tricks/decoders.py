@@ -140,13 +140,14 @@ class EnumInstanceHook(ClassInstanceHookBase):
 	This hook tries to convert json encoded by enum_instance_encode back to it's original instance.
 	It only works if the environment is the same, e.g. the enum is similarly importable and hasn't changed.
 	"""
-	def __call__(self, dct):
+	def __call__(self, dct, properties=None):
 		if not isinstance(dct, dict):
 			return dct
 		if '__enum__' not in dct:
 			return dct
+		cls_lookup_map = properties.get('cls_lookup_map', {})
 		mod, name = dct['__enum__']['__enum_instance_type__']
-		Cls = self.get_cls_from_instance_type(mod, name)
+		Cls = self.get_cls_from_instance_type(mod, name, cls_lookup_map=cls_lookup_map)
 		return Cls[dct['__enum__']['name']]
 
 
@@ -155,13 +156,14 @@ class ClassInstanceHook(ClassInstanceHookBase):
 	This hook tries to convert json encoded by class_instance_encoder back to it's original instance.
 	It only works if the environment is the same, e.g. the class is similarly importable and hasn't changed.
 	"""
-	def __call__(self, dct):
+	def __call__(self, dct, properties=None):
 		if not isinstance(dct, dict):
 			return dct
 		if '__instance_type__' not in dct:
 			return dct
+		cls_lookup_map = properties.get('cls_lookup_map', {}) or {}
 		mod, name = dct['__instance_type__']
-		Cls = self.get_cls_from_instance_type(mod, name)
+		Cls = self.get_cls_from_instance_type(mod, name, cls_lookup_map=cls_lookup_map)
 		try:
 			obj = Cls.__new__(Cls)
 		except TypeError:

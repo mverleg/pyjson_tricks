@@ -81,26 +81,17 @@ class NoPathlibException(Exception):
 
 
 class ClassInstanceHookBase(object):
-	def __init__(self, cls_lookup_map=None, properties=None):
-		if cls_lookup_map is not None:
-			assert 'cls_lookup_map' in properties
-			self.cls_lookup_map = cls_lookup_map
-		elif properties is not None:
-			self.cls_lookup_map = properties.get('cls_lookup_map', {})
-		else:
-			self.cls_lookup_map = {}
-
-	def get_cls_from_instance_type(self, mod, name):
+	def get_cls_from_instance_type(self, mod, name, cls_lookup_map):
 		Cls = ValueError()
 		if mod is None:
 			try:
 				Cls = getattr((__import__('__main__')), name)
 			except (ImportError, AttributeError):
-				if name not in self.cls_lookup_map:
+				if name not in cls_lookup_map:
 					raise ImportError(('class {0:s} seems to have been exported from the main file, which means '
-						'it has no module/import path set; you need to provide cls_lookup_map which maps names '
-						'to classes').format(name))
-				Cls = self.cls_lookup_map[name]
+						'it has no module/import path set; you need to provide loads argument'
+						'`cls_lookup_map={{"{0}": Class}}` to locate the class').format(name))
+				Cls = cls_lookup_map[name]
 		else:
 			imp_err = None
 			try:
@@ -112,13 +103,12 @@ class ClassInstanceHookBase(object):
 				if hasattr(module, name):
 					Cls = getattr(module, name)
 				else:
-					imp_err = 'imported "{0:}" but could find "{1:}" inside while decoding a json file (found {2:}); use cls_lookup_map argument'.format(
+					imp_err = 'imported "{0:}" but could find "{1:}" inside while decoding a json file (found {2:})'.format(
 						module, name, ', '.join(attr for attr in dir(module) if not attr.startswith('_')))
 			if imp_err:
-				if name in self.cls_lookup_map:
-					Cls = self.cls_lookup_map[name]
-				else:
-					raise ImportError(imp_err)
+				Cls = cls_lookup_map.get(name, None)
+				if Cls is None:
+					raise ImportError('{}; add the class to `cls_lookup_map={{"{}": Class}}` argument'.format(imp_err, name))
 		return Cls
 
 
