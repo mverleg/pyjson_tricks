@@ -229,11 +229,8 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 	dict_default(properties, 'decompression', decompression)
 	dict_default(properties, 'cls_lookup_map', cls_lookup_map)
 	dict_default(properties, 'allow_duplicates', allow_duplicates)
-	#TODO @mark: this isn't thread-safe at all
-	_cih_instance.cls_lookup_map = cls_lookup_map or {}
-	_eih_instance.cls_lookup_map = cls_lookup_map or {}
 	hooks = tuple(extra_obj_pairs_hooks) + tuple(obj_pairs_hooks)
-	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=hooks, allow_duplicates=allow_duplicates)
+	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=hooks, allow_duplicates=allow_duplicates, properties=properties)
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 
 

@@ -7,6 +7,21 @@ from importlib import import_module
 from sys import version_info, version
 
 
+def filtered_wrapper(encoder):
+	"""
+	Filter kwargs passed to encoder.
+	"""
+	if hasattr(encoder, "default"):
+		encoder = encoder.default
+	elif not hasattr(encoder, '__call__'):
+		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
+	names = get_arg_names(encoder)
+
+	def wrapper(*args, **kwargs):
+		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
+	return wrapper
+
+
 class JsonTricksDeprecation(UserWarning):
 	""" Special deprecation warning because the built-in one is ignored by default """
 	def __init__(self, msg):

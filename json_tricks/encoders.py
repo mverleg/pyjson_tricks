@@ -1,14 +1,13 @@
 import warnings
 from datetime import datetime, date, time, timedelta
+from decimal import Decimal
 from fractions import Fraction
 from functools import wraps
 from json import JSONEncoder
 from sys import version, stderr
-from decimal import Decimal
 
-from .utils import hashodict, get_arg_names, \
-	get_module_name_from_object, NoEnumException, NoPandasException, \
-	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress
+from .utils import hashodict, get_module_name_from_object, NoEnumException, NoPandasException, \
+	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress, filtered_wrapper
 
 
 def _fallback_wrapper(encoder):
@@ -33,21 +32,6 @@ def fallback_ignore_unknown(obj, is_changed=None, fallback_value=None):
 	if obj is None or isinstance(obj, (int, float, str_type, bool, list, dict)):
 		return obj
 	return fallback_value
-
-
-def filtered_wrapper(encoder):
-	"""
-	Filter kwargs passed to encoder.
-	"""
-	if hasattr(encoder, "default"):
-		encoder = encoder.default
-	elif not hasattr(encoder, '__call__'):
-		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
-	names = get_arg_names(encoder)
-
-	def wrapper(*args, **kwargs):
-		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
-	return wrapper
 
 
 class TricksEncoder(JSONEncoder):
@@ -389,7 +373,6 @@ def _ndarray_to_bin_str(array, do_compress):
 	"""
 	From ndarray to base64 encoded, gzipped binary data.
 	"""
-	import gzip
 	from base64 import standard_b64encode
 	assert array.flags['C_CONTIGUOUS'], 'only C memory order is (currently) supported for compact ndarray format'
 

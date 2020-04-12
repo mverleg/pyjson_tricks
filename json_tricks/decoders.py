@@ -5,7 +5,7 @@ from decimal import Decimal
 from fractions import Fraction
 
 from json_tricks import NoEnumException, NoPandasException, NoNumpyException
-from .utils import ClassInstanceHookBase, nested_index, str_type, gzip_decompress
+from .utils import ClassInstanceHookBase, nested_index, str_type, gzip_decompress, filtered_wrapper
 
 
 class DuplicateJsonKeyException(Exception):
@@ -17,17 +17,18 @@ class TricksPairHook(object):
 	Hook that converts json maps to the appropriate python type (dict or OrderedDict)
 	and then runs any number of hooks on the individual maps.
 	"""
-	def __init__(self, ordered=True, obj_pairs_hooks=None, allow_duplicates=True):
+	def __init__(self, ordered=True, obj_pairs_hooks=None, allow_duplicates=True, properties=None):
 		"""
 		:param ordered: True if maps should retain their ordering.
 		:param obj_pairs_hooks: An iterable of hooks to apply to elements.
 		"""
+		self.properties = properties or {}
 		self.map_type = OrderedDict
 		if not ordered:
 			self.map_type = dict
 		self.obj_pairs_hooks = []
 		if obj_pairs_hooks:
-			self.obj_pairs_hooks = list(obj_pairs_hooks)
+			self.obj_pairs_hooks = list(filtered_wrapper(hook) for hook in obj_pairs_hooks)
 		self.allow_duplicates = allow_duplicates
 
 	def __call__(self, pairs):
@@ -35,12 +36,12 @@ class TricksPairHook(object):
 			known = set()
 			for key, value in pairs:
 				if key in known:
-					raise DuplicateJsonKeyException(('Trying to load a json map which contains a' +
-						' duplicate key "{0:}" (but allow_duplicates is False)').format(key))
+					raise DuplicateJsonKeyException(('Trying to load a json map which contains a ' +
+						'duplicate key "{0:}" (but allow_duplicates is False)').format(key))
 				known.add(key)
 		map = self.map_type(pairs)
 		for hook in self.obj_pairs_hooks:
-			map = hook(map)
+			map = hook(map, properties=self.properties)
 		return map
 
 
