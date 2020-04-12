@@ -76,6 +76,7 @@ class ClassInstanceHookBase(object):
 			self.cls_lookup_map = {}
 
 	def get_cls_from_instance_type(self, mod, name):
+		Cls = ValueError()
 		if mod is None:
 			try:
 				Cls = getattr((__import__('__main__')), name)

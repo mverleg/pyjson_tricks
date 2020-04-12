@@ -177,7 +177,8 @@ def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODE
 
 
 def loads(string, preserve_order=True, ignore_comments=None, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
-		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False, **jsonkwargs):
+		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False,
+		properties=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -222,17 +223,23 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 				JsonTricksDeprecation)
 			loads._ignore_comments_warned = True
 		string = new_string
-	obj_pairs_hooks = tuple(obj_pairs_hooks)
+	properties = properties or {}
+	dict_default(properties, 'preserve_order', preserve_order)
+	dict_default(properties, 'ignore_comments', ignore_comments)
+	dict_default(properties, 'decompression', decompression)
+	dict_default(properties, 'cls_lookup_map', cls_lookup_map)
+	dict_default(properties, 'allow_duplicates', allow_duplicates)
 	#TODO @mark: this isn't thread-safe at all
 	_cih_instance.cls_lookup_map = cls_lookup_map or {}
 	_eih_instance.cls_lookup_map = cls_lookup_map or {}
-	hooks = tuple(extra_obj_pairs_hooks) + obj_pairs_hooks
+	hooks = tuple(extra_obj_pairs_hooks) + tuple(obj_pairs_hooks)
 	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=hooks, allow_duplicates=allow_duplicates)
 	return json_loads(string, object_pairs_hook=hook, **jsonkwargs)
 
 
 def load(fp, preserve_order=True, ignore_comments=None, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
-		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False, **jsonkwargs):
+		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False,
+		properties=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -259,6 +266,6 @@ def load(fp, preserve_order=True, ignore_comments=None, decompression=None, obj_
 			'opened  in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
 	return loads(string, preserve_order=preserve_order, ignore_comments=ignore_comments, decompression=decompression,
 		obj_pairs_hooks=obj_pairs_hooks, extra_obj_pairs_hooks=extra_obj_pairs_hooks, cls_lookup_map=cls_lookup_map,
-		allow_duplicates=allow_duplicates, conv_str_byte=conv_str_byte, **jsonkwargs)
+		allow_duplicates=allow_duplicates, conv_str_byte=conv_str_byte, properties=properties, **jsonkwargs)
 
 
