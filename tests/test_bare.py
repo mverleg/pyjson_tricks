@@ -327,23 +327,23 @@ def test_cls_attributes_unchanged():
 
 
 def test_cls_lookup_map_fail():
-	class LocalCls:
+	class LocalCls(object):
 		def __init__(self, val):
 			self.value = val
 	original = [LocalCls(37), LocalCls(42)]
 	txt = dumps(original)
 	with raises(ImportError) as err:
 		loads(txt)
-	assert 'LocalCls' in err.value.msg
-	assert 'cls_lookup_map' in err.value.msg
+	assert 'LocalCls' in str(err.value)
+	assert 'cls_lookup_map' in str(err.value)
 	with raises(ImportError) as err:
 		loads(txt, cls_lookup_map=globals())
-	assert 'LocalCls' in err.value.msg
-	assert 'cls_lookup_map' in err.value.msg
+	assert 'LocalCls' in str(err.value)
+	assert 'cls_lookup_map' in str(err.value)
 
 
 def test_cls_lookup_map_success():
-	class LocalCls:
+	class LocalCls(object):
 		def __init__(self, val):
 			self.value = val
 	original = [LocalCls(37), LocalCls(42)]

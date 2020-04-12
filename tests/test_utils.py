@@ -36,7 +36,7 @@ def test_nested_index():
 def base85_vsbase64_performance():
 	from base64 import b85encode, standard_b64encode, urlsafe_b64encode
 	from random import getrandbits
-	test_data = bytearray(getrandbits(8) for _ in range(10_000_000))
+	test_data = bytearray(getrandbits(8) for _ in range(10000000))
 	from timeit import default_timer
 	print('')
 

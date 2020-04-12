@@ -7,21 +7,6 @@ from importlib import import_module
 from sys import version_info, version
 
 
-def filtered_wrapper(encoder):
-	"""
-	Filter kwargs passed to encoder.
-	"""
-	if hasattr(encoder, "default"):
-		encoder = encoder.default
-	elif not hasattr(encoder, '__call__'):
-		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
-	names = get_arg_names(encoder)
-
-	def wrapper(*args, **kwargs):
-		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
-	return wrapper
-
-
 class JsonTricksDeprecation(UserWarning):
 	""" Special deprecation warning because the built-in one is ignored by default """
 	def __init__(self, msg):
@@ -43,7 +28,7 @@ except ImportError:
 	try:
 		from inspect import getfullargspec
 	except ImportError:
-		from inspect import getargspec
+		from inspect import getargspec, isfunction
 		def get_arg_names(callable):
 			if type(callable) == partial and version_info[0] == 2:
 				if not hasattr(get_arg_names, '__warned_partial_argspec'):
@@ -51,7 +36,10 @@ except ImportError:
 					warnings.warn("'functools.partial' and 'inspect.getargspec' are not compatible in this Python version; "
 						"ignoring the 'partial' wrapper when inspecting arguments of {}, which can lead to problems".format(callable))
 				return set(getargspec(callable.func).args)
-			argspec = getargspec(callable)
+			if isfunction(callable):
+				argspec = getargspec(callable)
+			else:
+				argspec = getargspec(callable.__call__)
 			return set(argspec.args)
 	else:
 		#todo: this is not covered in test case (py 3+ uses `signature`, py2 `getfullargspec`); consider removing it
@@ -62,6 +50,21 @@ else:
 	def get_arg_names(callable):
 		sig = signature(callable)
 		return set(sig.parameters.keys())
+
+
+def filtered_wrapper(encoder):
+	"""
+	Filter kwargs passed to encoder.
+	"""
+	if hasattr(encoder, "default"):
+		encoder = encoder.default
+	elif not hasattr(encoder, '__call__'):
+		raise TypeError('`obj_encoder` {0:} does not have `default` method and is not callable'.format(enc))
+	names = get_arg_names(encoder)
+
+	def wrapper(*args, **kwargs):
+		return encoder(*args, **{k: v for k, v in kwargs.items() if k in names})
+	return wrapper
 
 
 class NoNumpyException(Exception):
