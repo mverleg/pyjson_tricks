@@ -223,6 +223,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 			loads._ignore_comments_warned = True
 		string = new_string
 	obj_pairs_hooks = tuple(obj_pairs_hooks)
+	#TODO @mark: this isn't thread-safe at all
 	_cih_instance.cls_lookup_map = cls_lookup_map or {}
 	_eih_instance.cls_lookup_map = cls_lookup_map or {}
 	hooks = tuple(extra_obj_pairs_hooks) + obj_pairs_hooks

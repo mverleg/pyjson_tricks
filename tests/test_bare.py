@@ -352,6 +352,10 @@ def test_cls_lookup_map_success():
 	assert len(original) == len(back) == 2
 	assert original[0].value == back[0].value
 	assert original[1].value == back[1].value
+	back = loads(txt, properties=dict(cls_lookup_map=dict(LocalCls=LocalCls)))
+	assert len(original) == len(back) == 2
+	assert original[0].value == back[0].value
+	assert original[1].value == back[1].value
 
 
 def test_cls_slots():

@@ -66,11 +66,16 @@ class NoPathlibException(Exception):
 
 
 class ClassInstanceHookBase(object):
-	def __init__(self, cls_lookup_map=None):
-		self.cls_lookup_map = cls_lookup_map or {}
+	def __init__(self, cls_lookup_map=None, properties=None):
+		if cls_lookup_map is not None:
+			assert 'cls_lookup_map' in properties
+			self.cls_lookup_map = cls_lookup_map
+		elif properties is not None:
+			self.cls_lookup_map = properties.get('cls_lookup_map', {})
+		else:
+			self.cls_lookup_map = {}
 
 	def get_cls_from_instance_type(self, mod, name):
-		#TODO @mark: cls_lookup_map in properties?
 		if mod is None:
 			try:
 				Cls = getattr((__import__('__main__')), name)
