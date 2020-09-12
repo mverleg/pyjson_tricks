@@ -7,67 +7,48 @@ If you want to, you can run the automated tests before using the code.
 Note
 -------------------------------
 
-The tests run automatically on the supported versions of Python for every commit. You can check the TravisCI result at the bottom of the README on Github.
+The tests run automatically on the supported versions of Python for every commit. You can check the Github Actions result at the bottom of the README on Github.
 
-This file is only for if you want to run the tests on the exact code that you're getting through pip, using your local environment.
-
-Setup
+Run current verison
 -------------------------------
 
-First download the files using pip for the version you want to use (replace ``X.Y.Z`` by the version):
+To run py.test for current Python version, install requirements::
 
-    pip download 'json_tricks==X.Y.Z'
+    pip install numpy pytz pandas pathlib ordereddict pytest-coverage
 
-There will be a compressed directory ``json_tricks-X.Y.Z.tar.gz``. Uncompress it and navigate to it's root. You should see ``json_tricks``, ``tests`` and a number of other things.
-
-You will need to install ``pytest``, e.g. using ``pip install pytest``.
-
-To test the full functionality, you will need to install
-
-* ``pytz``
-* ``numpy`` (note: doesn't work with pypy)
-* ``pandas`` (note: doesn't work with pypy and does not supported python 3.4)
-* ``enum34`` if you're on python 2.7 or pypy
-* ``ordereddict`` on python 2.6 (which is not supported but might work)
-
-If you want coverage information, also install ``pytest-coverage``.
-
-Run
--------------------------------
-
-To run all the tests (requiring you to have all the packages mentioned):
+To run all the tests (requiring you to have all the packages mentioned)::
 
     py.test --continue-on-collection-errors
 
 Using this flag, you will get a failure message when e.g. ``pandas`` is missing, but the other tests will still run.
 
-You might see something like this on Python 3.5 with pytz and numpy but *without* pandas:
+Example output
+-------------------------------
 
-    collected 49 items / 1 errors
+Output if all tests pass::
 
-    json_tricks-3.11.1.1/tests/test_bare.py ....................... [ 46%]
-    ......                                                          [ 59%]
-    json_tricks-3.11.1.1/tests/test_enum.py .......                 [ 73%]
-    json_tricks-3.11.1.1/tests/test_np.py .........                 [ 91%]
-    json_tricks-3.11.1.1/tests/test_tz.py ..                        [ 95%]
-    json_tricks-3.11.1.1/tests/test_utils.py ..                     [100%]
+    platform linux -- Python 3.6.8, pytest-5.3.1, py-1.8.1, pluggy-0.13.1
+    rootdir: /home/mark/pyjson_tricks
+    plugins: cov-2.10.1
+    collected 80 items
 
-    =============================== ERRORS ================================
-    _____ ERROR collecting json_tricks-3.11.1.1/tests/test_pandas.py ______
-    ImportError while importing test module '/home/mark/TMP_jsontricks/json_tricks-3.11.1.1/tests/test_pandas.py'.
-    Hint: make sure your test modules/packages have valid Python names.
-    Traceback:
-    json_tricks-3.11.1.1/tests/test_pandas.py:7: in <module>
-        from pandas import DataFrame, Series
-    E   ImportError: No module named 'pandas'
-    ================= 49 passed, 1 error in 0.39 seconds ==================
+    tests/test_bare.py .......................................                                                       [ 48%]
+    tests/test_enum.py .......                                                                                       [ 57%]
+    tests/test_meta.py .                                                                                             [ 58%]
+    tests/test_np.py .......................                                                                         [ 87%]
+    tests/test_pandas.py ...                                                                                         [ 91%]
+    tests/test_pathlib.py .                                                                                          [ 92%]
+    tests/test_tz.py ...                                                                                             [ 96%]
+    tests/test_utils.py ...                                                                                          [100%]
 
-which means that it worked! (Since the only error is the pandas one).
+    80 passed, 4 warnings in 0.41s
 
-If you want to see test coverage, make sure you have ``pytest-coverage`` and run:
+Coverage
+-------------------------------
 
-    py.test --cov json_tricks --cov-report=html --continue-on-collection-errors
+To collect coverage after using tox::
 
-You can then see your report in ``htmlcov/index.html`` (in a browser). Note that coverage is naturally lower if some tests are skipped due to missing packages.
+    coverage combine .tox/coverage/*
+    coverage report
 
-
+You can then see your report in ``htmlcov/index.html`` (in a browser).

@@ -384,8 +384,8 @@ Tests
 
 Tests are run automatically for commits to the repository for all supported versions. This is the status:
 
-.. image:: https://travis-ci.org/mverleg/pyjson_tricks.svg?branch=master
-	:target: https://travis-ci.org/mverleg/pyjson_tricks
+.. image:: https://github.com/mverleg/pyjson_tricks/workflows/tests/badge.svg
+	:target: https://github.com/mverleg/pyjson_tricks/actions
 
 To run the tests manually for your version, see `this guide`_.
 
