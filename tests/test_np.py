@@ -83,8 +83,8 @@ mixed_data = {
 	'vec': array(range(10)),
 	'inst': MyTestCls(
 		nr=7, txt='yolo',
-		li=[1,1,2,3,5,8,12],
-		vec=array(range(7,16,2)),
+		li=[1, 1, 2, 3, 5, 8, 12],
+		vec=array(range(7, 16, 2)),
 		inst=cls_instance
 	),
 }
@@ -291,3 +291,16 @@ def test_decode_compact_no_inline_compression():
 		'"dtype": "float64", "shape": [2, 2], "Corder": true}]'
 	data = loads(json)
 	assert_equal(data[0], array([[1.0, 2.0], [3.0, 4.0]]))
+
+
+def test_empty():
+	# issue https://github.com/mverleg/pyjson_tricks/issues/76
+	datas = [
+		zeros(shape=(1, 0)),
+		zeros(shape=(0, 1)),
+		zeros(shape=(0, 0)),
+	]
+	for data in datas:
+		json = dumps(data)
+		assert_equal(loads(json), data, 'shape = {} ; json = {}'.format(data.shape, json))
+
