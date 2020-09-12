@@ -5,23 +5,23 @@ on:
   push:
 
 jobs:
-  checks:
+  build:
     name: tests
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 8
+      matrix:
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, pypy]
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build
-        run: bash ci/pipeline/make/debug.sh
-      - name: Test
-        continue-on-error: true
-        run: bash ci/pipeline/test/test.sh
-      - name: Lint
-        continue-on-error: true
-        run: bash ci/pipeline/test/lint.sh
-      - name: Style
-        continue-on-error: true
-        run: bash ci/pipeline/test/style.sh
-      - name: Documentation
-        continue-on-error: true
-        run: bash ci/pipeline/make/docs.sh
+      - uses: actions/checkout@v1
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox tox-gh-actions
+      - name: Test with tox
+        run: tox
