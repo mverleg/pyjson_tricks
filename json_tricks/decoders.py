@@ -300,6 +300,8 @@ def _lists_of_numbers_to_ndarray(data, order, shape, dtype):
 	"""
 	from numpy import asarray
 	arr = asarray(data, dtype=dtype, order=order)
+	if 0 in shape:
+		return arr.reshape(shape)
 	if shape != arr.shape:
 		warnings.warn('size mismatch decoding numpy array: expected {}, got {}'.format(shape, arr.shape))
 	return arr
