@@ -1,0 +1,27 @@
+
+name: 'pyjson-tricks'
+
+on:
+  push:
+
+jobs:
+  checks:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: bash ci/pipeline/make/debug.sh
+      - name: Test
+        continue-on-error: true
+        run: bash ci/pipeline/test/test.sh
+      - name: Lint
+        continue-on-error: true
+        run: bash ci/pipeline/test/lint.sh
+      - name: Style
+        continue-on-error: true
+        run: bash ci/pipeline/test/style.sh
+      - name: Documentation
+        continue-on-error: true
+        run: bash ci/pipeline/make/docs.sh
