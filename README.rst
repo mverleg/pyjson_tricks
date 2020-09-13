@@ -384,7 +384,7 @@ Tests
 
 Tests are run automatically for commits to the repository for all supported versions. This is the status:
 
-.. image:: https://github.com/mverleg/pyjson_tricks/workflows/tests/badge.svg
+.. image:: https://github.com/mverleg/pyjson_tricks/workflows/pyjson-tricks/badge.svg
 	:target: https://github.com/mverleg/pyjson_tricks/actions
 
 To run the tests manually for your version, see `this guide`_.
