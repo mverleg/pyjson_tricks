@@ -75,7 +75,7 @@ DEFAULT_NONP_ENCODERS = [nonumpy_encode,] + DEFAULT_ENCODERS		# DEPRECATED
 DEFAULT_NONP_HOOKS = [json_nonumpy_obj_hook,] + DEFAULT_HOOKS		# DEPRECATED
 
 
-def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
+def dumps(obj, sort_keys=None, cls=None, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
 		primitives=False, compression=None, allow_nan=False, conv_str_byte=False, fallback_encoders=(),
 		properties=None, **jsonkwargs):
 	"""
@@ -101,6 +101,8 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	dict_default(properties, 'primitives', primitives)
 	dict_default(properties, 'compression', compression)
 	dict_default(properties, 'allow_nan', allow_nan)
+	if cls is None:
+		cls = TricksEncoder
 	txt = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
 		primitives=primitives, fallback_encoders=fallback_encoders,
 	  	properties=properties, **jsonkwargs).encode(obj)
@@ -115,7 +117,7 @@ def dumps(obj, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS,
 	return gzstring
 
 
-def dump(obj, fp, sort_keys=None, cls=TricksEncoder, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
+def dump(obj, fp, sort_keys=None, cls=None, obj_encoders=DEFAULT_ENCODERS, extra_obj_encoders=(),
 		primitives=False, compression=None, force_flush=False, allow_nan=False, conv_str_byte=False,
 		fallback_encoders=(), properties=None, **jsonkwargs):
 	"""

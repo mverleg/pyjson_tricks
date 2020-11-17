@@ -58,7 +58,6 @@ def test_mix_handle_str_path():
 	assert data == back
 
 
-
 def test_wrong_arg_order():
 	# Based on a problem from https://github.com/mverleg/array_storage_benchmark
 	li = [[1.0, 2.0], [3.0, 4.0]]
@@ -612,4 +611,18 @@ def test_empty_string_with_url():
 	assert txt == dumps(loads(txt))
 	txt = '{"///": "////*/*"}'
 	assert txt == dumps(loads(txt))
+
+
+def test_no_cls():
+	""" Originally for https://github.com/mverleg/pyjson_tricks/issues/79 """
+	data = dict(name='Leonardo da Vinci', year=1452)
+	path = join(mkdtemp(), 'pytest-no-cls.json')
+	with open(path, 'wb+') as fh:
+		dump(data, fh, cls=None, compression=1)
+	with open(path, 'rb') as fh:
+		bck = load(fh)
+	assert data == bck
+	txt = dumps(data, cls=None, compression=2)
+	bck = loads(txt)
+	assert data == bck
 
