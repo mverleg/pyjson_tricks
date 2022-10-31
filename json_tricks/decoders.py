@@ -179,6 +179,9 @@ class ClassInstanceHook(ClassInstanceHookBase):
 		else:
 			if 'slots' in dct:
 				for slot,value in dct['slots'].items():
+					if slot == "__weakref__" and "__weakref__" in obj.__slots__:
+						# do not attempt to re-create weakref attr if it already exists
+						continue
 					setattr(obj, slot, value)
 			if 'attributes' in dct:
 				obj.__dict__ = dict(dct['attributes'])
