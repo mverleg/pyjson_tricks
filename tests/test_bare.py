@@ -6,7 +6,6 @@ from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
-from gzip import GzipFile
 from io import BytesIO, StringIO
 from math import pi, exp
 from os.path import join
