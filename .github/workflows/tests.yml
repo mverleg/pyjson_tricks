@@ -62,15 +62,15 @@ jobs:
           PYTEST_ARGS='-v --strict tests/test_bare.py tests/test_class.py tests/test_meta.py tests/test_enum.py'
           export LIBS="${{ matrix.libraries }}"
           if [ "$LIBS" == "vanilla" ] ; then
-              py.test "$PYTEST_ARGS"
+              py.test $PYTEST_ARGS
           elif [ "$LIBS" == "tz" ] ; then
-              py.test "$PYTEST_ARGS" tests/test_tz.py
+              py.test $PYTEST_ARGS tests/test_tz.py
           elif [ "$LIBS" == "path" ] ; then
-              py.test "$PYTEST_ARGS" tests/test_pathlib.py
+              py.test $PYTEST_ARGS tests/test_pathlib.py
           elif [ "$LIBS" == "numpy" ] ; then
-              py.test "$PYTEST_ARGS" tests/test_np.py
+              py.test $PYTEST_ARGS tests/test_np.py
           elif [ "$LIBS" == "pandas" ] ; then
-              py.test "$PYTEST_ARGS" tests/test_pandas.py
+              py.test $PYTEST_ARGS tests/test_pandas.py
           elif [ "$LIBS" == "all" ] ; then
               py.test -v --strict
           else
