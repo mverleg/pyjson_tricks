@@ -98,8 +98,9 @@ def test_slots_weakref():
 
 	obj = TestClass(value=7)
 	json = dumps(obj)
+	assert '__weakref__' not in json
 	decoded = loads(json, cls_lookup_map=dict(TestClass=TestClass))
-	assert str(obj) == str(decoded)
+	assert obj.value == decoded.value
 
 
 def test_pure_weakref():
