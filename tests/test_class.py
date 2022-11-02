@@ -93,7 +93,7 @@ def test_slots_weakref():
 	""" Issue with attrs library due to __weakref__ in __slots__ https://github.com/mverleg/pyjson_tricks/issues/82 """
 	class TestClass(object):
 		__slots__ = "value", "__weakref__"
-		def __init__(self, value: int):
+		def __init__(self, value):
 			self.value = value
 
 	obj = TestClass(value=7)
