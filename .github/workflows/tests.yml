@@ -13,22 +13,22 @@ jobs:
       fail-fast: false
       matrix:
         libraries: [
-          vanilla,
-          tz,
-          path,
-          numpy,
-          pandas,
-          all
+          'vanilla',
+          'tz',
+          'path',
+          'numpy',
+          'pandas',
+          'all'
         ]
         python-version: [
-            2.7,
-            3.5,
-            3.6,
-            3.7,
-            3.8,
-            3.9,
-            3.10,
-            3.11
+            '2.7',
+            '3.5',
+            '3.6',
+            '3.7',
+            '3.8',
+            '3.9',
+            '3.10',
+            '3.11'
         ]
     steps:
       - uses: actions/checkout@v1
