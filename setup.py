@@ -5,7 +5,7 @@ import warnings
 
 from setuptools import setup
 
-with open('README.rst', 'r') as fh:
+with open('README.md', 'r') as fh:
 	readme = fh.read()
 
 # with open('json_tricks/_version.py', 'r') as fh:
@@ -26,6 +26,7 @@ setup(
 	name='json_tricks',
 	description='Extra features for Python\'s JSON: comments, order, numpy, '
 		'pandas, datetimes, and many more! Simple but customizable.',
+	long_description_content_type='text/markdown',
 	long_description=readme,
 	url='https://github.com/mverleg/pyjson_tricks',
 	author='Mark V',
@@ -37,7 +38,7 @@ setup(
 	version=VERSION,
 	packages=['json_tricks'],
 	package_data=dict(
-		json_tricks=['LICENSE.txt', 'README.rst', 'VERSION'],
+		json_tricks=['LICENSE.txt', 'README.md', 'VERSION'],
 		# tests=['tests/*.py'],
 	),
 	# include_package_data=True,
