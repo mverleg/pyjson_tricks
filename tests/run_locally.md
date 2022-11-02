@@ -1,31 +1,29 @@
-
-How to run tests locally
-===============================
+# How to run tests locally
 
 If you want to, you can run the automated tests before using the code.
 
-Note
--------------------------------
+## Note
 
-The tests run automatically on the supported versions of Python for every commit. You can check the Github Actions result at the bottom of the README on Github.
+The tests run automatically on the supported versions of Python for
+every commit. You can check the Github Actions result at the bottom of
+the README on Github.
 
-Run current verison
--------------------------------
+## Run current verison
 
-To run py.test for current Python version, install requirements::
+To run py.test for current Python version, install requirements:
 
     pip install numpy pytz pandas pathlib ordereddict pytest-coverage
 
-To run all the tests (requiring you to have all the packages mentioned)::
+To run all the tests (requiring you to have all the packages mentioned):
 
     py.test --continue-on-collection-errors
 
-Using this flag, you will get a failure message when e.g. ``pandas`` is missing, but the other tests will still run.
+Using this flag, you will get a failure message when e.g. `pandas` is
+missing, but the other tests will still run.
 
-Example output
--------------------------------
+## Example output
 
-Output if all tests pass::
+Output if all tests pass:
 
     platform linux -- Python 3.6.8, pytest-5.3.1, py-1.8.1, pluggy-0.13.1
     rootdir: /home/mark/pyjson_tricks
