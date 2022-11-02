@@ -640,3 +640,21 @@ def test_utf8_bytes():
 	bck = loads(json)
 	assert inputs == bck
 
+
+def test_nonutf8_bytes():
+	inputs = [
+		b'\xc3\x28',
+		b'\xa0\xa1',
+		b'\xe2\x28\xa1',
+		b'\xe2\x82\x28',
+		b'\xf0\x28\x8c\xbc',
+		b'\xf0\x90\x28\xbc',
+		b'\xf0\x28\x8c\x28',
+	]
+	json = dumps(inputs)
+	assert 'bytes_b64' in json
+	for input in inputs:
+		assert input not in json
+	bck = loads(json)
+	assert inputs == bck
+
