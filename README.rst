@@ -144,7 +144,7 @@ As you can see, this stores the module and class name. The class must be importa
 If it isn't, you have to manually provide a dictionary to ``cls_lookup_map`` when loading in which the class name can be looked up. Note that if the class is imported, then ``globals()`` is such a dictionary (so try ``loads(json, cls_lookup_map=glboals())``).
 Also note that if the class is defined in the 'top' script (that you're calling directly), then this isn't a module and the import part cannot be extracted. Only the class name will be stored; it can then only be deserialized in the same script, or if you provide ``cls_lookup_map``.
 
-Note that this also works with ``slots`` without having to do anything (thanks to ``koffie``), which encodes like this (custom indentation):
+Note that this also works with ``slots`` without having to do anything (thanks to ``koffie`` and ``dominicdoty``), which encodes like this (custom indentation):
 
 .. code-block:: javascript
 

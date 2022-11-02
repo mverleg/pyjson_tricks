@@ -6,7 +6,6 @@ from datetime import datetime, time, date, timedelta
 from decimal import Decimal
 from fractions import Fraction
 from functools import partial
-from gzip import GzipFile
 from io import BytesIO, StringIO
 from math import pi, exp
 from os.path import join
@@ -559,7 +558,7 @@ def test_custom_enc_dec():
 
 def test_lambda_partial():
 	""" Test that a custom encoder/decoder works when wrapped in functools.partial,
-	    which caused problems before because inspect.getargspec does not support it. """
+		which caused problems before because inspect.getargspec does not support it. """
 	obj = dict(alpha=37.42, beta=[1, 2, 4, 8, 16, 32])
 	enc_dec_lambda = partial(lambda x, y: x, y=0)
 	txt = dumps(obj, extra_obj_encoders=(enc_dec_lambda,))

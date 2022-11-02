@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import weakref
+from json_tricks import dumps, loads
+
 
 class MyTestCls(object):
 	def __init__(self, **kwargs):
@@ -85,4 +88,29 @@ class SlotsABC(SlotsBase):
 		self.b = b
 		self.c = c
 
+
+def test_slots_weakref():
+	""" Issue with attrs library due to __weakref__ in __slots__ https://github.com/mverleg/pyjson_tricks/issues/82 """
+	class TestClass(object):
+		__slots__ = "value", "__weakref__"
+		def __init__(self, value):
+			self.value = value
+
+	obj = TestClass(value=7)
+	json = dumps(obj)
+	assert '__weakref__' not in json
+	decoded = loads(json, cls_lookup_map=dict(TestClass=TestClass))
+	assert obj.value == decoded.value
+
+
+def test_pure_weakref():
+	""" Check that the issue in `test_slots_weakref` does not happen without __slots__ """
+	obj = MyTestCls(value=7)
+	ref = weakref.ref(obj)
+	json = dumps(obj)
+	decoded = loads(json)
+	assert str(obj) == str(decoded)
+	# noinspection PyUnusedLocal
+	obj = None
+	assert ref() is None
 

@@ -186,9 +186,12 @@ def class_instance_encode(obj, primitives=False):
 			slots = obj.__slots__
 			if isinstance(slots, str):
 				slots = [slots]
-			slots = list(item for item in slots if item != '__dict__')
 			dct['slots'] = hashodict([])
 			for s in slots:
+				if s == '__dict__':
+					continue
+				if s == '__weakref__':
+					continue
 				dct['slots'][s] = getattr(obj, s)
 		if hasattr(obj, '__dict__'):
 			dct['attributes'] = hashodict(obj.__dict__)
@@ -242,14 +245,14 @@ def numeric_types_encode(obj, primitives=False):
 
 
 def pathlib_encode(obj, primitives=False):
-    from pathlib import Path
-    if not isinstance(obj, Path):
-        return obj
+	from pathlib import Path
+	if not isinstance(obj, Path):
+		return obj
 
-    if primitives:
-        return str(obj)
+	if primitives:
+		return str(obj)
 
-    return {'__pathlib__': str(obj)}
+	return {'__pathlib__': str(obj)}
 
 
 class ClassInstanceEncoder(JSONEncoder):
