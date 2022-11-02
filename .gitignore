@@ -10,8 +10,5 @@
 /MANIFEST
 /.cache/
 /try.py
-/.tox/
-.coverage
-coverage.xml
 .pytest_cache/
 

@@ -42,13 +42,3 @@ Output if all tests pass::
     tests/test_utils.py ...                                                                                          [100%]
 
     80 passed, 4 warnings in 0.41s
-
-Coverage
--------------------------------
-
-To collect coverage after using tox::
-
-    coverage combine .tox/coverage/*
-    coverage report
-
-You can then see your report in ``htmlcov/index.html`` (in a browser).

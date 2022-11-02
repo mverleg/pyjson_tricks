@@ -45,11 +45,9 @@ a separate comment removal function, as follows:
 from json_tricks import dump, dumps, load, loads, strip_comments
 ```
 
-The exact signatures of these and other functions are in the
-[documentation](http://json-tricks.readthedocs.org/en/latest/#main-components).
+The exact signatures of these and other functions are in the [documentation](http://json-tricks.readthedocs.org/en/latest/#main-components).
 
-Quite some older versions of Python are supported. For an up-to-date
-list see [tox.ini](./tox.ini).
+Quite some older versions of Python are supported. For an up-to-date  list see [the automated tests](./.github/workflows/tests.yml).
 
 # Features
 
