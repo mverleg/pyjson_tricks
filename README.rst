@@ -17,13 +17,11 @@ As well as compression and disallowing duplicate keys.
 * Documentation: http://json-tricks.readthedocs.org/en/latest/
 * PIP: https://pypi.python.org/pypi/json_tricks
 
-The 2.0 series added some of the above features and broke backward compatibility. The version 3.0 series is a more readable rewrite that also makes it easier to combine encoders, again not fully backward compatible.
-
 Several keys of the format ``__keyname__`` have special meanings, and more might be added in future releases.
 
 If you're considering JSON-but-with-comments as a config file format, have a look at HJSON_, it might be more appropriate. For other purposes, keep reading!
 
-Thanks for all the Github stars!
+Thanks for all the Github stars⭐!
 
 Installation and use
 ---------------------------------------
@@ -32,7 +30,7 @@ You can install using
 
 .. code-block:: bash
 
-	pip install json-tricks  # or e.g. 'json-tricks<3.0' for older versions
+	pip install json-tricks
 
 Decoding of some data types needs the corresponding package to be installed, e.g. ``numpy`` for arrays, ``pandas`` for dataframes and ``pytz`` for timezone-aware datetimes.
 
@@ -44,7 +42,7 @@ You can import the usual json functions dump(s) and load(s), as well as a separa
 
 The exact signatures of these and other functions are in the documentation_.
 
-``json-tricks`` supports Python 2.7, and Python 3.4 and later, and is automatically tested on 2.7, 3.4, 3.5 and 3.6. Pypy is supported without numpy and pandas. Pandas doesn't support 3.4.
+Quite some older versions of Python are supported. For an up-to-date list see `tox.ini <./tox.ini>`_.
 
 Features
 ---------------------------------------
@@ -222,7 +220,7 @@ Converting to json and back will preserve the order:
 
 where ``preserve_order=True`` is added for emphasis; it can be left out since it's the default.
 
-As a note on performance_, both dicts and OrderedDicts have the same scaling for getting and setting items (``O(1)``). In Python versions before 3.5, OrderedDicts were implemented in Python rather than C, so were somewhat slower; since Python 3.5 both are implemented in C. In summary, you should have no scaling problems and probably no performance problems at all, especially for 3.5 and later. Python 3.6+ preserve order of dictionaries by default making this redundant, but this is an implementation detail that should not be relied on.
+As a note on performance_, both dicts and OrderedDicts have the same scaling for getting and setting items (``O(1)``). In Python versions before 3.5, OrderedDicts were implemented in Python rather than C, so were somewhat slower; since Python 3.5 both are implemented in C. In summary, you should have no scaling problems and probably no performance problems at all, especially in Python 3. Python 3.6+ preserves order of dictionaries by default making this redundant, but this is an implementation detail that should not be relied on.
 
 Comments
 +++++++++++++++++++++++++++++++++++++++
@@ -259,7 +257,7 @@ Other features
 
 * Special floats like `NaN`, `Infinity` and `-0` using the `allow_nan=True` argument (non-standard_ json, may not decode in other implementations).
 * Sets are serializable and can be loaded. By default the set json representation is sorted, to have a consistent representation.
-* Save and load complex numbers (version 3.2) with ``1+2j`` serializing as ``{'__complex__': [1, 2]}``.
+* Save and load complex numbers (py3) with ``1+2j`` serializing as ``{'__complex__': [1, 2]}``.
 * Save and load ``Decimal`` and ``Fraction`` (including NaN, infinity, -0 for Decimal).
 * Save and load ``Enum`` (thanks to ``Jenselme``), either built-in in python3.4+, or with the enum34_ package in earlier versions. ``IntEnum`` needs encode_intenums_inplace_.
 * ``json_tricks`` allows for gzip compression using the ``compression=True`` argument (off by default).
