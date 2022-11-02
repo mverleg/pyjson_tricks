@@ -625,3 +625,18 @@ def test_no_cls():
 	bck = loads(txt)
 	assert data == bck
 
+
+def test_utf8_bytes():
+	inputs = [
+		b'',
+		b'\n',
+		b'hello world',
+		'你好'.encode('utf-8', 'ignore'),
+	]
+	json = dumps(inputs)
+	assert 'bytes_utf8' in json
+	for input in inputs:
+		assert input in json
+	bck = loads(json)
+	assert inputs == bck
+
