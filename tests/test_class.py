@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import weakref
 from json_tricks import dumps, loads
 
 
@@ -99,4 +100,16 @@ def test_slots_weakref():
 	json = dumps(obj)
 	decoded = loads(json, cls_lookup_map=dict(TestClass=TestClass))
 	assert str(obj) == str(decoded)
+
+
+def test_pure_weakref():
+	""" Check that the issue in `test_slots_weakref` does not happen without __slots__ """
+	obj = MyTestCls(value=7)
+	ref = weakref.ref(obj)
+	json = dumps(obj)
+	decoded = loads(json)
+	assert str(obj) == str(decoded)
+	# noinspection PyUnusedLocal
+	obj = None
+	assert ref() is None
 
