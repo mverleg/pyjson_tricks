@@ -1,4 +1,5 @@
 import warnings
+from base64 import standard_b64encode
 from datetime import datetime, date, time, timedelta
 from decimal import Decimal
 from fractions import Fraction
@@ -206,7 +207,7 @@ def class_instance_encode(obj, primitives=False):
 
 def json_complex_encode(obj, primitives=False):
 	"""
-	Encode a complex number as a json dictionary of it's real and imaginary part.
+	Encode a complex number as a json dictionary of its real and imaginary part.
 
 	:param obj: complex number, e.g. `2+1j`
 	:return: (dict) json primitives representation of `obj`
@@ -216,6 +217,27 @@ def json_complex_encode(obj, primitives=False):
 			return [obj.real, obj.imag]
 		else:
 			return hashodict(__complex__=[obj.real, obj.imag])
+	return obj
+
+
+def bytes_encode(obj, primitives=False):
+	"""
+	Encode bytes as one of these:
+
+	* A utf8-string with special `__bytes_utf8__` marking, if the bytes are valid utf8 and primitives is False.
+	* A base64 encoded string of the bytes with special `__bytes_b64__` marking, if the bytes are not utf8, or if primitives is True.
+
+	:param obj: any object, which will be transformed if it is of type bytes
+	:return: (dict) json primitives representation of `obj`
+	"""
+	if isinstance(obj, bytes):
+		if primitives:
+			return hashodict(__bytes_b64__=standard_b64encode(obj))
+		else:
+			try:
+				return hashodict(__bytes_utf8__=obj.decode('utf-8'))
+			except UnicodeDecodeError:
+				return hashodict(__bytes_b64__=standard_b64encode(obj))
 	return obj
 
 
