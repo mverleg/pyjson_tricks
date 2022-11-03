@@ -8,7 +8,7 @@ from json import JSONEncoder
 from sys import version, stderr
 
 from .utils import hashodict, get_module_name_from_object, NoEnumException, NoPandasException, \
-	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress, filtered_wrapper
+	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress, filtered_wrapper, is_py3
 
 
 def _fallback_wrapper(encoder):
@@ -230,8 +230,9 @@ def bytes_encode(obj, primitives=False):
 	:param obj: any object, which will be transformed if it is of type bytes
 	:return: (dict) json primitives representation of `obj`
 	"""
-	if isinstance(obj, bytes) and not isinstance(obj, str_type):
-		# the str_type check above is only needed for Python 2
+	if isinstance(obj, bytes):
+		if not is_py3:
+			return obj
 		if primitives:
 			return hashodict(__bytes_b64__=standard_b64encode(obj).decode('ascii'))
 		else:
