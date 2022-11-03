@@ -11,6 +11,7 @@ from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
 
+import pytest
 from _pytest.recwarn import warns
 from pytest import raises, fail
 
@@ -626,6 +627,7 @@ def test_no_cls():
 	assert data == bck
 
 
+@pytest.mark.skipif(condition=not is_py3, reason='encoding bytes not supported on python 2')
 def test_utf8_bytes():
 	inputs = [
 		b'hello world',
@@ -644,6 +646,7 @@ def test_utf8_bytes():
 	assert inputs == bck
 
 
+@pytest.mark.skipif(condition=not is_py3, reason='encoding bytes not supported on python 2')
 def test_nonutf8_bytes():
 	inputs = [
 		b'\xc3\x28',
@@ -664,6 +667,7 @@ def test_nonutf8_bytes():
 	assert inputs == bck
 
 
+@pytest.mark.skipif(condition=not is_py3, reason='encoding bytes not supported on python 2')
 def test_bytes_primitive_repr():
 	inp = ['hello = 你好'.encode('utf-8', 'ignore')]
 	assert inp[0] == b'hello = \xe4\xbd\xa0\xe5\xa5\xbd'
