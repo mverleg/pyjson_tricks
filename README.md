@@ -13,9 +13,9 @@ functionality to python handling of json files:
 
 As well as compression and disallowing duplicate keys.
 
--   Code: <https://github.com/mverleg/pyjson_tricks>
--   Documentation: <http://json-tricks.readthedocs.org/en/latest/>
--   PIP: <https://pypi.python.org/pypi/json_tricks>
+* Code: <https://github.com/mverleg/pyjson_tricks>
+* Documentation: <http://json-tricks.readthedocs.org/en/latest/>
+* PIP: <https://pypi.python.org/pypi/json_tricks>
 
 Several keys of the format `__keyname__` have special meanings, and more
 might be added in future releases.
@@ -100,7 +100,7 @@ This compressed format encodes the array data in base64, with gzip
 compression for the array, unless 1) compression has little effect for
 that array, or 2) the whole file is already compressed. If you only want
 compact format for large arrays, pass the number of elements to
-[ndarray_compact]{.title-ref}.
+`ndarray_compact`.
 
 Example:
 
@@ -310,35 +310,35 @@ could consider turning comments off (`ignore_comments=False`).
 
 ## Other features
 
--   Special floats like [NaN]{.title-ref}, [Infinity]{.title-ref} and
-    [-0]{.title-ref} using the [allow_nan=True]{.title-ref} argument
-    ([non-standard](https://stackoverflow.com/questions/1423081/json-left-out-infinity-and-nan-json-status-in-ecmascript)
-    json, may not decode in other implementations).
--   Sets are serializable and can be loaded. By default the set json
-    representation is sorted, to have a consistent representation.
--   Save and load complex numbers (py3) with `1+2j` serializing as
-    `{'__complex__': [1, 2]}`.
--   Save and load `Decimal` and `Fraction` (including NaN, infinity, -0
-    for Decimal).
--   Save and load `Enum` (thanks to `Jenselme`), either built-in in
-    python3.4+, or with the [enum34](https://pypi.org/project/enum34/)
-    package in earlier versions. `IntEnum` needs
-    [encode_intenums_inplace](https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace).
--   `json_tricks` allows for gzip compression using the
-    `compression=True` argument (off by default).
--   `json_tricks` can check for duplicate keys in maps by setting
-    `allow_duplicates` to False. These are [kind of
-    allowed](http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object),
-    but are handled inconsistently between json implementations. In
-    Python, for `dict` and `OrderedDict`, duplicate keys are silently
-    overwritten.
--   Save and load `pathlib.Path` objects (e.g., the current path,
-    [Path(\'.\')]{.title-ref}, serializes as `{"__pathlib__": "."}`)
-    (thanks to `bburan`).
--   Save and load bytes (python 3+ only), which will be encoded as utf8 if 
-    that is valid, or as base64 otherwise. Base64 is always used if 
-    primitives are requested.
-    `[{"__bytes_b64__": "aGVsbG8="}]` vs `[{"__bytes_utf8__": "hello"}]`.
+* Special floats like `NaN`, `Infinity` and
+  `-0` using the `allow_nan=True` argument
+  ([non-standard](https://stackoverflow.com/questions/1423081/json-left-out-infinity-and-nan-json-status-in-ecmascript)
+  json, may not decode in other implementations).
+* Sets are serializable and can be loaded. By default the set json
+  representation is sorted, to have a consistent representation.
+* Save and load complex numbers (py3) with `1+2j` serializing as
+  `{'__complex__': [1, 2]}`.
+* Save and load `Decimal` and `Fraction` (including NaN, infinity, -0
+  for Decimal).
+* Save and load `Enum` (thanks to `Jenselme`), either built-in in
+  python3.4+, or with the [enum34](https://pypi.org/project/enum34/)
+  package in earlier versions. `IntEnum` needs
+  [encode_intenums_inplace](https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace).
+* `json_tricks` allows for gzip compression using the
+  `compression=True` argument (off by default).
+* `json_tricks` can check for duplicate keys in maps by setting
+  `allow_duplicates` to False. These are [kind of
+  allowed](http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object),
+  but are handled inconsistently between json implementations. In
+  Python, for `dict` and `OrderedDict`, duplicate keys are silently
+  overwritten.
+* Save and load `pathlib.Path` objects (e.g., the current path,
+  `Path('.')`, serializes as `{"__pathlib__": "."}`)
+  (thanks to `bburan`).
+* Save and load bytes (python 3+ only), which will be encoded as utf8 if 
+  that is valid, or as base64 otherwise. Base64 is always used if 
+  primitives are requested. Serialized as
+  `[{"__bytes_b64__": "aGVsbG8="}]` vs `[{"__bytes_utf8__": "hello"}]`.
 
 # Preserve type vs use primitive
 
