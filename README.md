@@ -9,7 +9,7 @@ functionality to python handling of json files:
 4.  **Preserve map order** `{}` using `OrderedDict`.
 5.  **Allow for comments** in json files by starting lines with `#`.
 6.  Sets, complex numbers, Decimal, Fraction, enums, compression,
-    duplicate keys, pathlib Paths \...
+    duplicate keys, pathlib Paths, bytes ...
 
 As well as compression and disallowing duplicate keys.
 
@@ -335,6 +335,10 @@ could consider turning comments off (`ignore_comments=False`).
 -   Save and load `pathlib.Path` objects (e.g., the current path,
     [Path(\'.\')]{.title-ref}, serializes as `{"__pathlib__": "."}`)
     (thanks to `bburan`).
+-   Save and load bytes (python 3+ only), which will be encoded as utf8 if 
+    that is valid, or as base64 otherwise. Base64 is always used if 
+    primitives are requested.
+    `[{"__bytes_b64__": "aGVsbG8="}]` vs `[{"__bytes_utf8__": "hello"}]`.
 
 # Preserve type vs use primitive
 
