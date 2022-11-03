@@ -18,7 +18,7 @@ from pytest import raises, fail
 from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
 	ENCODING
-from json_tricks.utils import is_py3, gzip_compress, JsonTricksDeprecation
+from json_tricks.utils import is_py3, gzip_compress, JsonTricksDeprecation, str_type
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, \
 	SlotsABCDict, SlotsABC
 
@@ -508,7 +508,7 @@ def test_primitive_naive_date_time():
 	back = loads(json)
 	for orig, bck in zip(DTOBJ, back):
 		if isinstance(bck, (date, time, datetime,)):
-			assert isinstance(bck, str if is_py3 else (str, unicode))
+			assert isinstance(bck, str_type)
 			assert bck == orig.isoformat()
 		elif isinstance(bck, (timedelta,)):
 			assert isinstance(bck, float)
@@ -633,7 +633,7 @@ def test_utf8_bytes():
 		b'hello world',
 		b'',
 		b'\n',
-		'你好'.encode('utf-8', 'ignore'),
+		u'你好'.encode('utf-8', 'ignore'),
 		b'"',
 		b"''",
 	]
@@ -669,7 +669,7 @@ def test_nonutf8_bytes():
 
 @pytest.mark.skipif(condition=not is_py3, reason='encoding bytes not supported on python 2')
 def test_bytes_primitive_repr():
-	inp = ['hello = 你好'.encode('utf-8', 'ignore')]
+	inp = [u'hello = 你好'.encode('utf-8', 'ignore')]
 	assert inp[0] == b'hello = \xe4\xbd\xa0\xe5\xa5\xbd'
 	json = dumps(inp, primitives=True)
 	assert json == '[{"__bytes_b64__": "aGVsbG8gPSDkvaDlpb0="}]'

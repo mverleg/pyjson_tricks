@@ -230,7 +230,8 @@ def bytes_encode(obj, primitives=False):
 	:param obj: any object, which will be transformed if it is of type bytes
 	:return: (dict) json primitives representation of `obj`
 	"""
-	if isinstance(obj, bytes):
+	if isinstance(obj, bytes) and not isinstance(obj, str_type):
+		# the str_type check above is only needed for Python 2
 		if primitives:
 			return hashodict(__bytes_b64__=standard_b64encode(obj).decode('ascii'))
 		else:
