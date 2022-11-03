@@ -274,7 +274,7 @@ not be relied on.
 
 *Warning: in the next major version, comment parsing will be opt-in, not
 default anymore (for performance reasons). Update your code now to pass
-\`ignore_comments=True\` explicitly if you want comment parsing.*
+`ignore_comments=True` explicitly if you want comment parsing.*
 
 This package uses `#` and `//` for comments, which seem to be the most
 common conventions, though only the latter is valid javascript.
@@ -298,15 +298,19 @@ And it would return the de-commented version:
 }
 ```
 
-Since comments aren\'t stored in the Python representation of the data,
+Since comments aren't stored in the Python representation of the data,
 loading and then saving a json file will remove the comments (it also
 likely changes the indentation).
 
-The implementation of comments is not particularly efficient, but it
-does handle all the special cases I could think of. For a few files you
-shouldn\'t notice any performance problems, but if you\'re reading
-hundreds of files, then they are presumably computer-generated, and you
-could consider turning comments off (`ignore_comments=False`).
+The implementation of comments is a bit crude, which means that there are 
+some exceptional cases that aren't handled correctly ([#57](https://github.com/mverleg/pyjson_tricks/issues/57)).
+
+It is also not very fast. For that reason, if `ignore_comments` wasn't 
+explicitly set to True, then json-tricks first tries to parge without 
+ignoring comments. If that fails, then it will automatically re-try 
+with comment handling. This makes the no-comment case faster at the cost
+of the comment case, so if you are expecting comments make sure to set
+`ignore_comments` to True.
 
 ## Other features
 
