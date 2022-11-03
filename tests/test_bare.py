@@ -628,15 +628,18 @@ def test_no_cls():
 
 def test_utf8_bytes():
 	inputs = [
+		b'hello world',
 		b'',
 		b'\n',
-		b'hello world',
 		'你好'.encode('utf-8', 'ignore'),
+		b'"',
+		b"''",
 	]
 	json = dumps(inputs)
-	assert 'bytes_utf8' in json
-	for input in inputs:
-		assert input in json
+	assert '__bytes_utf8__' in json
+	assert '__bytes_b64__' not in json
+	json_bytes = json.encode('utf-8', 'ignore')
+	assert inputs[0] in json_bytes
 	bck = loads(json)
 	assert inputs == bck
 
@@ -652,9 +655,11 @@ def test_nonutf8_bytes():
 		b'\xf0\x28\x8c\x28',
 	]
 	json = dumps(inputs)
-	assert 'bytes_b64' in json
+	assert '__bytes_utf8__' not in json
+	assert '__bytes_b64__' in json
+	json_bytes = json.encode('utf-8', 'ignore')
 	for input in inputs:
-		assert input not in json
+		assert input not in json_bytes
 	bck = loads(json)
 	assert inputs == bck
 
