@@ -668,7 +668,7 @@ def test_bytes_primitive_repr():
 	inp = ['hello = 你好'.encode('utf-8', 'ignore')]
 	assert inp[0] == b'hello = \xe4\xbd\xa0\xe5\xa5\xbd'
 	json = dumps(inp, primitives=True)
-	assert json == ''
+	assert json == '[{"__bytes_b64__": "aGVsbG8gPSDkvaDlpb0="}]'
 	bck = loads(json)
 	assert inp == bck
 

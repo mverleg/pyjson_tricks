@@ -232,12 +232,12 @@ def bytes_encode(obj, primitives=False):
 	"""
 	if isinstance(obj, bytes):
 		if primitives:
-			return hashodict(__bytes_b64__=standard_b64encode(obj))
+			return hashodict(__bytes_b64__=standard_b64encode(obj).decode('ascii'))
 		else:
 			try:
 				return hashodict(__bytes_utf8__=obj.decode('utf-8'))
 			except UnicodeDecodeError:
-				return hashodict(__bytes_b64__=standard_b64encode(obj))
+				return hashodict(__bytes_b64__=standard_b64encode(obj).decode('ascii'))
 	return obj
 
 
