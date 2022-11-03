@@ -663,3 +663,12 @@ def test_nonutf8_bytes():
 	bck = loads(json)
 	assert inputs == bck
 
+
+def test_bytes_primitive_repr():
+	inp = ['hello = 你好'.encode('utf-8', 'ignore')]
+	assert inp[0] == b'hello = \xe4\xbd\xa0\xe5\xa5\xbd'
+	json = dumps(inp, primitives=True)
+	assert json == ''
+	bck = loads(json)
+	assert inp == bck
+

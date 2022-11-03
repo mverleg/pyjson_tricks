@@ -103,9 +103,10 @@ def dumps(obj, sort_keys=None, cls=None, obj_encoders=DEFAULT_ENCODERS, extra_ob
 	dict_default(properties, 'allow_nan', allow_nan)
 	if cls is None:
 		cls = TricksEncoder
-	txt = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
+	combined_encoder = cls(sort_keys=sort_keys, obj_encoders=encoders, allow_nan=allow_nan,
 		primitives=primitives, fallback_encoders=fallback_encoders,
-	  	properties=properties, **jsonkwargs).encode(obj)
+	  	properties=properties, **jsonkwargs)
+	txt = combined_encoder.encode(obj)
 	if not is_py3 and isinstance(txt, str):
 		txt = unicode(txt, ENCODING)
 	if not compression:
