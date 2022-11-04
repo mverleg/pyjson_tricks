@@ -251,36 +251,33 @@ def test_compression_with_comments():
 
 
 def test_hooks_called_once_if_no_comments():
-	call_count = 0
+	call_count = [0]
 	def counting_hook(obj, *args):
-		nonlocal call_count
-		call_count += 1
+		call_count[0] += 1
 		return obj
 	result = loads('{"abc": 123}', ignore_comments=None, extra_obj_pairs_hooks=(counting_hook,))
 	assert result == {"abc": 123}
-	assert call_count == 1
+	assert call_count[0] == 1
 
 
 def test_hooks_called_once_if_comment_before():
-	call_count = 0
+	call_count = [0]
 	def counting_hook(obj, *args):
-		nonlocal call_count
-		call_count += 1
+		call_count[0] += 1
 		return obj
 	result = loads('// comment\n{"abc": 123}', ignore_comments=None, extra_obj_pairs_hooks=(counting_hook,))
 	assert result == {"abc": 123}
-	assert call_count == 1
+	assert call_count[0] == 1
 
 
 def test_hooks_called_twice_if_comment_after():
-	call_count = 0
+	call_count = [0]
 	def counting_hook(obj, *args):
-		nonlocal call_count
-		call_count += 1
+		call_count[0] += 1
 		return obj
 	result = loads('{"abc": 123} // comment', ignore_comments=None, extra_obj_pairs_hooks=(counting_hook,))
 	assert result == {"abc": 123}
-	assert call_count == 2
+	assert call_count[0] == 2
 
 
 def test_order():
