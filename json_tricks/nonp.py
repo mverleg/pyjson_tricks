@@ -24,12 +24,26 @@ ENCODING = 'UTF-8'
 
 _cih_instance = ClassInstanceHook()
 _eih_instance = EnumInstanceHook()
-DEFAULT_ENCODERS = [json_date_time_encode, json_complex_encode, json_set_encode,
-					numeric_types_encode, class_instance_encode, bytes_encode,
-                    slice_encode,]
-DEFAULT_HOOKS = [json_date_time_hook, json_complex_hook, json_set_hook,
-				numeric_types_hook, _cih_instance, json_bytes_hook,
-                slice_hook,]
+
+DEFAULT_ENCODERS = [
+    json_date_time_encode,
+    json_complex_encode,
+    json_set_encode,
+    numeric_types_encode,
+    class_instance_encode,
+    bytes_encode,
+    slice_encode,
+]
+
+DEFAULT_HOOKS = [
+    json_date_time_hook,
+    json_complex_hook,
+    json_set_hook,
+    numeric_types_hook,
+    _cih_instance,
+    json_bytes_hook,
+    slice_hook,
+]
 
 
 #TODO @mark: add properties to all built-in encoders (for speed - but it should keep working without)
