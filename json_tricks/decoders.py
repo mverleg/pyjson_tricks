@@ -151,6 +151,13 @@ def nopathlib_hook(dct):
 						'is not enabled.'))
 	return dct
 
+def slice_hook(dct):
+	if not isinstance(dct, dict):
+		return dct
+	if not '__slice__' in dct:
+		return dct
+	return slice(dct['start'], dct['stop'], dct['step'])
+
 
 class EnumInstanceHook(ClassInstanceHookBase):
 	"""
