@@ -283,10 +283,14 @@ def slice_encode(obj, primitives=False):
 		return obj
 
 	if primitives:
-		pass
-
-	return {'__slice__': True, 'start': obj.start, 'stop': obj.stop, 'step': obj.step}
-
+		return [obj.start, obj.stop, obj.step]
+	else:
+		return hashodict((
+			('__slice__', True),
+			('start', obj.start),
+			('stop', obj.stop),
+			('step', obj.step),
+		))
 
 class ClassInstanceEncoder(JSONEncoder):
 	"""
