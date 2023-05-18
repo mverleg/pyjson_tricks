@@ -278,6 +278,19 @@ def pathlib_encode(obj, primitives=False):
 
 	return {'__pathlib__': str(obj)}
 
+def slice_encode(obj, primitives=False):
+	if not isinstance(obj, slice):
+		return obj
+
+	if primitives:
+		return [obj.start, obj.stop, obj.step]
+	else:
+		return hashodict((
+			('__slice__', True),
+			('start', obj.start),
+			('stop', obj.stop),
+			('step', obj.step),
+		))
 
 class ClassInstanceEncoder(JSONEncoder):
 	"""
