@@ -343,6 +343,7 @@ of the comment case, so if you are expecting comments make sure to set
   that is valid, or as base64 otherwise. Base64 is always used if 
   primitives are requested. Serialized as
   `[{"__bytes_b64__": "aGVsbG8="}]` vs `[{"__bytes_utf8__": "hello"}]`.
+* Save and load slices (thanks to `claydugo`).
 
 # Preserve type vs use primitive
 
