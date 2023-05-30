@@ -5,11 +5,10 @@ from decimal import Decimal
 from fractions import Fraction
 from functools import wraps
 from json import JSONEncoder
-from sys import version, stderr
+import sys
 
 from .utils import hashodict, get_module_name_from_object, NoEnumException, NoPandasException, \
 	NoNumpyException, str_type, JsonTricksDeprecation, gzip_compress, filtered_wrapper, is_py3
-
 
 def _fallback_wrapper(encoder):
 	"""
@@ -50,7 +49,7 @@ class TricksEncoder(JSONEncoder):
 		"""
 		if silence_typeerror and not getattr(TricksEncoder, '_deprecated_silence_typeerror'):
 			TricksEncoder._deprecated_silence_typeerror = True
-			stderr.write('TricksEncoder.silence_typeerror is deprecated and may be removed in a future version\n')
+			sys.stderr.write('TricksEncoder.silence_typeerror is deprecated and may be removed in a future version\n')
 		self.obj_encoders = []
 		if obj_encoders:
 			self.obj_encoders = list(obj_encoders)
@@ -162,7 +161,7 @@ def class_instance_encode(obj, primitives=False):
 		if not hasattr(obj, '__new__'):
 			raise TypeError('class "{0:s}" does not have a __new__ method; '.format(obj.__class__) +
 				('perhaps it is an old-style class not derived from `object`; add `object` as a base class to encode it.'
-					if (version[:2] == '2.') else 'this should not happen in Python3'))
+					if (sys.version[:2] == '2.') else 'this should not happen in Python3'))
 		if type(obj) == type(lambda: 0):
 			raise TypeError('instance "{0:}" of class "{1:}" cannot be encoded because it appears to be a lambda or function.'
 				.format(obj, obj.__class__))
@@ -369,7 +368,6 @@ def numpy_encode(obj, primitives=False, properties=None):
 
 	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
 	"""
-	import sys
 	from numpy import ndarray, generic
 
 	if isinstance(obj, ndarray):
@@ -378,6 +376,9 @@ def numpy_encode(obj, primitives=False, properties=None):
 		else:
 			properties = properties or {}
 			use_compact = properties.get('ndarray_compact', None)
+			store_endianness = properties.get('ndarray_store_byteorder', None)
+			assert store_endianness is None or store_endianness == 'little' or store_endianness == 'big',\
+				'property ndarray_store_byteorder should be \'little\' or \'big\' if provided'
 			json_compression = bool(properties.get('compression', False))
 			if use_compact is None and json_compression and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
@@ -392,7 +393,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 				use_compact = obj.size >= use_compact
 			if use_compact:
 				# If the overall json file is compressed, then don't compress the array.
-				data_json = _ndarray_to_bin_str(obj, do_compress=not json_compression)
+				data_json = _ndarray_to_bin_str(obj, do_compress=not json_compression, store_endianness=store_endianness)
 			else:
 				data_json = obj.tolist()
 			dct = hashodict((
@@ -403,7 +404,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 			if len(obj.shape) > 1:
 				dct['Corder'] = obj.flags['C_CONTIGUOUS']
 			if use_compact:
-				dct['endian'] = sys.byteorder
+				dct['endian'] = store_endianness or sys.byteorder
 			return dct
 	elif isinstance(obj, generic):
 		if NumpyEncoder.SHOW_SCALAR_WARNING:
@@ -413,7 +414,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 	return obj
 
 
-def _ndarray_to_bin_str(array, do_compress):
+def _ndarray_to_bin_str(array, do_compress, store_endianness):
 	"""
 	From ndarray to base64 encoded, gzipped binary data.
 	"""
@@ -422,6 +423,8 @@ def _ndarray_to_bin_str(array, do_compress):
 
 	original_size = array.size * array.itemsize
 	header = 'b64:'
+	if store_endianness is not None and store_endianness != sys.byteorder:
+		array = array.byteswap(inplace=False)
 	data = array.data
 	if do_compress:
 		small = gzip_compress(data, compresslevel=9)

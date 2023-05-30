@@ -77,7 +77,7 @@ def test_compressed_to_disk():
 	arr = [array([[1.0, 2.0], [3.0, 4.0]])]
 	path = join(mkdtemp(), 'pytest-np.json.gz')
 	with open(path, 'wb+') as fh:
-		dump(arr, fh, compression=True, properties={'ndarray_compact': True})
+		dump(arr, fh, compression=True, properties=dict(ndarray_compact=True, store_endianness='little'))
 
 
 mixed_data = {
@@ -227,14 +227,14 @@ def test_compact_mode_unspecified():
 
 def test_compact():
 	data = [array(list(2**(x + 0.5) for x in range(-30, +31)))]
-	json = dumps(data, compression=True, properties={'ndarray_compact': True})
+	json = dumps(data, compression=True, properties=dict(ndarray_compact=True, store_endianness='little'))
 	back = loads(json)
 	assert_equal(data, back)
 
 
 def test_encode_disable_compact():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
-	gz_json = dumps(data, compression=True, properties={'ndarray_compact': False})
+	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=False))
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
 		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
@@ -242,17 +242,17 @@ def test_encode_disable_compact():
 
 def test_encode_enable_compact():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
-	gz_json = dumps(data, compression=True, properties={'ndarray_compact': True})
+	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=True, store_endianness='little'))
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
 		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
 		'true}, {"__ndarray__": "b64:GC1EVPshCUBpVxSLCr8FQA==", "dtype": "float64", "shape": [2], ' \
-		'"endian": "{}"}]'.format(sys.byteorder)
+		'"endian": "little"}]'
 
 
 def test_encode_compact_cutoff():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
-	gz_json = dumps(data, compression=True, properties={'ndarray_compact': 5})
+	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=5))
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
 		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
@@ -261,14 +261,14 @@ def test_encode_compact_cutoff():
 
 def test_encode_compact_inline_compression():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]])]
-	json = dumps(data, compression=False, properties={'ndarray_compact': True})
+	json = dumps(data, compression=False, properties=dict(ndarray_compact=True, store_endianness='little'))
 	assert 'b64.gz:' in json, 'If the overall file is not compressed and there are significant savings, then do inline gzip compression.'
 	assert json == '[{"__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", "dtype": "float64", "shape": [4, 4], "Corder": true}]'
 
 
 def test_encode_compact_no_inline_compression():
 	data = [array([[1.0, 2.0], [3.0, 4.0]])]
-	json = dumps(data, compression=False, properties={'ndarray_compact': True})
+	json = dumps(data, compression=False, properties=dict(ndarray_compact=True, store_endianness='little'))
 	assert 'b64.gz:' not in json, 'If the overall file is not compressed, but there are no significant savings, then do not do inline compression.'
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEA=", ' \
 		'"dtype": "float64", "shape": [2, 2], "Corder": true, "endian": "{}"}]'.format(sys.byteorder)

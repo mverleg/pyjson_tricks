@@ -1,3 +1,4 @@
+import sys
 import warnings
 from base64 import standard_b64decode
 from collections import OrderedDict
@@ -299,7 +300,7 @@ def json_numpy_obj_hook(dct):
 		return _scalar_to_numpy(data_json, nptype)
 
 
-def _bin_str_to_ndarray(data, order, shape, np_type_name, endianness):
+def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness):
 	"""
 	From base64 encoded, gzipped binary data to ndarray.
 	"""
@@ -316,12 +317,14 @@ def _bin_str_to_ndarray(data, order, shape, np_type_name, endianness):
 	else:
 		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
 	np_type = dtype(np_type_name)
-	if endianness == 'little':
+	if data_endianness == sys.byteorder:
+		pass
+	if data_endianness == 'little':
 		np_type = np_type.newbyteorder('<')
-	elif endianness == 'big':
+	elif data_endianness == 'big':
 		np_type = np_type.newbyteorder('>')
-	elif endianness != 'native':
-		warnings.warn('array of shape {} has unknown endianness \'{}\''.format(shape, endianness))
+	elif data_endianness != 'native':
+		warnings.warn('array of shape {} has unknown endianness \'{}\''.format(shape, data_endianness))
 	data = frombuffer(data, dtype=np_type)
 	return data.reshape(shape)
 
