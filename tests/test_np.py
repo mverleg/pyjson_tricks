@@ -247,15 +247,15 @@ def test_encode_enable_compact_little_endian():
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
 		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
 		'true, "endian": "little"}, {"__ndarray__": "b64:GC1EVPshCUBpVxSLCr8FQA==", "dtype": "float64", ' \
-	    '"shape": [2], "endian": "little"}]'
+		'"shape": [2], "endian": "little"}]'
 
 
 def test_encode_enable_compact_big_endian():
 	data = array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])
 	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=True, ndarray_store_byteorder='big'))
 	json = gzip_decompress(gz_json).decode('ascii')
-	assert json == '{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
-		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+	assert json == '{"__ndarray__": "b64:P/AAAAAAAABAAAAAAAAAAEAIAAAAAAAAQBAAAAAAAABAFAAAAAAAAEAYAA' \
+		'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
 		'true, "endian": "big"}'
 
 
@@ -268,9 +268,11 @@ def test_encode_enable_compact_native_endian():
 			'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
 			'true, "endian": "little"}'
 	elif sys.byteorder == 'big':
-		assert '"endian": "big"' in json
+		assert json == '{"__ndarray__": "b64:P/AAAAAAAABAAAAAAAAAAEAIAAAAAAAAQBAAAAAAAABAFAAAAAAAAEAYAA' \
+			'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+			'true, "endian": "big"}'
 	else:
-		raise Exception(f"unknown system endianness {sys.byteorder}")
+		raise Exception(f"unknown system endianness '{sys.byteorder}'")
 
 
 def test_encode_compact_cutoff():
@@ -303,6 +305,32 @@ def test_decode_compact_mixed_compactness():
 		'true}, {"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 	data = loads(json)
 	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)]))
+
+
+def test_decode_big_endian():
+	json = '{"__ndarray__": "b64:P/AAAAAAAABAAAAAAAAAAEAIAAAAAAAAQBAAAAAAAABAFAAAAAAAAEAYAA' \
+		   'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+		   'true, "endian": "big"}'
+	data = loads(json)
+	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]))
+
+
+def test_decode_little_endian():
+	json = '{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
+		   'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+		   'true, "endian": "little"}'
+	data = loads(json)
+	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]))
+
+
+def test_decode_without_endianness():
+	json = '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
+		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": true}]'
+	data = loads(json)
+	if sys.byteorder == 'big':
+		import pytest
+		pytest.skip('skip for big endian systems')
+	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]))
 
 
 def test_decode_compact_inline_compression():

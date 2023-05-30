@@ -393,7 +393,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 				use_compact = obj.size >= use_compact
 			if use_compact:
 				# If the overall json file is compressed, then don't compress the array.
-				data_json = _ndarray_to_bin_str(obj, do_compress=not json_compression, ndarray_store_byteorder=store_endianness)
+				data_json = _ndarray_to_bin_str(obj, do_compress=not json_compression, store_endianness=store_endianness)
 			else:
 				data_json = obj.tolist()
 			dct = hashodict((
