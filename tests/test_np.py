@@ -272,7 +272,7 @@ def test_encode_enable_compact_native_endian():
 			'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
 			'true, "endian": "big"}'
 	else:
-		raise Exception(f"unknown system endianness '{sys.byteorder}'")
+		raise Exception("unknown system endianness '{}'".format(sys.byteorder))
 
 
 def test_encode_enable_compact_suppress_endianness():
