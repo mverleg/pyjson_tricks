@@ -266,7 +266,7 @@ def nopandas_hook(dct):
 
 def json_numpy_obj_hook(dct):
 	"""
-	Replace any numpy arrays previously encoded by NumpyEncoder to their proper
+	Replace any numpy arrays previously encoded by `numpy_encode` to their proper
 	shape, data type and data.
 
 	:param dct: (dict) json encoded ndarray
@@ -291,22 +291,23 @@ def json_numpy_obj_hook(dct):
 		if nptype == 'object':
 			return _lists_of_obj_to_ndarray(data_json, order, shape, nptype)
 		if isinstance(data_json, str_type):
-			return _bin_str_to_ndarray(data_json, order, shape, nptype)
+			endianness = dct.get('endian', 'native')
+			return _bin_str_to_ndarray(data_json, order, shape, nptype, endianness)
 		else:
 			return _lists_of_numbers_to_ndarray(data_json, order, shape, nptype)
 	else:
 		return _scalar_to_numpy(data_json, nptype)
 
 
-def _bin_str_to_ndarray(data, order, shape, dtype):
+def _bin_str_to_ndarray(data, order, shape, np_type_name, endianness):
 	"""
 	From base64 encoded, gzipped binary data to ndarray.
 	"""
 	from base64 import standard_b64decode
-	from numpy import frombuffer
+	from numpy import frombuffer, dtype
 
 	assert order in [None, 'C'], 'specifying different memory order is not (yet) supported ' \
-		'for binary numpy format (got order = {})'.format(order)
+								 'for binary numpy format (got order = {})'.format(order)
 	if data.startswith('b64.gz:'):
 		data = standard_b64decode(data[7:])
 		data = gzip_decompress(data)
@@ -314,7 +315,14 @@ def _bin_str_to_ndarray(data, order, shape, dtype):
 		data = standard_b64decode(data[4:])
 	else:
 		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
-	data = frombuffer(data, dtype=dtype)
+	np_type = dtype(np_type_name)
+	if endianness == 'little':
+		np_type = np_type.newbyteorder('<')
+	elif endianness == 'big':
+		np_type = np_type.newbyteorder('>')
+	elif endianness != 'native':
+		warnings.warn('array of shape {} has unknown endianness \'{}\''.format(shape, endianness))
+	data = frombuffer(data, dtype=np_type)
 	return data.reshape(shape)
 
 

@@ -369,7 +369,9 @@ def numpy_encode(obj, primitives=False, properties=None):
 
 	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
 	"""
+	import sys
 	from numpy import ndarray, generic
+
 	if isinstance(obj, ndarray):
 		if primitives:
 			return obj.tolist()
@@ -400,6 +402,8 @@ def numpy_encode(obj, primitives=False, properties=None):
 			))
 			if len(obj.shape) > 1:
 				dct['Corder'] = obj.flags['C_CONTIGUOUS']
+			if use_compact:
+				dct['endian'] = sys.byteorder
 			return dct
 	elif isinstance(obj, generic):
 		if NumpyEncoder.SHOW_SCALAR_WARNING:

@@ -4,6 +4,7 @@
 from copy import deepcopy
 from os.path import join
 from tempfile import mkdtemp
+import sys
 
 from _pytest.recwarn import warns
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
@@ -245,7 +246,8 @@ def test_encode_enable_compact():
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
 		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
-		'true}, {"__ndarray__": "b64:GC1EVPshCUBpVxSLCr8FQA==", "dtype": "float64", "shape": [2]}]'
+		'true}, {"__ndarray__": "b64:GC1EVPshCUBpVxSLCr8FQA==", "dtype": "float64", "shape": [2], ' \
+		'"endian": "{}"}]'.format(sys.byteorder)
 
 
 def test_encode_compact_cutoff():
@@ -269,7 +271,7 @@ def test_encode_compact_no_inline_compression():
 	json = dumps(data, compression=False, properties={'ndarray_compact': True})
 	assert 'b64.gz:' not in json, 'If the overall file is not compressed, but there are no significant savings, then do not do inline compression.'
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEA=", ' \
-		'"dtype": "float64", "shape": [2, 2], "Corder": true}]'
+		'"dtype": "float64", "shape": [2, 2], "Corder": true, "endian": "{}"}]'.format(sys.byteorder)
 
 
 def test_decode_compact_mixed_compactness():
