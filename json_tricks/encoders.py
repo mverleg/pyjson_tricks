@@ -377,8 +377,8 @@ def numpy_encode(obj, primitives=False, properties=None):
 			properties = properties or {}
 			use_compact = properties.get('ndarray_compact', None)
 			store_endianness = properties.get('ndarray_store_byteorder', None)
-			assert store_endianness is None or store_endianness == 'little' or store_endianness == 'big',\
-				'property ndarray_store_byteorder should be \'little\' or \'big\' if provided'
+			assert store_endianness in [None, 'little', 'big', 'suppress'] ,\
+				'property ndarray_store_byteorder should be \'little\', \'big\' or \'suppress\' if provided'
 			json_compression = bool(properties.get('compression', False))
 			if use_compact is None and json_compression and not getattr(numpy_encode, '_warned_compact', False):
 				numpy_encode._warned_compact = True
@@ -403,7 +403,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 			))
 			if len(obj.shape) > 1:
 				dct['Corder'] = obj.flags['C_CONTIGUOUS']
-			if use_compact:
+			if use_compact and store_endianness != 'suppress':
 				dct['endian'] = store_endianness or sys.byteorder
 			return dct
 	elif isinstance(obj, generic):
@@ -423,7 +423,7 @@ def _ndarray_to_bin_str(array, do_compress, store_endianness):
 
 	original_size = array.size * array.itemsize
 	header = 'b64:'
-	if store_endianness is not None and store_endianness != sys.byteorder:
+	if store_endianness in ['little', 'big'] and store_endianness != sys.byteorder:
 		array = array.byteswap(inplace=False)
 	data = array.data
 	if do_compress:
