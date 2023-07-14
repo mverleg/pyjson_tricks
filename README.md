@@ -461,14 +461,13 @@ data as normal json, but other packages probably won\'t interpret it.
 
 # Usage & contributions
 
-Code is under [Revised BSD
-License](https://github.com/mverleg/pyjson_tricks/blob/master/LICENSE.txt)
+Code is under [Revised BSD License](/LICENSE.txt)
 so you can use it for most purposes including commercially.
 
 Contributions are very welcome! Bug reports, feature suggestions and
 code contributions help this project become more useful for everyone!
 There is a short [contribution
-guide](https://github.com/mverleg/pyjson_tricks/blob/master/CONTRIBUTING.txt).
+guide](CONTRIBUTING.md).
 
 Contributors not yet mentioned: `janLo` (performance boost).
 
@@ -479,5 +478,4 @@ supported versions. This is the status:
 
 ![image](https://github.com/mverleg/pyjson_tricks/workflows/pyjson-tricks/badge.svg?branch=master)
 
-To run the tests manually for your version, see [this
-guide](https://github.com/mverleg/pyjson_tricks/blob/master/tests/run_locally.rst).
+To run the tests manually for your version, see [this guide](tests/run_locally.md).
