@@ -461,7 +461,7 @@ data as normal json, but other packages probably won\'t interpret it.
 
 # Usage & contributions
 
-Code is under [Revised BSD License](/LICENSE.txt)
+Code is under [Revised BSD License](LICENSE.txt)
 so you can use it for most purposes including commercially.
 
 Contributions are very welcome! Bug reports, feature suggestions and
