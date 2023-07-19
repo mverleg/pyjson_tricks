@@ -325,7 +325,7 @@ def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness):
 		np_type = np_type.newbyteorder('>')
 	elif data_endianness != 'native':
 		warnings.warn('array of shape {} has unknown endianness \'{}\''.format(shape, data_endianness))
-	data = frombuffer(data, dtype=np_type)
+	data = frombuffer(bytearray(data), dtype=np_type)
 	return data.reshape(shape)
 
 

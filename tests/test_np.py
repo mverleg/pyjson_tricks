@@ -366,3 +366,18 @@ def test_empty():
 		json = dumps(data)
 		assert_equal(loads(json), data, 'shape = {} ; json = {}'.format(data.shape, json))
 
+def test_decode_writeable():
+    # issue https://github.com/mverleg/pyjson_tricks/issues/90
+    data = zeros((2, 2))
+
+    data_uncompressed = dumps(data)
+    data_compressed = dumps(data, properties={'ndarray_compact': True})
+
+    reloaded_uncompressed = loads(data_uncompressed)
+    reloaded_compressed = loads(data_compressed)
+
+    assert array_equal(data, reloaded_uncompressed)
+    assert array_equal(data, reloaded_compressed)
+
+    assert reloaded_uncompressed.flags.writeable
+    assert reloaded_compressed.flags.writeable
