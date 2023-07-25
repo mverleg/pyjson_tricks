@@ -27,7 +27,7 @@ DTOBJ = [
 ]
 
 
-def test_tzaware_date_time():
+def test_tzaware_date_time_without_dst():
 	json = dumps(DTOBJ)
 	back = loads(json)
 	assert DTOBJ == back
@@ -67,3 +67,20 @@ def test_avoiding_tz_datettime_problem():
 			pytz.utc.normalize(tzdt), pytz.utc.normalize(back))
 
 
+def test_before_dst_fold():
+	# issue #89
+	before_dst = datetime(2023, 10, 29, 0, 30, 0, 0, pytz.UTC)\
+		.astimezone(pytz.timezone("Europe/Paris"))
+	back = loads(dumps(before_dst))
+	assert back == before_dst
+	assert back.tzinfo.zone == before_dst.tzinfo.zone
+	assert back.utcoffset() == before_dst.utcoffset()
+
+
+def test_after_dst_fold():
+	after_dst = datetime(2023, 10, 29, 1, 30, 0, 0, pytz.UTC)\
+		.astimezone(pytz.timezone("Europe/Paris"))
+	back = loads(dumps(after_dst))
+	assert back == after_dst
+	assert back.tzinfo.zone == after_dst.tzinfo.zone
+	assert back.utcoffset() == after_dst.utcoffset()
