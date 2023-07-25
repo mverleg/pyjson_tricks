@@ -100,6 +100,7 @@ def json_date_time_encode(obj, primitives=False):
 				dct['tzinfo'] = obj.tzinfo.zone
 			else:
 				dct['tzinfo'] = obj.tzinfo.tzname(None)
+            dct['is_dst'] = bool(obj.dst())
 	elif isinstance(obj, date):
 		dct = hashodict([('__date__', None), ('year', obj.year), ('month', obj.month), ('day', obj.day)])
 	elif isinstance(obj, time):
@@ -119,7 +120,7 @@ def json_date_time_encode(obj, primitives=False):
 	else:
 		return obj
 	for key, val in tuple(dct.items()):
-		if not key.startswith('__') and not val:
+		if not key.startswith('__') and not key == 'is_dst' and not val:
 			del dct[key]
 	return dct
 

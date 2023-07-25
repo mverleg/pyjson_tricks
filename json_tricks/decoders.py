@@ -40,7 +40,7 @@ class TricksPairHook(object):
 				if key in known:
 					raise DuplicateJsonKeyException(('Trying to load a json map which contains a ' +
 						'duplicate key "{0:}" (but allow_duplicates is False)').format(key))
-				known.add(key)
+			known.add(key)
 		map = self.map_type(pairs)
 		for hook in self.obj_pairs_hooks:
 			map = hook(map, properties=self.properties)
@@ -80,7 +80,7 @@ def json_date_time_hook(dct):
 			microsecond=dct.get('microsecond', 0))
 		if tzinfo is None:
 			return dt
-		return tzinfo.localize(dt)
+		return tzinfo.localize(dt, is_dst=dct.get('is_dst', None))
 	elif '__timedelta__' in dct:
 		return timedelta(days=dct.get('days', 0), seconds=dct.get('seconds', 0),
 			microseconds=dct.get('microseconds', 0))
