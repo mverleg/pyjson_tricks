@@ -6,7 +6,7 @@ This tests timezone-aware date/time objects, which need pytz. Naive date/times s
 work with just Python code functionality, and are tested in `nonp`.
 """
 
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, time, timedelta, timezone
 from json_tricks import dumps, loads
 from json_tricks.utils import is_py3
 import pytz
@@ -14,11 +14,13 @@ import pytz
 
 DTOBJ = [
 	datetime(year=1988, month=3, day=15, hour=8, minute=3, second=59, microsecond=7),
+	datetime.now(timezone.utc),
 	pytz.UTC.localize(datetime(year=1988, month=3, day=15, minute=3, second=59, microsecond=7)),
 	pytz.timezone('Europe/Amsterdam').localize(datetime(year=1988, month=3, day=15, microsecond=7)),
 	date(year=1988, month=3, day=15),
 	time(hour=8, minute=3, second=59, microsecond=123),
 	time(hour=8, second=59, microsecond=123, tzinfo=pytz.timezone('Europe/Amsterdam')),
+	time(hour=8, second=59, microsecond=123, tzinfo=timezone.utc),
 	timedelta(days=2, seconds=3599),
 	timedelta(days=0, seconds=-42, microseconds=123),
 	[{'obj': [pytz.timezone('Europe/Amsterdam').localize(datetime(year=1988, month=3, day=15, microsecond=7))]}],
