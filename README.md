@@ -20,7 +20,7 @@ As well as compression and disallowing duplicate keys.
 Several keys of the format `__keyname__` have special meanings, and more
 might be added in future releases.
 
-If you\'re considering JSON-but-with-comments as a config file format,
+If you're considering JSON-but-with-comments as a config file format,
 have a look at [HJSON](https://github.com/hjson/hjson-py), it might be
 more appropriate. For other purposes, keep reading!
 
@@ -78,19 +78,20 @@ which will be converted back to a numpy array when using
 `json_tricks.loads`. Note that the memory order (`Corder`) is only
 stored in v3.1 and later and for arrays with at least 2 dimensions.
 
-As you see, this uses the magic key `__ndarray__`. Don\'t use
-`__ndarray__` as a dictionary key unless you\'re trying to make a numpy
-array (and know what you\'re doing).
+As you see, this uses the magic key `__ndarray__`. Don't use
+`__ndarray__` as a dictionary key unless you're trying to make a numpy
+array (and know what you're doing).
 
 Numpy scalars are also serialized (v3.5+). They are represented by the
 closest python primitive type. A special representation was not
-feasible, because Python\'s json implementation serializes some numpy
+feasible, because Python's json implementation serializes some numpy
 types as primitives, without consulting custom encoders. If you want to
 preserve the exact numpy type, use
 [encode_scalars_inplace](https://json-tricks.readthedocs.io/en/latest/#json_tricks.np_utils.encode_scalars_inplace).
 
-There is also a compressed format. From the next major release, this
-will be default when using compression. For now you can use it as:
+There is also a compressed format (thanks `claydugo` for fix). From 
+the next major release, this will be default when using compression.
+For now, you can use it as:
 
 ``` python
 dumps(data, compression=True, properties={'ndarray_compact': True})
@@ -124,7 +125,7 @@ dumps(data, compression=False, properties={'ndarray_compact': 8})
 `json_tricks` can serialize class instances.
 
 If the class behaves normally (not generated dynamic, no `__new__` or
-`__metaclass__` magic, etc) *and* all it\'s attributes are serializable,
+`__metaclass__` magic, etc) *and* all it's attributes are serializable,
 then this should work by default.
 
 ``` python
@@ -140,7 +141,7 @@ json = dumps(cls_instance, indent=4)
 cls_instance_again = loads(json)
 ```
 
-You\'ll get your instance back. Here the json looks like this:
+You'll get your instance back. Here the json looks like this:
 
 ``` javascript
 {
@@ -159,12 +160,12 @@ You\'ll get your instance back. Here the json looks like this:
 
 As you can see, this stores the module and class name. The class must be
 importable from the same module when decoding (and should not have
-changed). If it isn\'t, you have to manually provide a dictionary to
+changed). If it isn't, you have to manually provide a dictionary to
 `cls_lookup_map` when loading in which the class name can be looked up.
 Note that if the class is imported, then `globals()` is such a
 dictionary (so try `loads(json, cls_lookup_map=glboals())`). Also note
-that if the class is defined in the \'top\' script (that you\'re calling
-directly), then this isn\'t a module and the import part cannot be
+that if the class is defined in the 'top' script (that you're calling
+directly), then this isn't a module and the import part cannot be
 extracted. Only the class name will be stored; it can then only be
 deserialized in the same script, or if you provide `cls_lookup_map`.
 
@@ -180,7 +181,7 @@ indentation):
 }
 ```
 
-If the instance doesn\'t serialize automatically, or if you want custom
+If the instance doesn't serialize automatically, or if you want custom
 behaviour, then you can implement `__json__encode__(self)` and
 `__json_decode__(self, **attributes)` methods, like so:
 
@@ -200,18 +201,18 @@ def __init__(self):
     self.irrelevant = 12
 ```
 
-As you\'ve seen, this uses the magic key `__instance_type__`. Don\'t use
-`__instance_type__` as a dictionary key unless you know what you\'re
+As you've seen, this uses the magic key `__instance_type__`. Don't use
+`__instance_type__` as a dictionary key unless you know what you're
 doing.
 
 ## Date, time, datetime and timedelta
 
 Date, time, datetime and timedelta objects are stored as dictionaries of
-\"day\", \"hour\", \"millisecond\" etc keys, for each nonzero property.
+"day", "hour", "millisecond" etc keys, for each nonzero property.
 
-Timezone name is also stored in case it is set. You\'ll need to have
-`pytz` installed to use timezone-aware date/times, it\'s not needed for
-naive date/times.
+Timezone name is also stored in case it is set, as is DST (thanks `eumir`).
+You'll need to have `pytz` installed to use timezone-aware date/times, 
+it's not needed for naive date/times.
 
 ``` javascript
 {
@@ -230,11 +231,11 @@ naive date/times.
 This approach was chosen over timestamps for readability and consistency
 between date and time, and over a single string to prevent parsing
 problems and reduce dependencies. Note that if `primitives=True`,
-date/times are encoded as ISO 8601, but they won\'t be restored
+date/times are encoded as ISO 8601, but they won't be restored
 automatically.
 
-Don\'t use `__date__`, `__time__`, `__datetime__`, `__timedelta__` or
-`__tzinfo__` as dictionary keys unless you know what you\'re doing, as
+Don't use `__date__`, `__time__`, `__datetime__`, `__timedelta__` or
+`__tzinfo__` as dictionary keys unless you know what you're doing, as
 they have special meaning.
 
 ## Order
@@ -258,7 +259,7 @@ ordered = loads(json, preserve_order=True)
 ```
 
 where `preserve_order=True` is added for emphasis; it can be left out
-since it\'s the default.
+since it's the default.
 
 As a note on [performance](http://stackoverflow.com/a/8177061/723090),
 both dicts and OrderedDicts have the same scaling for getting and
@@ -282,9 +283,9 @@ common conventions, though only the latter is valid javascript.
 For example, you could call `loads` on the following string:
 
 { # "comment 1
-    "hello": "Wor#d", "Bye": "\"M#rk\"", "yes\\\"": 5,# comment" 2
-    "quote": "\"th#t's\" what she said", // comment "3"
-    "list": [1, 1, "#", "\"", "\\", 8], "dict": {"q": 7} #" comment 4 with quotes
+    "hello": "Wor#d", "Bye": ""M#rk"", "yes\\"": 5,# comment" 2
+    "quote": ""th#t's" what she said", // comment "3"
+    "list": [1, 1, "#", """, "\", 8], "dict": {"q": 7} #" comment 4 with quotes
 }
 // comment 5
 
@@ -292,9 +293,9 @@ And it would return the de-commented version:
 
 ``` javascript
 {
-    "hello": "Wor#d", "Bye": "\"M#rk\"", "yes\\\"": 5,
-    "quote": "\"th#t's\" what she said",
-    "list": [1, 1, "#", "\"", "\\", 8], "dict": {"q": 7}
+    "hello": "Wor#d", "Bye": ""M#rk"", "yes\\"": 5,
+    "quote": ""th#t's" what she said",
+    "list": [1, 1, "#", """, "\", 8], "dict": {"q": 7}
 }
 ```
 
@@ -353,9 +354,9 @@ documentation refer to that format.
 
 You can also choose to store things as their closest primitive type
 (e.g. arrays and sets as lists, decimals as floats). This may be
-desirable if you don\'t care about the exact type, or you are loading
-the json in another language (which doesn\'t restore python types).
-It\'s also smaller.
+desirable if you don't care about the exact type, or you are loading
+the json in another language (which doesn't restore python types).
+It's also smaller.
 
 To forego meta data and store primitives instead, pass `primitives` to
 `dump(s)`. This is available in version `3.8` and later. Example:
@@ -457,7 +458,7 @@ print(dumps(data, primitives=True))
 Note that valid json is produced either way: ``json-tricks`` stores meta data as normal json, but other packages probably won't interpret it.
 
 Note that valid json is produced either way: `json-tricks` stores meta
-data as normal json, but other packages probably won\'t interpret it.
+data as normal json, but other packages probably won't interpret it.
 
 # Usage & contributions
 
