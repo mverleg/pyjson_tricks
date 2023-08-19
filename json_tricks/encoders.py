@@ -96,14 +96,20 @@ def json_date_time_encode(obj, primitives=False):
 			('day', obj.day), ('hour', obj.hour), ('minute', obj.minute),
 			('second', obj.second), ('microsecond', obj.microsecond)])
 		if obj.tzinfo:
-			dct['tzinfo'] = obj.tzinfo.zone
+			if hasattr(obj.tzinfo, 'zone'):
+				dct['tzinfo'] = obj.tzinfo.zone
+			else:
+				dct['tzinfo'] = obj.tzinfo.tzname(None)
 	elif isinstance(obj, date):
 		dct = hashodict([('__date__', None), ('year', obj.year), ('month', obj.month), ('day', obj.day)])
 	elif isinstance(obj, time):
 		dct = hashodict([('__time__', None), ('hour', obj.hour), ('minute', obj.minute),
 			('second', obj.second), ('microsecond', obj.microsecond)])
 		if obj.tzinfo:
-			dct['tzinfo'] = obj.tzinfo.zone
+			if hasattr(obj.tzinfo, 'zone'):
+				dct['tzinfo'] = obj.tzinfo.zone
+			else:
+				dct['tzinfo'] = obj.tzinfo.tzname(None)
 	elif isinstance(obj, timedelta):
 		if primitives:
 			return obj.total_seconds()
