@@ -298,6 +298,20 @@ def slice_encode(obj, primitives=False):
 			('step', obj.step),
 		))
 
+def range_encode(obj, primitives=False):
+	if not isinstance(obj, range):
+		return obj
+
+	if primitives:
+		return [obj.start, obj.stop, obj.step]
+	else:
+		return hashodict((
+			('__range__', True),
+			('start', obj.start),
+			('stop', obj.stop),
+			('step', obj.step),
+		))
+
 class ClassInstanceEncoder(JSONEncoder):
 	"""
 	See `class_instance_encoder`.

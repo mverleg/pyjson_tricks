@@ -159,6 +159,12 @@ def slice_hook(dct):
 		return dct
 	return slice(dct['start'], dct['stop'], dct['step'])
 
+def range_hook(dct):
+	if not isinstance(dct, dict):
+		return dct
+	if not '__range__' in dct:
+		return dct
+	return range(dct['start'], dct['stop'], dct['step'])
 
 class EnumInstanceHook(ClassInstanceHookBase):
 	"""
