@@ -7,10 +7,13 @@ from tempfile import mkdtemp
 import sys
 from warnings import catch_warnings, simplefilter
 
-from pytest import warns
+from _pytest.recwarn import warns
+from datetime import datetime, timezone
+
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
-	float16, float32, float64, complex64, complex128, zeros, ndindex
+	float16, float32, float64, complex64, complex128, zeros, ndindex, \
+	datetime64
 from numpy.core.umath import exp
 from numpy.testing import assert_equal
 
@@ -170,7 +173,7 @@ def test_dump_np_scalars():
 			)),
 		),
 	]
-	replaced = encode_scalars_inplace(deepcopy(data))
+	replaced = deepcopy(data)
 	json = dumps(replaced)
 	rec = loads(json)
 	assert data[0] == rec[0]
@@ -369,17 +372,109 @@ def test_empty():
 		assert_equal(loads(json), data, 'shape = {} ; json = {}'.format(data.shape, json))
 
 def test_decode_writeable():
-    # issue https://github.com/mverleg/pyjson_tricks/issues/90
-    data = zeros((2, 2))
+	# issue https://github.com/mverleg/pyjson_tricks/issues/90
+	data = zeros((2, 2))
 
-    data_uncompressed = dumps(data)
-    data_compressed = dumps(data, properties={'ndarray_compact': True})
+	data_uncompressed = dumps(data)
+	data_compressed = dumps(data, properties={'ndarray_compact': True})
 
-    reloaded_uncompressed = loads(data_uncompressed)
-    reloaded_compressed = loads(data_compressed)
+	reloaded_uncompressed = loads(data_uncompressed)
+	reloaded_compressed = loads(data_compressed)
 
-    assert array_equal(data, reloaded_uncompressed)
-    assert array_equal(data, reloaded_compressed)
+	assert array_equal(data, reloaded_uncompressed)
+	assert array_equal(data, reloaded_compressed)
 
-    assert reloaded_uncompressed.flags.writeable
-    assert reloaded_compressed.flags.writeable
+	assert reloaded_uncompressed.flags.writeable
+	assert reloaded_compressed.flags.writeable
+
+
+def test_0_dimensional_array_roundtrip():
+	to_dump = zeros((), dtype='uint32')
+	to_dump[...] = 123
+
+	the_dumps = dumps(to_dump)
+	loaded = loads(the_dumps)
+	assert loaded == to_dump
+
+	the_double_dumps = dumps(loaded)
+	assert the_dumps == the_double_dumps
+
+
+def test_0_dimensional_array_roundtrip_object():
+	the_set = set([1, 2, 3])
+
+	# We are putting it an object in a numpy array. this should serialize correctly
+	to_dump = zeros((), dtype=object)
+	to_dump[...] = the_set
+
+	the_dumps = dumps(to_dump)
+	the_load = loads(the_dumps)
+	the_double_dumps = dumps(the_load)
+
+	assert the_dumps == the_double_dumps
+
+	assert isinstance(the_load[()], set)
+	assert the_set == the_load[()]
+
+
+def test_scalar_roundtrip():
+	to_dump = [
+		uint8(1),
+		uint16(2),
+		uint32(3),
+		uint64(4),
+		int8(1),
+		int16(2),
+		int32(3),
+		int64(4),
+		float32(1),
+		float64(2),
+	]
+
+	the_dumps = dumps(to_dump)
+	the_load = loads(the_dumps)
+
+	for original, read in zip(to_dump, the_load):
+		assert original == read
+		assert original.__class__ == read.__class__
+
+	the_double_dumps = dumps(loads(dumps(to_dump)))
+
+	assert the_dumps == the_double_dumps
+
+
+def test_round_trip_datetime64_scalars():
+	now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+	now_M = datetime64(now_utc, 'M')
+	now_D = datetime64(now_utc, 'D')
+	now_h = datetime64(now_utc, 'h')
+	now_m = datetime64(now_utc, 'm')
+	now_s = datetime64(now_utc, 's')
+	now_ms = datetime64(now_utc, 'ms')
+	now_us = datetime64(now_utc, 'us')
+	now_ns = datetime64(now_utc, 'ns')
+
+	to_dump = [
+		now_M,
+		now_D,
+		now_h,
+		now_m,
+		now_s,
+		now_ms,
+		now_us,
+		now_ns,
+		now_us,
+		now_ns,
+	]
+
+	the_dumps = dumps(to_dump)
+	the_load = loads(the_dumps)
+
+	for original, read in zip(to_dump, the_load):
+		assert original == read
+		assert original.__class__ == read.__class__
+		assert original.dtype == read.dtype
+
+	the_double_dumps = dumps(loads(dumps(to_dump)))
+
+	assert the_dumps == the_double_dumps

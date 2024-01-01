@@ -375,7 +375,9 @@ def numpy_encode(obj, primitives=False, properties=None):
 
 	:param primitives: If True, arrays are serialized as (nested) lists without meta info.
 	"""
-	from numpy import ndarray, generic
+	from numpy import ndarray, generic, datetime64
+
+	scalar_types = (generic, datetime64)
 
 	if isinstance(obj, ndarray):
 		if primitives:
@@ -413,11 +415,11 @@ def numpy_encode(obj, primitives=False, properties=None):
 			if use_compact and store_endianness != 'suppress':
 				dct['endian'] = store_endianness or sys.byteorder
 			return dct
-	elif isinstance(obj, generic):
-		if NumpyEncoder.SHOW_SCALAR_WARNING:
-			NumpyEncoder.SHOW_SCALAR_WARNING = False
-			warnings.warn('json-tricks: numpy scalar serialization is experimental and may work differently in future versions')
-		return obj.item()
+	elif isinstance(obj, scalar_types):
+		return hashodict((
+			('__numpy_scalar__', obj.item()),
+			('dtype', str(obj.dtype)),
+		))
 	return obj
 
 
