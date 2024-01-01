@@ -7,10 +7,13 @@ from tempfile import mkdtemp
 import sys
 from warnings import catch_warnings, simplefilter
 
-from pytest import warns
+from _pytest.recwarn import warns
+from datetime import datetime, timezone
+
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
-	float16, float32, float64, complex64, complex128, zeros, ndindex
+	float16, float32, float64, complex64, complex128, zeros, ndindex, \
+	datetime64
 from numpy.core.umath import exp
 from numpy.testing import assert_equal
 
@@ -119,20 +122,6 @@ def test_memory_order():
 		arrF.flags['F_CONTIGUOUS'] == arr.flags['F_CONTIGUOUS']
 
 
-def test_scalars_types():
-	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
-	encme = []
-	for dtype in DTYPES:
-		for val in (dtype(0),) + get_lims(dtype):
-			assert isinstance(val, dtype)
-			encme.append(val)
-	json = dumps(encme, indent=2)
-	rec = loads(json)
-	assert encme == rec
-	for nr in rec:
-		assert nr.__class__ in (int, float, complex), 'primitive python type expected, see issue #18'
-
-
 def test_array_types():
 	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
 	# see also `test_scalars_types`
@@ -181,6 +170,23 @@ def test_dump_np_scalars():
 	assert data[2][3] == rec[2][3]
 	assert data[2] == tuple(rec[2])
 
+	json_tricks_3_17_3_encoded = '[' \
+		'{"__ndarray__": -27, "dtype": "int8", "shape": []}, '\
+		'{"__ndarray__": {"__complex__": [2.7182817459106445, 37.0]}, "dtype": "complex64", "shape": []}, ' \
+		'[{"alpha": {"__ndarray__": -22026.465794806718, "dtype": "float64", "shape": []}, ' \
+		'"str-only": {"__ndarray__": {"__complex__": [-1.0, -1.0]}, "dtype": "complex64", "shape": []}}, ' \
+		'{"__ndarray__": 123456789, "dtype": "uint32", "shape": []}, ' \
+		'{"__ndarray__": 0.367919921875, "dtype": "float16", "shape": []}, ' \
+		'{"__set__": [{"__ndarray__": 37, "dtype": "int64", "shape": []}, ' \
+		'{"__ndarray__": 0, "dtype": "uint64", "shape": []}]}]]'
+	rec = loads(json_tricks_3_17_3_encoded)
+	assert data[0] == rec[0]
+	assert data[1] == rec[1]
+	assert data[2][0] == rec[2][0]
+	assert data[2][1] == rec[2][1]
+	assert data[2][2] == rec[2][2]
+	assert data[2][3] == rec[2][3]
+	assert data[2] == tuple(rec[2])
 
 def test_ndarray_object_nesting():
 	# Based on issue 53
@@ -223,8 +229,8 @@ def test_compact_mode_unspecified():
 		gz_json_2 = dumps(data, compression=True)
 	assert gz_json_1 == gz_json_2
 	json = gzip_decompress(gz_json_1).decode('ascii')
-	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
-		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
+	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "0dim": false, "Corder": true}, ' \
+		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2], "0dim": false}]'
 
 
 def test_compact():
@@ -238,8 +244,8 @@ def test_encode_disable_compact():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=False))
 	json = gzip_decompress(gz_json).decode('ascii')
-	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \
-		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
+	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "0dim": false, "Corder": true}, ' \
+		'{"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2], "0dim": false}]'
 
 
 def test_encode_enable_compact_little_endian():
@@ -247,9 +253,9 @@ def test_encode_enable_compact_little_endian():
 	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=True, ndarray_store_byteorder='little'))
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
-		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+		 'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "0dim": false, "Corder": ' \
 		'true, "endian": "little"}, {"__ndarray__": "b64:GC1EVPshCUBpVxSLCr8FQA==", "dtype": "float64", ' \
-		'"shape": [2], "endian": "little"}]'
+		'"shape": [2], "0dim": false, "endian": "little"}]'
 
 
 def test_encode_enable_compact_big_endian():
@@ -257,8 +263,8 @@ def test_encode_enable_compact_big_endian():
 	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=True, ndarray_store_byteorder='big'))
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '{"__ndarray__": "b64:P/AAAAAAAABAAAAAAAAAAEAIAAAAAAAAQBAAAAAAAABAFAAAAAAAAEAYAA' \
-		'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
-		'true, "endian": "big"}'
+		'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "0dim": false, ' \
+		'"Corder": true, "endian": "big"}'
 
 
 def test_encode_enable_compact_native_endian():
@@ -267,11 +273,11 @@ def test_encode_enable_compact_native_endian():
 	json = gzip_decompress(gz_json).decode('ascii')
 	if sys.byteorder == 'little':
 		assert json == '{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
-			'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+ 			'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "0dim": false, "Corder": ' \
 			'true, "endian": "little"}'
 	elif sys.byteorder == 'big':
 		assert json == '{"__ndarray__": "b64:P/AAAAAAAABAAAAAAAAAAEAIAAAAAAAAQBAAAAAAAABAFAAAAAAAAEAYAA' \
-			'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+			'AAAAAAQBwAAAAAAABAIAAAAAAAAA==", "dtype": "float64", "shape": [2, 4], "0dim": false, "Corder": ' \
 			'true, "endian": "big"}'
 	else:
 		raise Exception("unknown system endianness '{}'".format(sys.byteorder))
@@ -289,9 +295,9 @@ def test_encode_compact_cutoff():
 	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=5, ndarray_store_byteorder='little'))
 	json = gzip_decompress(gz_json).decode('ascii')
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
-		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "0dim": false, "Corder": ' \
 		'true, "endian": "little"}, {"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", ' \
-		'"shape": [2]}]'
+		'"shape": [2], "0dim": false}]'
 
 
 def test_encode_compact_inline_compression():
@@ -299,7 +305,7 @@ def test_encode_compact_inline_compression():
 	json = dumps(data, compression=False, properties=dict(ndarray_compact=True, ndarray_store_byteorder='little'))
 	assert 'b64.gz:' in json, 'If the overall file is not compressed and there are significant savings, then do inline gzip compression.'
 	assert json == '[{"__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", ' \
-		'"dtype": "float64", "shape": [4, 4], "Corder": true, "endian": "little"}]'
+		'"dtype": "float64", "shape": [4, 4], "0dim": false, "Corder": true, "endian": "little"}]'
 
 
 def test_encode_compact_no_inline_compression():
@@ -307,7 +313,7 @@ def test_encode_compact_no_inline_compression():
 	json = dumps(data, compression=False, properties=dict(ndarray_compact=True, ndarray_store_byteorder='little'))
 	assert 'b64.gz:' not in json, 'If the overall file is not compressed, but there are no significant savings, then do not do inline compression.'
 	assert json == '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEA=", ' \
-		'"dtype": "float64", "shape": [2, 2], "Corder": true, "endian": "little"}]'
+		'"dtype": "float64", "shape": [2, 2], "0dim": false, "Corder": true, "endian": "little"}]'
 
 
 def test_decode_compact_mixed_compactness():
@@ -369,17 +375,109 @@ def test_empty():
 		assert_equal(loads(json), data, 'shape = {} ; json = {}'.format(data.shape, json))
 
 def test_decode_writeable():
-    # issue https://github.com/mverleg/pyjson_tricks/issues/90
-    data = zeros((2, 2))
+	# issue https://github.com/mverleg/pyjson_tricks/issues/90
+	data = zeros((2, 2))
 
-    data_uncompressed = dumps(data)
-    data_compressed = dumps(data, properties={'ndarray_compact': True})
+	data_uncompressed = dumps(data)
+	data_compressed = dumps(data, properties={'ndarray_compact': True})
 
-    reloaded_uncompressed = loads(data_uncompressed)
-    reloaded_compressed = loads(data_compressed)
+	reloaded_uncompressed = loads(data_uncompressed)
+	reloaded_compressed = loads(data_compressed)
 
-    assert array_equal(data, reloaded_uncompressed)
-    assert array_equal(data, reloaded_compressed)
+	assert array_equal(data, reloaded_uncompressed)
+	assert array_equal(data, reloaded_compressed)
 
-    assert reloaded_uncompressed.flags.writeable
-    assert reloaded_compressed.flags.writeable
+	assert reloaded_uncompressed.flags.writeable
+	assert reloaded_compressed.flags.writeable
+
+
+def test_0_dimensional_array_roundtrip():
+	to_dump = zeros((), dtype='uint32')
+	to_dump[...] = 123
+
+	the_dumps = dumps(to_dump)
+	loaded = loads(the_dumps)
+	assert loaded == to_dump
+
+	the_double_dumps = dumps(loaded)
+	assert the_dumps == the_double_dumps
+
+
+def test_0_dimensional_array_roundtrip_object():
+	the_set = set([1, 2, 3])
+
+	# We are putting it an object in a numpy array. this should serialize correctly
+	to_dump = zeros((), dtype=object)
+	to_dump[...] = the_set
+
+	the_dumps = dumps(to_dump)
+	the_load = loads(the_dumps)
+	the_double_dumps = dumps(the_load)
+
+	assert the_dumps == the_double_dumps
+
+	assert isinstance(the_load[()], set)
+	assert the_set == the_load[()]
+
+
+def test_scalar_roundtrip():
+	to_dump = [
+		uint8(1),
+		uint16(2),
+		uint32(3),
+		uint64(4),
+		int8(1),
+		int16(2),
+		int32(3),
+		int64(4),
+		float32(1),
+		float64(2),
+	]
+
+	the_dumps = dumps(to_dump)
+	the_load = loads(the_dumps)
+
+	for original, read in zip(to_dump, the_load):
+		assert original == read
+		assert original.__class__ == read.__class__
+
+	the_double_dumps = dumps(loads(dumps(to_dump)))
+
+	assert the_dumps == the_double_dumps
+
+
+def test_round_trip_datetime64_scalars():
+	now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+	now_M = datetime64(now_utc, 'M')
+	now_D = datetime64(now_utc, 'D')
+	now_h = datetime64(now_utc, 'h')
+	now_m = datetime64(now_utc, 'm')
+	now_s = datetime64(now_utc, 's')
+	now_ms = datetime64(now_utc, 'ms')
+	now_us = datetime64(now_utc, 'us')
+	now_ns = datetime64(now_utc, 'ns')
+
+	to_dump = [
+		now_M,
+		now_D,
+		now_h,
+		now_m,
+		now_s,
+		now_ms,
+		now_us,
+		now_ns,
+		now_us,
+		now_ns,
+	]
+
+	the_dumps = dumps(to_dump)
+	the_load = loads(the_dumps)
+
+	for original, read in zip(to_dump, the_load):
+		assert original == read
+		assert original.__class__ == read.__class__
+		assert original.dtype == read.dtype
+
+	the_double_dumps = dumps(loads(dumps(to_dump)))
+
+	assert the_dumps == the_double_dumps

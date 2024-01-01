@@ -120,6 +120,7 @@ def get_scalar_repr(npscalar):
 		('__ndarray__', npscalar.item()),
 		('dtype', str(npscalar.dtype)),
 		('shape', ()),
+		('0dim', False),
 	))
 
 
