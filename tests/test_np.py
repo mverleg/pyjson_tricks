@@ -128,6 +128,8 @@ def test_scalars_types():
 	json = dumps(encme, indent=2)
 	rec = loads(json)
 	assert encme == rec
+	for nr in rec:
+		assert nr.__class__ in (int, float, complex), 'primitive python type expected, see issue #18'
 
 
 def test_array_types():
