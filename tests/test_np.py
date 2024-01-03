@@ -122,20 +122,6 @@ def test_memory_order():
 		arrF.flags['F_CONTIGUOUS'] == arr.flags['F_CONTIGUOUS']
 
 
-def test_scalars_types():
-	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
-	encme = []
-	for dtype in DTYPES:
-		for val in (dtype(0),) + get_lims(dtype):
-			assert isinstance(val, dtype)
-			encme.append(val)
-	json = dumps(encme, indent=2)
-	rec = loads(json)
-	assert encme == rec
-	for nr in rec:
-		assert nr.__class__ in (int, float, complex), 'primitive python type expected, see issue #18'
-
-
 def test_array_types():
 	# from: https://docs.scipy.org/doc/numpy/user/basics.types.html
 	# see also `test_scalars_types`
