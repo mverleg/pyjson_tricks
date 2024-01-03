@@ -458,6 +458,7 @@ def numpy_encode(obj, primitives=False, properties=None):
 				('__ndarray__', data_json),
 				('dtype', str(obj.dtype)),
 				('shape', obj.shape),
+				('0dim', obj.ndim == 0),
 			))
 			if len(obj.shape) > 1:
 				dct['Corder'] = obj.flags['C_CONTIGUOUS']
@@ -466,8 +467,9 @@ def numpy_encode(obj, primitives=False, properties=None):
 			return dct
 	elif isinstance(obj, scalar_types):
 		return hashodict((
-			('__numpy_scalar__', obj.item()),
+			('__ndarray__', obj.item()),
 			('dtype', str(obj.dtype)),
+			('0dim', False),
 		))
 	return obj
 
