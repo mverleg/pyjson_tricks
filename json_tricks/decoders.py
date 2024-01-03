@@ -275,12 +275,13 @@ def json_numpy_obj_hook(dct):
 	"""
 	if not isinstance(dct, dict):
 		return dct
-	if '__ndarray__' in dct:
-		return _decode_ndarray(dct)
-	elif '__numpy_scalar__' in dct:
+	if '__ndarray__' not in dct:
+		return dct
+	if 'shape' not in dct or (dct['shape'] == [] and not dct.get('0dim', False)):
+		# New style scalar encoding
 		return _decode_numpy_scalar(dct)
 	else:
-		return dct
+		return _decode_ndarray(dct)
 
 
 def _decode_ndarray(dct):
@@ -320,7 +321,7 @@ def _decode_numpy_scalar(dct):
 			'scalar, but numpy appears not to be installed.')
 
 	# numpy.asarray will handle dtypes with units well (such as datetime64)
-	arr = numpy.asarray(dct['__numpy_scalar__'], dtype=dct['dtype'])
+	arr = numpy.asarray(dct['__ndarray__'], dtype=dct['dtype'])
 
 	# https://numpy.org/doc/stable/reference/arrays.scalars.html#indexing
 	# https://numpy.org/doc/stable/user/basics.indexing.html#detailed-notes
