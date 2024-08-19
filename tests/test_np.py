@@ -5,8 +5,9 @@ from copy import deepcopy
 from os.path import join
 from tempfile import mkdtemp
 import sys
+from warnings import catch_warnings, simplefilter
 
-from _pytest.recwarn import warns
+from pytest import warns
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
@@ -217,10 +218,9 @@ def test_compact_mode_unspecified():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	with warns(JsonTricksDeprecation):
 		gz_json_1 = dumps(data, compression=True)
-	# noinspection PyTypeChecker
-	with warns(None) as captured:
+	with catch_warnings():
+		simplefilter("error")
 		gz_json_2 = dumps(data, compression=True)
-	assert len(captured) == 0
 	assert gz_json_1 == gz_json_2
 	json = gzip_decompress(gz_json_1).decode('ascii')
 	assert json == '[{"__ndarray__": [[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]], "dtype": "float64", "shape": [2, 4], "Corder": true}, ' \

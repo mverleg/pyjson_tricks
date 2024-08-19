@@ -10,10 +10,10 @@ from io import BytesIO, StringIO
 from math import pi, exp
 from os.path import join
 from tempfile import mkdtemp
+from warnings import catch_warnings, simplefilter
 
 import pytest
-from _pytest.recwarn import warns
-from pytest import raises, fail
+from pytest import raises, fail, warns
 
 from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
@@ -168,33 +168,29 @@ def test_ignore_comments_deprecation():
 		loads(test_json_with_comments)
 
 	# Second time there should be no warning
-	# noinspection PyTypeChecker
-	with warns(None) as captured:
+	with catch_warnings():
+		simplefilter("error")
 		loaded = loads(test_json_with_comments)
-	assert len(captured) == 0
 	assert loaded == test_object_for_comment_strings
 
 	# Passing a string without comments should not have a warning
 	loads._ignore_comments_warned_ = False
-	# noinspection PyTypeChecker
-	with warns(None) as captured:
+	with catch_warnings():
+		simplefilter("error")
 		loaded = loads(test_json_without_comments)
-	assert len(captured) == 0
 
 	# Passing True for argument explicitly should not have a warning
 	loads._ignore_comments_warned_ = False
-	# noinspection PyTypeChecker
-	with warns(None) as captured:
+	with catch_warnings():
+		simplefilter("error")
 		loaded = loads(test_json_with_comments, ignore_comments=True)
-	assert len(captured) == 0
 	assert loaded == test_object_for_comment_strings
 
 	# Passing False for argument explicitly should not have a warning
 	loads._ignore_comments_warned_ = False
-	# noinspection PyTypeChecker
-	with warns(None) as captured:
+	with catch_warnings():
+		simplefilter("error")
 		loaded = loads(test_json_without_comments, ignore_comments=False)
-	assert len(captured) == 0
 	assert loaded == test_object_for_comment_strings
 
 
