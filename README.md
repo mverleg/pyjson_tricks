@@ -5,7 +5,7 @@ Despite contributing this enhancement to the original project (see [Pull Request
 
 # ro_json
 
-The [pyjson-tricks] package brings several pieces of
+The [ro-json] package brings several pieces of
 functionality to python handling of json files:
 
 1.  **Store and load numpy arrays** in human-readable format.
@@ -18,9 +18,9 @@ functionality to python handling of json files:
 
 As well as compression and disallowing duplicate keys.
 
-* Code: <https://github.com/mverleg/pyjson_tricks>
-* Documentation: <http://json-tricks.readthedocs.org/en/latest/>
-* PIP: <https://pypi.python.org/pypi/json_tricks>
+* Code: <https://github.com/ramonaoptics/ro-json>
+<!-- * Documentation: <http://ro-json.readthedocs.org/en/latest/> -->
+* PIP: <https://pypi.python.org/pypi/ro-json>
 
 Several keys of the format `__keyname__` have special meanings, and more
 might be added in future releases.
@@ -354,7 +354,7 @@ of the comment case, so if you are expecting comments make sure to set
 # Preserve type vs use primitive
 
 By default, types are encoded such that they can be restored to their
-original type when loaded with `json-tricks`. Example encodings in this
+original type when loaded with `ro-json`. Example encodings in this
 documentation refer to that format.
 
 You can also choose to store things as their closest primitive type
