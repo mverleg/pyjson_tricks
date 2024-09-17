@@ -17,7 +17,7 @@ def get_version_and_cmdclass(pkg_path):
     return module.__version__, module.get_cmdclass(pkg_path)
 
 
-version, cmdclass = get_version_and_cmdclass(r"ro_json")
+version, cmdclass = get_version_and_cmdclass("ro_json")
 
 setup(
     name='ro-json',
