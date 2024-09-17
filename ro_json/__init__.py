@@ -13,10 +13,6 @@ from .decoders import DuplicateJsonKeyException, TricksPairHook, json_date_time_
 	numeric_types_hook, ClassInstanceHook, json_set_hook, pandas_hook, nopandas_hook, json_numpy_obj_hook, \
 	json_nonumpy_obj_hook, pathlib_hook, json_bytes_hook
 from .nonp import dumps, dump, loads, load
-from ._version import VERSION
-
-__version__ = VERSION
-
 
 try:
 	# find_module takes just as long as importing, so no optimization possible
@@ -30,3 +26,4 @@ else:
 	# from .np_utils import encode_scalars_inplace
 
 
+from ._version import __version__

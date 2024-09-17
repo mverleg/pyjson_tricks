@@ -1,4 +1,4 @@
-name: ro_json
+name: Testing
 
 on:
   push:
@@ -10,20 +10,24 @@ jobs:
   build:
     name: Tests on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
-        python-version: [
-          '3.10',
-          '3.11',
-          '3.12'
-        ]
+        python-version: ['3.10', '3.11', '3.12']
       max-parallel: 8
       fail-fast: false
 
     steps:
       - uses: actions/checkout@v3
-
+      - uses: proudust/gh-describe@v2
+        # id needed to generate the outputs
+        id: ghd
+      - name: Check outputs
+        run: |
+          echo "describe  : ${{ steps.ghd.outputs.describe }}"
+          echo "tag       : ${{ steps.ghd.outputs.tag }}"
+          echo "distance  : ${{ steps.ghd.outputs.distance }}"
+          echo "sha       : ${{ steps.ghd.outputs.sha }}"
+          echo "short-sha : ${{ steps.ghd.outputs.short-sha }}"
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
@@ -31,10 +35,12 @@ jobs:
 
       - name: Install dependencies
         run: |
+          export RO_JSON_GIT_DESCRIBE=${{ steps.ghd.outputs.describe }}
           python -m pip install --upgrade pip
-          pip install pytest pytz pathlib numpy pandas
+          pip install setuptools pytest pytz pathlib numpy pandas
 
       - name: Run tests
         run: |
+          export RO_JSON_GIT_DESCRIBE=${{ steps.ghd.outputs.describe }}
           python --version
           pytest -v --strict
