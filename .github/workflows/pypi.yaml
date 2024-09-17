@@ -18,6 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
           fetch-depth: 0
 
       - name: Set up Python
