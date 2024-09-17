@@ -1,5 +1,4 @@
-
-name: 'pyjson-tricks'
+name: ro_json
 
 on:
   push:
@@ -9,71 +8,33 @@ on:
 
 jobs:
   build:
-    name: tests
+    name: Tests on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+
     strategy:
+      matrix:
+        python-version: [
+          '3.10',
+          '3.11',
+          '3.12'
+        ]
       max-parallel: 8
       fail-fast: false
-      matrix:
-        libraries: [
-          'vanilla',
-          'tz',
-          'path',
-          'numpy',
-          'pandas',
-          'all'
-        ]
-        python-version: [
-            '3.7',
-            '3.8',
-            '3.9',
-            '3.10',
-            '3.11'
-        ]
+
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
-          if [ "${{ matrix.python-version }}" == "2.7" ] ; then
-              pip install enum34
-          fi
-          export LIBS="${{ matrix.libraries }}"
-          if [ "$LIBS" == "tz" ] || [ "$LIBS" == "all" ] ; then
-              pip install pytz
-          fi
-          if [ "$LIBS" == "path" ] || [ "$LIBS" == "all" ] ; then
-              pip install pathlib
-          fi
-          if [ "$LIBS" == "numpy" ] || [ "$LIBS" == "all" ] ; then
-              pip install numpy
-          fi
-          if [ "$LIBS" == "pandas" ] || [ "$LIBS" == "all" ] ; then
-              pip install pandas
-          fi
+          pip install pytest pytz pathlib numpy pandas
+
       - name: Run tests
         run: |
           python --version
-          PYTEST_ARGS='-v --strict tests/test_bare.py tests/test_class.py tests/test_meta.py tests/test_enum.py'
-          export LIBS="${{ matrix.libraries }}"
-          if [ "$LIBS" == "vanilla" ] ; then
-              py.test $PYTEST_ARGS
-          elif [ "$LIBS" == "tz" ] ; then
-              py.test $PYTEST_ARGS tests/test_tz.py
-          elif [ "$LIBS" == "path" ] ; then
-              py.test $PYTEST_ARGS tests/test_pathlib.py
-          elif [ "$LIBS" == "numpy" ] ; then
-              py.test $PYTEST_ARGS tests/test_np.py
-          elif [ "$LIBS" == "pandas" ] ; then
-              py.test $PYTEST_ARGS tests/test_pandas.py
-          elif [ "$LIBS" == "all" ] ; then
-              py.test -v --strict
-          else
-              echo "UNKNOWN LIBRARY '$LIBS'"
-              exit 1
-          fi
+          pytest -v --strict
