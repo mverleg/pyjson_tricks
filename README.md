@@ -1,4 +1,9 @@
-# JSON tricks (python)
+> [!NOTE]
+>The primary reason for this fork is to enable full round-trip serialization and deserialization of NumPy scalars and 0-dimensional arrays to JSON and back. This feature is essential for applications that require precise data preservation when working with NumPy data types.
+
+Despite contributing this enhancement to the original project (see [Pull Request #99](https://github.com/mverleg/pyjson_tricks/pull/99)), there was a difference in opinion with the maintainer regarding its inclusion. As a result, this fork aims to continue development with this functionality integrated.
+
+# ro_json
 
 The [pyjson-tricks] package brings several pieces of
 functionality to python handling of json files:
@@ -31,7 +36,7 @@ Thanks for all the Github stars⭐!
 You can install using
 
 ``` bash
-pip install json-tricks
+pip install ro_json
 ```
 
 Decoding of some data types needs the corresponding package to be
@@ -75,7 +80,7 @@ this yields:
 ```
 
 which will be converted back to a numpy array when using
-`json_tricks.loads`. Note that the memory order (`Corder`) is only
+`ro_json.loads`. Note that the memory order (`Corder`) is only
 stored in v3.1 and later and for arrays with at least 2 dimensions.
 
 As you see, this uses the magic key `__ndarray__`. Don't use
@@ -87,9 +92,9 @@ closest python primitive type. A special representation was not
 feasible, because Python's json implementation serializes some numpy
 types as primitives, without consulting custom encoders. If you want to
 preserve the exact numpy type, use
-[encode_scalars_inplace](https://json-tricks.readthedocs.io/en/latest/#json_tricks.np_utils.encode_scalars_inplace).
+[encode_scalars_inplace](https://json-tricks.readthedocs.io/en/latest/#ro_json.np_utils.encode_scalars_inplace).
 
-There is also a compressed format (thanks `claydugo` for fix). From 
+There is also a compressed format (thanks `claydugo` for fix). From
 the next major release, this will be default when using compression.
 For now, you can use it as:
 
@@ -122,14 +127,14 @@ dumps(data, compression=False, properties={'ndarray_compact': 8})
 
 ## Class instances
 
-`json_tricks` can serialize class instances.
+`ro_json` can serialize class instances.
 
 If the class behaves normally (not generated dynamic, no `__new__` or
 `__metaclass__` magic, etc) *and* all it's attributes are serializable,
 then this should work by default.
 
 ``` python
-# json_tricks/test_class.py
+# ro_json/test_class.py
 class MyTestCls:
 def __init__(self, **kwargs):
     for k, v in kwargs.items():
@@ -146,7 +151,7 @@ You'll get your instance back. Here the json looks like this:
 ``` javascript
 {
    	"__instance_type__": [
-   		"json_tricks.test_class",
+   		"ro_json.test_class",
    		"MyTestCls"
    	],
    	"attributes": {
@@ -211,7 +216,7 @@ Date, time, datetime and timedelta objects are stored as dictionaries of
 "day", "hour", "millisecond" etc keys, for each nonzero property.
 
 Timezone name is also stored in case it is set, as is DST (thanks `eumir`).
-You'll need to have `pytz` installed to use timezone-aware date/times, 
+You'll need to have `pytz` installed to use timezone-aware date/times,
 it's not needed for naive date/times.
 
 ``` javascript
@@ -303,12 +308,12 @@ Since comments aren't stored in the Python representation of the data,
 loading and then saving a json file will remove the comments (it also
 likely changes the indentation).
 
-The implementation of comments is a bit crude, which means that there are 
+The implementation of comments is a bit crude, which means that there are
 some exceptional cases that aren't handled correctly ([#57](https://github.com/mverleg/pyjson_tricks/issues/57)).
 
-It is also not very fast. For that reason, if `ignore_comments` wasn't 
-explicitly set to True, then json-tricks first tries to parge without 
-ignoring comments. If that fails, then it will automatically re-try 
+It is also not very fast. For that reason, if `ignore_comments` wasn't
+explicitly set to True, then ro_json first tries to parse without
+ignoring comments. If that fails, then it will automatically re-try
 with comment handling. This makes the no-comment case faster at the cost
 of the comment case, so if you are expecting comments make sure to set
 `ignore_comments` to True.
@@ -328,10 +333,10 @@ of the comment case, so if you are expecting comments make sure to set
 * Save and load `Enum` (thanks to `Jenselme`), either built-in in
   python3.4+, or with the [enum34](https://pypi.org/project/enum34/)
   package in earlier versions. `IntEnum` needs
-  [encode_intenums_inplace](https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace).
-* `json_tricks` allows for gzip compression using the
+  [encode_intenums_inplace](https://json-tricks.readthedocs.io/en/latest/#ro_json.utils.encode_intenums_inplace).
+* `ro_json` allows for gzip compression using the
   `compression=True` argument (off by default).
-* `json_tricks` can check for duplicate keys in maps by setting
+* `ro_json` can check for duplicate keys in maps by setting
   `allow_duplicates` to False. These are [kind of
   allowed](http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object),
   but are handled inconsistently between json implementations. In
@@ -340,8 +345,8 @@ of the comment case, so if you are expecting comments make sure to set
 * Save and load `pathlib.Path` objects (e.g., the current path,
   `Path('.')`, serializes as `{"__pathlib__": "."}`)
   (thanks to `bburan`).
-* Save and load bytes (python 3+ only), which will be encoded as utf8 if 
-  that is valid, or as base64 otherwise. Base64 is always used if 
+* Save and load bytes (python 3+ only), which will be encoded as utf8 if
+  that is valid, or as base64 otherwise. Base64 is always used if
   primitives are requested. Serialized as
   `[{"__bytes_b64__": "aGVsbG8="}]` vs `[{"__bytes_utf8__": "hello"}]`.
 * Save and load slices (thanks to `claydugo`).
@@ -455,9 +460,9 @@ print(dumps(data, primitives=True))
 ]
 ```
 
-Note that valid json is produced either way: ``json-tricks`` stores meta data as normal json, but other packages probably won't interpret it.
+Note that valid json is produced either way: ``ro_json`` stores meta data as normal json, but other packages probably won't interpret it.
 
-Note that valid json is produced either way: `json-tricks` stores meta
+Note that valid json is produced either way: `ro_json` stores meta
 data as normal json, but other packages probably won't interpret it.
 
 # Usage & contributions
@@ -476,7 +481,5 @@ Contributors not yet mentioned: `janLo` (performance boost).
 
 Tests are run automatically for commits to the repository for all
 supported versions. This is the status:
-
-![image](https://github.com/mverleg/pyjson_tricks/workflows/pyjson-tricks/badge.svg?branch=master)
 
 To run the tests manually for your version, see [this guide](tests/run_locally.md).
