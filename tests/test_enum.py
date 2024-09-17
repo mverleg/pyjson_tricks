@@ -5,8 +5,8 @@ import sys
 from datetime import datetime
 from functools import partial
 from enum import Enum, IntEnum
-from json_tricks import dumps, loads, encode_intenums_inplace
-from json_tricks.encoders import enum_instance_encode
+from ro_json import dumps, loads, encode_intenums_inplace
+from ro_json.encoders import enum_instance_encode
 
 
 PY2 = sys.version_info[0] == 2

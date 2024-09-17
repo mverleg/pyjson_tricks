@@ -3,7 +3,7 @@ from json import loads as json_loads
 from os import fsync
 from sys import exc_info
 
-from json_tricks.utils import is_py3, dict_default, gzip_compress, gzip_decompress, JsonTricksDeprecation
+from ro_json.utils import is_py3, dict_default, gzip_compress, gzip_decompress, JsonTricksDeprecation
 from .utils import str_type, NoNumpyException  # keep 'unused' imports
 from .comment import strip_comments  # keep 'unused' imports
 #TODO @mark: imports removed?
@@ -111,7 +111,7 @@ def dumps(obj, sort_keys=None, cls=None, obj_encoders=DEFAULT_ENCODERS, extra_ob
 	Other arguments are passed on to `cls`. Note that `sort_keys` should be false if you want to preserve order.
 	"""
 	if not hasattr(extra_obj_encoders, '__iter__'):
-		raise TypeError('`extra_obj_encoders` should be a tuple in `json_tricks.dump(s)`')
+		raise TypeError('`extra_obj_encoders` should be a tuple in `ro_json.dump(s)`')
 	encoders = tuple(extra_obj_encoders) + tuple(obj_encoders)
 	properties = properties or {}
 	dict_default(properties, 'primitives', primitives)
@@ -217,7 +217,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 	Other arguments are passed on to json_func.
 	"""
 	if not hasattr(extra_obj_pairs_hooks, '__iter__'):
-		raise TypeError('`extra_obj_pairs_hooks` should be a tuple in `json_tricks.load(s)`')
+		raise TypeError('`extra_obj_pairs_hooks` should be a tuple in `ro_json.load(s)`')
 	if decompression is None:
 		decompression = isinstance(string, bytes) and string[:2] == b'\x1f\x8b'
 	if decompression:
@@ -226,7 +226,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 		if conv_str_byte:
 			string = string.decode(ENCODING)
 		else:
-			raise TypeError(('The input was of non-string type "{0:}" in `json_tricks.load(s)`. '
+			raise TypeError(('The input was of non-string type "{0:}" in `ro_json.load(s)`. '
 				'Bytes cannot be automatically decoding since the encoding is not known. Recommended '
 				'way is to instead encode the bytes to a string and pass that string to `load(s)`, '
 				'for example bytevar.encode("utf-8") if utf-8 is the encoding. Alternatively you can '
@@ -248,7 +248,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 			# if this fails, re-try parsing after stripping comments
 			result = _strip_loads(string, hook, True, **jsonkwargs)
 			if not getattr(loads, '_ignore_comments_warned', False):
-				warnings.warn('`json_tricks.load(s)` stripped some comments, but `ignore_comments` was '
+				warnings.warn('`ro_json.load(s)` stripped some comments, but `ignore_comments` was '
 					'not passed; in the next major release, the behaviour when `ignore_comments` is not '
 					'passed will change; it is recommended to explicitly pass `ignore_comments=True` if '
 					'you want to strip comments; see https://github.com/mverleg/pyjson_tricks/issues/74',

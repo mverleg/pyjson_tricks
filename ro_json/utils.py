@@ -153,7 +153,7 @@ def encode_intenums_inplace(obj):
 	by json-tricks. This happens in-place (the object is changed, use a copy).
 	"""
 	from enum import IntEnum
-	from json_tricks import encoders
+	from ro_json import encoders
 	if isinstance(obj, IntEnum):
 		return encoders.enum_instance_encode(obj)
 	if isinstance(obj, dict):

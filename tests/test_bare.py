@@ -15,10 +15,10 @@ from warnings import catch_warnings, simplefilter
 import pytest
 from pytest import raises, fail, warns
 
-from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
-from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
+from ro_json import fallback_ignore_unknown, DuplicateJsonKeyException
+from ro_json.nonp import strip_comments, dump, dumps, load, loads, \
 	ENCODING
-from json_tricks.utils import is_py3, gzip_compress, JsonTricksDeprecation, str_type
+from ro_json.utils import is_py3, gzip_compress, JsonTricksDeprecation, str_type
 from .test_class import MyTestCls, CustomEncodeCls, SubClass, SuperClass, SlotsBase, SlotsDictABC, SlotsStr, \
 	SlotsABCDict, SlotsABC
 

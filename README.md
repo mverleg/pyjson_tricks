@@ -47,7 +47,7 @@ You can import the usual json functions dump(s) and load(s), as well as
 a separate comment removal function, as follows:
 
 ``` bash
-from json_tricks import dump, dumps, load, loads, strip_comments
+from ro_json import dump, dumps, load, loads, strip_comments
 ```
 
 The exact signatures of these and other functions are in the [documentation](http://json-tricks.readthedocs.org/en/latest/#main-components).
@@ -258,7 +258,7 @@ ordered = OrderedDict((
 Converting to json and back will preserve the order:
 
 ``` python
-from json_tricks import dumps, loads
+from ro_json import dumps, loads
 json = dumps(ordered)
 ordered = loads(json, preserve_order=True)
 ```

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from json_tricks.utils import hashodict, get_arg_names, nested_index
+from ro_json.utils import hashodict, get_arg_names, nested_index
 
 
 def test_hashodict():

@@ -5,7 +5,7 @@ from collections import OrderedDict
 from numpy import linspace, isnan
 from numpy.testing import assert_equal
 from pandas import DataFrame, Series
-from json_tricks import dumps, loads
+from ro_json import dumps, loads
 from tests.test_bare import nonpdata
 
 

@@ -3,5 +3,5 @@ import re
 
 
 def test_version():
-	import json_tricks
-	assert re.match(r'^\d+\.\d+\.\d+$', json_tricks.__version__) is not None
+	import ro_json
+	assert re.match(r'^\d+\.\d+\.\d+$', ro_json.__version__) is not None

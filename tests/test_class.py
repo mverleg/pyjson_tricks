@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import weakref
-from json_tricks import dumps, loads
+from ro_json import dumps, loads
 
 
 class MyTestCls(object):

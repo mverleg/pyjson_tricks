@@ -10,7 +10,7 @@ with open('README.md', 'r') as fh:
 
 # with open('json_tricks/_version.py', 'r') as fh:
 # 	version = fh.read().strip()
-from json_tricks._version import VERSION
+from ro_json._version import VERSION
 
 requires = []
 if version_info < (2, 7, 0):

@@ -7,7 +7,7 @@ This tests Paths, which need pathlib.
 
 from pathlib import Path
 
-from json_tricks import dumps, loads
+from ro_json import dumps, loads
 
 
 # These paths are not necessarily actual paths that exist, but are sufficient

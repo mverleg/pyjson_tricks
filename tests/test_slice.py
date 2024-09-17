@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from pathlib import Path
-from json_tricks import dumps, loads
+from ro_json import dumps, loads
 
 def test_slice():
     original_slice = slice(0, 10, 2)

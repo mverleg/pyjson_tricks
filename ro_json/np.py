@@ -16,10 +16,10 @@ try:
 	import numpy
 except ImportError:
 	raise NoNumpyException('Could not load numpy, maybe it is not installed? If you do not want to use numpy encoding '
-		'or decoding, you can import the functions from json_tricks.nonp instead, which do not need numpy.')
+		'or decoding, you can import the functions from ro_json.nonp instead, which do not need numpy.')
 
 
-warnings.warn('`json_tricks.np` is deprecated, you can import directly from `json_tricks`', JsonTricksDeprecation)
+warnings.warn('`ro_json.np` is deprecated, you can import directly from `json_tricks`', JsonTricksDeprecation)
 
 
 DEFAULT_NP_ENCODERS = [numpy_encode,] + DEFAULT_ENCODERS    # DEPRECATED

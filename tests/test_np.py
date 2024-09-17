@@ -17,10 +17,10 @@ from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 from numpy.core.umath import exp
 from numpy.testing import assert_equal
 
-from json_tricks import numpy_encode
-from json_tricks.np import dump, dumps, load, loads
-from json_tricks.np_utils import encode_scalars_inplace
-from json_tricks.utils import JsonTricksDeprecation, gzip_decompress
+from ro_json import numpy_encode
+from ro_json.np import dump, dumps, load, loads
+from ro_json.np_utils import encode_scalars_inplace
+from ro_json.utils import JsonTricksDeprecation, gzip_decompress
 from .test_bare import cls_instance
 from .test_class import MyTestCls
 
