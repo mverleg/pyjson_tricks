@@ -6,13 +6,13 @@ with open('README.md', 'r', encoding='utf-8') as fh:
 from ro_json._version import VERSION
 
 setup(
-    name='ro_json',
+    name='ro-json',
     version=VERSION,
     description='Extra features for Python\'s JSON: comments, order, numpy, '
                 'pandas, datetimes, and many more! Simple but customizable.',
     long_description=readme,
     long_description_content_type='text/markdown',
-    url='https://github.com/ramonaoptics/ro_json',
+    url='https://github.com/ramonaoptics/ro-json',
     author='Clay Dugo',
     author_email='clay@ramonaoptics.com',
     license='BSD-3-Clause',
