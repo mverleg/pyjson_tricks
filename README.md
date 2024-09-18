@@ -1,4 +1,5 @@
 > [!NOTE]
+
 >The primary reason for this fork is to enable full round-trip serialization and deserialization of NumPy scalars and 0-dimensional arrays to JSON and back. This feature is essential for applications that require precise data preservation when working with NumPy data types.
 
 Despite contributing this enhancement to the original project (see [Pull Request #99](https://github.com/mverleg/pyjson_tricks/pull/99)), there was a difference in opinion with the maintainer regarding its inclusion. As a result, this fork aims to continue development with this functionality integrated.
