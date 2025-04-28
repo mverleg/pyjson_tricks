@@ -312,7 +312,7 @@ def test_encode_compact_no_inline_compression():
 
 def test_decode_compact_mixed_compactness():
 	json = '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEAAAAAAAAA' \
-		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "Corder": ' \
+		'UQAAAAAAAABhAAAAAAAAAHEAAAAAAAAAgQA==", "dtype": "float64", "shape": [2, 4], "endian": "little", "Corder": ' \
 		'true}, {"__ndarray__": [3.141592653589793, 2.718281828459045], "dtype": "float64", "shape": [2]}]'
 	data = loads(json)
 	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)]))
@@ -345,14 +345,14 @@ def test_decode_without_endianness():
 
 
 def test_decode_compact_inline_compression():
-	json = '[{"__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", "dtype": "float64", "shape": [4, 4], "Corder": true}]'
+	json = '[{"__ndarray__": "b64.gz:H4sIAAAAAAAC/2NgAIEP9gwQ4AChOKC0AJQWgdISUFoGSitAaSUorQKl1aC0BpTWgtI6UFoPShs4AABmfqWAgAAAAA==", "dtype": "float64", "shape": [4, 4], "Corder": true, "endian": "little"}]'
 	data = loads(json)
 	assert_equal(data[0], array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]]))
 
 
 def test_decode_compact_no_inline_compression():
 	json = '[{"__ndarray__": "b64:AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhAAAAAAAAAEEA=", ' \
-		'"dtype": "float64", "shape": [2, 2], "Corder": true}]'
+		'"dtype": "float64", "shape": [2, 2], "Corder": true, "endian": "little"}]'
 	data = loads(json)
 	assert_equal(data[0], array([[1.0, 2.0], [3.0, 4.0]]))
 
