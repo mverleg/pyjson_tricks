@@ -331,6 +331,21 @@ def json_set_encode(obj, primitives=False):
 	return obj
 
 
+def json_tuple_encode(obj, primitives=False):
+	"""
+	Encode python tuple as dictionary with key __tuple__ and a list of the values. Preserve order.
+	"""
+	print('is tuple?')  #TODO @mark: TEMPORARY! REMOVE THIS!
+	if isinstance(obj, tuple):
+		print('is tuple!')  #TODO @mark: TEMPORARY! REMOVE THIS!
+		repr = list(obj)
+		if primitives:
+			return repr
+		else:
+			return hashodict(__tuple__=repr)
+	return obj
+
+
 def pandas_encode(obj, primitives=False):
 	from pandas import DataFrame, Series
 	if isinstance(obj, DataFrame):

@@ -212,13 +212,24 @@ class ClassInstanceHook(ClassInstanceHookBase):
 
 def json_set_hook(dct):
 	"""
-	Return an encoded set to it's python representation.
+	Return an encoded set to its python representation.
 	"""
 	if not isinstance(dct, dict):
 		return dct
 	if '__set__' not in dct:
 		return dct
 	return set((tuple(item) if isinstance(item, list) else item) for item in dct['__set__'])
+
+
+def json_tuple_hook(dct):
+	"""
+	Return an encoded tuple to its python representation.
+	"""
+	if not isinstance(dct, dict):
+		return dct
+	if '__tuple__' not in dct:
+		return dct
+	return tuple(dct['__tuple__'])
 
 
 def pandas_hook(dct):

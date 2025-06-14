@@ -15,6 +15,8 @@ import pytest
 from _pytest.recwarn import warns
 from pytest import raises, fail
 
+from json_tricks.decoders import json_tuple_hook
+from json_tricks.encoders import json_tuple_encode
 from json_tricks import fallback_ignore_unknown, DuplicateJsonKeyException
 from json_tricks.nonp import strip_comments, dump, dumps, load, loads, \
 	ENCODING
@@ -441,6 +443,33 @@ def test_set():
 	back = loads(json)
 	assert isinstance(back[0]['set'], list)
 	assert setdata[0]['set'] == set(tuple(q) if isinstance(q, list) else q for q in back[0]['set'])
+
+
+def test_tuple():
+	# tuple preserving behaviour is opt-in
+	def assert_values_eq(left, right, *, as_list):
+		assert len(left) == len(right) == 1
+		assert len(left[0]) == len(right[0]) == 1
+		ltup, rtup = left[0]['tup'], right[0]['tup']
+		for i in range(len(left[0]['tup'])):
+			if as_list and (isinstance(ltup[i], list) or isinstance(rtup[i], list)):
+				assert list(ltup[i]) == list(rtup[i])
+			else:
+				assert ltup[i] == rtup[i]
+
+	tupledata = [{'tup': (3, exp(1), (-5, +7), False,)}]
+	json = dumps(tupledata, extra_obj_encoders=())
+	back = loads(json, extra_obj_pairs_hooks=())
+	assert isinstance(back[0]['tup'], list)
+	assert_values_eq(tupledata, back, as_list=True)
+	json = dumps(tupledata, extra_obj_encoders=(json_tuple_encode,))
+	back = loads(json, extra_obj_pairs_hooks=(json_tuple_hook,))
+	assert isinstance(back[0]['tup'], tuple)
+	assert_values_eq(tupledata, back, as_list=True)
+	json = dumps(tupledata, extra_obj_encoders=(json_tuple_encode,), primitives=True)
+	back = loads(json, extra_obj_pairs_hooks=(json_tuple_hook,))
+	assert isinstance(back[0]['tup'], list)
+	assert_values_eq(tupledata, back, as_list=True)
 
 
 def test_special_nr_parsing():
