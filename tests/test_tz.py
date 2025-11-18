@@ -83,8 +83,11 @@ def test_avoiding_tz_datettime_problem():
 def test_serialization_remains_unchanged():
     json = dumps(datetime(2023, 10, 29, 1, 30, 0, 0, pytz.UTC) \
                  .astimezone(pytz.timezone("Europe/Paris")))
-    assert json == '{"__datetime__": null, "year": 2023, "month": 10, "day": 29, ' \
-                   '"hour": 2, "minute": 30, "tzinfo": "Europe/Paris", "is_dst": false}'
+    assert (
+        json == '{"__datetime__": null, "year": 2023, "month": 10, "day": 29, '
+        '"hour": 2, "minute": 30, "second": 0, "microsecond": 0, '
+        '"tzinfo": "Europe/Paris", "is_dst": false}'
+    )
 
 
 def test_before_dst_fold():

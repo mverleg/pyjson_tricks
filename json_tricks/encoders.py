@@ -119,9 +119,6 @@ def json_date_time_encode(obj, primitives=False):
 				('microseconds', obj.microseconds)])
 	else:
 		return obj
-	for key, val in tuple(dct.items()):
-		if not key.startswith('__') and not key == 'is_dst' and not val:
-			del dct[key]
 	return dct
 
 
