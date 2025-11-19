@@ -543,6 +543,55 @@ def test_primitive_naive_date_time():
 	assert dumps(dt, primitives=True).strip('"') == '1988-03-15T08:03:59.000007'
 
 
+def test_datetime_with_zero_values():
+	dt1 = datetime(year=2025, month=11, day=18, hour=10, minute=0, second=0, microsecond=0)
+	json1 = dumps(dt1)
+	back1 = loads(json1)
+	assert dt1 == back1
+	assert back1.minute == 0
+	assert back1.second == 0
+	assert back1.microsecond == 0
+
+	import json as stdlib_json
+	parsed1 = stdlib_json.loads(json1)
+	assert 'minute' in parsed1, "minute field should be present even when value is 0"
+	assert 'second' in parsed1, "second field should be present even when value is 0"
+	assert 'microsecond' in parsed1, "microsecond field should be present even when value is 0"
+	assert parsed1['minute'] == 0
+	assert parsed1['second'] == 0
+	assert parsed1['microsecond'] == 0
+
+	dt2 = datetime(year=2025, month=11, day=18, hour=15, minute=30, second=0, microsecond=0)
+	json2 = dumps(dt2)
+	back2 = loads(json2)
+	assert dt2 == back2
+	assert back2.second == 0
+	assert back2.microsecond == 0
+	parsed2 = stdlib_json.loads(json2)
+	assert 'second' in parsed2, "second field should be present even when value is 0"
+	assert 'microsecond' in parsed2, "microsecond field should be present even when value is 0"
+	assert parsed2['second'] == 0
+	assert parsed2['microsecond'] == 0
+
+	dt3 = datetime(year=2025, month=11, day=18, hour=0, minute=0, second=0, microsecond=0)
+	json3 = dumps(dt3)
+	back3 = loads(json3)
+	assert dt3 == back3
+	assert back3.hour == 0
+	assert back3.minute == 0
+	assert back3.second == 0
+	assert back3.microsecond == 0
+	parsed3 = stdlib_json.loads(json3)
+	assert 'hour' in parsed3, "hour field should be present even when value is 0"
+	assert 'minute' in parsed3, "minute field should be present even when value is 0"
+	assert 'second' in parsed3, "second field should be present even when value is 0"
+	assert 'microsecond' in parsed3, "microsecond field should be present even when value is 0"
+	assert parsed3['hour'] == 0
+	assert parsed3['minute'] == 0
+	assert parsed3['second'] == 0
+	assert parsed3['microsecond'] == 0
+
+
 def test_str_unicode_bytes():
 	text, obj = u'{"mykey": "你好"}', {"mykey": u"你好"}
 	assert loads(text) == obj
