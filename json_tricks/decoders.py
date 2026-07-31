@@ -275,8 +275,16 @@ def json_numpy_obj_hook(dct):
 	"""
 	if not isinstance(dct, dict):
 		return dct
-	if not '__ndarray__' in dct:
+	if '__ndarray__' not in dct:
 		return dct
+	if 'shape' not in dct or (dct['shape'] == [] and not dct.get('0dim', False)):
+		# New style scalar encoding
+		return _decode_numpy_scalar(dct)
+	else:
+		return _decode_ndarray(dct)
+
+
+def _decode_ndarray(dct):
 	try:
 		import numpy
 	except ImportError:
@@ -297,7 +305,32 @@ def json_numpy_obj_hook(dct):
 		else:
 			return _lists_of_numbers_to_ndarray(data_json, order, shape, nptype)
 	else:
-		return _scalar_to_numpy(data_json, nptype)
+		# This code path is mostly for 0-dimensional arrays
+		# numpy scalars are separately decoded
+		return numpy.asarray(
+			data_json,
+			dtype=nptype
+		).reshape(dct['shape'])
+
+
+def _decode_numpy_scalar(dct):
+	try:
+		import numpy
+	except ImportError:
+		raise NoNumpyException('Trying to decode a map which appears to represent a numpy '
+			'scalar, but numpy appears not to be installed.')
+
+	# numpy.asarray will handle dtypes with units well (such as datetime64)
+	arr = numpy.asarray(dct['__ndarray__'], dtype=dct['dtype'])
+
+	# https://numpy.org/doc/stable/reference/arrays.scalars.html#indexing
+	# https://numpy.org/doc/stable/user/basics.indexing.html#detailed-notes
+	# > An empty (tuple) index is a full scalar index into a zero-dimensional
+	#	array. x[()] returns a scalar if x is zero-dimensional and a view
+	#	otherwise. On the other hand, x[...] always returns a view.
+
+	scalar = arr[()]
+	return scalar
 
 
 def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness):
@@ -352,15 +385,6 @@ def _lists_of_obj_to_ndarray(data, order, shape, dtype):
 	for indx in ndindex(arr.shape):
 		arr[indx] = nested_index(dec_data, indx)
 	return arr
-
-
-def _scalar_to_numpy(data, dtype):
-	"""
-	From scalar value to numpy type.
-	"""
-	import numpy as nptypes
-	dtype = getattr(nptypes, dtype)
-	return dtype(data)
 
 
 def json_nonumpy_obj_hook(dct):
