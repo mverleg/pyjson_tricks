@@ -309,14 +309,20 @@ def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness):
 
 	assert order in [None, 'C'], 'specifying different memory order is not (yet) supported ' \
 								 'for binary numpy format (got order = {})'.format(order)
+	np_type = dtype(np_type_name)
 	if data.startswith('b64.gz:'):
 		data = standard_b64decode(data[7:])
-		data = gzip_decompress(data)
+		# the encoder writes exactly size * itemsize bytes, so anything beyond that is corrupt or hostile
+		expected_bytes = np_type.itemsize
+		for dimension in shape:
+			expected_bytes *= dimension
+		if expected_bytes < 0:
+			raise ValueError('numpy array has invalid shape {}'.format(shape))
+		data = gzip_decompress(data, max_size=expected_bytes)
 	elif data.startswith('b64:'):
 		data = standard_b64decode(data[4:])
 	else:
 		raise ValueError('found numpy array buffer, but did not understand header; supported: b64 or b64.gz')
-	np_type = dtype(np_type_name)
 	if data_endianness == sys.byteorder:
 		pass
 	if data_endianness == 'little':
@@ -347,6 +353,12 @@ def _lists_of_obj_to_ndarray(data, order, shape, dtype):
 	From nested list of objects (that aren't native numpy numbers) to ndarray.
 	"""
 	from numpy import empty, ndindex
+	# the declared shape must be backed by real data, or it alone would size the allocation
+	level = [data]
+	for size in shape:
+		if any(not isinstance(node, (list, tuple)) or len(node) != size for node in level):
+			raise ValueError('nested data does not match declared shape {}'.format(shape))
+		level = [item for node in level for item in node]
 	arr = empty(shape, dtype=dtype, order=order)
 	dec_data = data
 	for indx in ndindex(arr.shape):

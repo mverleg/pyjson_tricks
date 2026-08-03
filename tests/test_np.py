@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from base64 import standard_b64encode
 from copy import deepcopy
 from os.path import join
 from tempfile import mkdtemp
 import sys
 from warnings import catch_warnings, simplefilter
 
-from pytest import warns
+from pytest import raises, warns
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
@@ -17,7 +18,7 @@ from numpy.testing import assert_equal
 from json_tricks import numpy_encode
 from json_tricks.np import dump, dumps, load, loads
 from json_tricks.np_utils import encode_scalars_inplace
-from json_tricks.utils import JsonTricksDeprecation, gzip_decompress
+from json_tricks.utils import JsonTricksDeprecation, gzip_compress, gzip_decompress
 from .test_bare import cls_instance
 from .test_class import MyTestCls
 
@@ -210,6 +211,25 @@ def test_dtype_object():
 	json = dumps(arr)
 	back = loads(json)
 	assert array_equal(back, arr)
+
+
+def test_dtype_object_shape_must_match_data():
+	# a declared shape must never size the allocation on its own
+	with raises(ValueError):
+		loads('{"__ndarray__": [], "dtype": "object", "shape": [100000000]}')
+	# only the first branch is nested deeply, so the declared 2**26 elements do not exist
+	node = 0
+	for _ in range(26):
+		node = [node, 0]
+	with raises(ValueError):
+		loads(dumps({'__ndarray__': node, 'dtype': 'object', 'shape': [2] * 26}))
+
+
+def test_compact_gzip_surplus_data_rejected():
+	# 1MB of zeros behind a shape that claims only 40
+	payload = standard_b64encode(gzip_compress(b'\x00' * (1 << 20), 9)).decode('ascii')
+	with raises(ValueError):
+		loads('{"__ndarray__": "b64.gz:%s", "dtype": "float32", "shape": [10]}' % payload)
 
 
 def test_compact_mode_unspecified():
