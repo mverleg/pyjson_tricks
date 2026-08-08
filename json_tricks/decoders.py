@@ -265,7 +265,7 @@ def nopandas_hook(dct):
 	return dct
 
 
-def json_numpy_obj_hook(dct):
+def json_numpy_obj_hook(dct, properties=None):
 	"""
 	Replace any numpy arrays previously encoded by `numpy_encode` to their proper
 	shape, data type and data.
@@ -273,6 +273,7 @@ def json_numpy_obj_hook(dct):
 	:param dct: (dict) json encoded ndarray
 	:return: (ndarray) if input was an encoded ndarray
 	"""
+	properties = properties or {}
 	if not isinstance(dct, dict):
 		return dct
 	if not '__ndarray__' in dct:
@@ -287,20 +288,23 @@ def json_numpy_obj_hook(dct):
 		order = 'C' if dct['Corder'] else 'F'
 	data_json = dct['__ndarray__']
 	shape = tuple(dct['shape'])
+	if any(dimension < 0 for dimension in shape):
+		raise ValueError('numpy array has invalid shape {}'.format(shape))
 	nptype = dct['dtype']
 	if shape:
 		if nptype == 'object':
 			return _lists_of_obj_to_ndarray(data_json, order, shape, nptype)
 		if isinstance(data_json, str_type):
 			endianness = dct.get('endian', 'native')
-			return _bin_str_to_ndarray(data_json, order, shape, nptype, endianness)
+			return _bin_str_to_ndarray(data_json, order, shape, nptype, endianness,
+				properties.get('max_decompressed_size'))
 		else:
 			return _lists_of_numbers_to_ndarray(data_json, order, shape, nptype)
 	else:
 		return _scalar_to_numpy(data_json, nptype)
 
 
-def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness):
+def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness, max_decompressed_size=None):
 	"""
 	From base64 encoded, gzipped binary data to ndarray.
 	"""
@@ -316,8 +320,9 @@ def _bin_str_to_ndarray(data, order, shape, np_type_name, data_endianness):
 		expected_bytes = np_type.itemsize
 		for dimension in shape:
 			expected_bytes *= dimension
-		if expected_bytes < 0:
-			raise ValueError('numpy array has invalid shape {}'.format(shape))
+		if max_decompressed_size is not None and expected_bytes > max_decompressed_size:
+			raise ValueError('array of shape {} declares {} bytes, over the max_decompressed_size of {}'
+				.format(shape, expected_bytes, max_decompressed_size))
 		data = gzip_decompress(data, max_size=expected_bytes)
 	elif data.startswith('b64:'):
 		data = standard_b64decode(data[4:])

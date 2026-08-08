@@ -203,17 +203,21 @@ def gzip_decompress(data, max_size=None):
 	"""
 	Do gzip decompression, without the timestamp. Just like gzip.decompress, but that's py3.2+.
 
-	:param max_size: If given, decompress at most this many bytes, and raise if the stream
-			holds more. Pass it when the size is known in advance, so that a corrupt or hostile
-			stream cannot expand without bound (CWE-409).
+	:param max_size: If given, raise once the output passes this many bytes. Pass it when the
+			size is known in advance, so that a corrupt or hostile stream cannot expand without
+			bound (CWE-409).
 	"""
 	with gzip.GzipFile(fileobj=io.BytesIO(data)) as fh:
 		if max_size is None:
 			return fh.read()
-		result = fh.read(max_size + 1)
-	if len(result) > max_size:
-		raise ValueError('gzip stream holds more than the expected {} bytes'.format(max_size))
-	return result
+		# read in chunks, so that memory follows the real output and not the caller's limit
+		result = bytearray()
+		while len(result) <= max_size:
+			chunk = fh.read(65536)
+			if not chunk:
+				return bytes(result)
+			result.extend(chunk)
+	raise ValueError('gzip stream holds more than the expected {} bytes'.format(max_size))
 
 
 is_py3 = (version[:2] == '3.')

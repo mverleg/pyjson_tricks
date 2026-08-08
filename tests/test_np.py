@@ -232,6 +232,36 @@ def test_compact_gzip_surplus_data_rejected():
 		loads('{"__ndarray__": "b64.gz:%s", "dtype": "float32", "shape": [10]}' % payload)
 
 
+def test_compact_gzip_respects_max_decompressed_size():
+	arr = zeros(1 << 16, dtype=float64)
+	json = dumps(arr, compression=False, properties={'ndarray_compact': True})
+	assert 'b64.gz:' in json
+	assert array_equal(arr, loads(json, max_decompressed_size=1 << 20))
+	# the array needs 512kB, so the limit must reject it even though the shape is honest
+	with raises(ValueError):
+		loads(json, max_decompressed_size=1 << 14)
+	# the limit reaches an array nested inside a gzipped document too
+	gz_json = dumps({'arr': arr}, compression=6, properties={'ndarray_compact': True})
+	assert len(json) < (1 << 14), 'the outer document must fit, so that only the array trips the limit'
+	assert array_equal(arr, loads(gz_json, max_decompressed_size=1 << 20)['arr'])
+	with raises(ValueError):
+		loads(gz_json, max_decompressed_size=1 << 14)
+	# a caller who reuses a properties dict must not keep the earlier call's limit
+	properties = {'preserve_order': True}
+	loads(json, properties=properties)
+	with raises(ValueError):
+		loads(json, properties=properties, max_decompressed_size=1 << 14)
+
+
+def test_negative_shape_rejected():
+	# both headers must agree, so that the check cannot be sidestepped by skipping compression
+	for buffer in ('b64.gz:' + standard_b64encode(gzip_compress(b'\x00' * 40, 9)).decode('ascii'),
+			'b64:' + standard_b64encode(b'\x00' * 40).decode('ascii')):
+		for shape in ('[-1]', '[-1, -1]'):
+			with raises(ValueError):
+				loads('{"__ndarray__": "%s", "dtype": "float32", "shape": %s}' % (buffer, shape))
+
+
 def test_compact_mode_unspecified():
 	# Other tests may have raised deprecation warning, so reset the cache here
 	numpy_encode._warned_compact = False

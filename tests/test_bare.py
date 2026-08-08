@@ -217,6 +217,13 @@ def test_string_compression():
 	assert ordered_map == data3
 
 
+def test_string_decompression_limit():
+	json = dumps(ordered_map, compression=3)
+	assert ordered_map == loads(json, max_decompressed_size=1 << 20)
+	with raises(ValueError):
+		loads(json, max_decompressed_size=4)
+
+
 def test_flush_no_errors():
 	# just tests that flush doesn't cause problems; checking actual flushing is too messy.
 	path = join(mkdtemp(), 'pytest-nonp.json')

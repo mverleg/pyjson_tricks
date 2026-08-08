@@ -313,6 +313,38 @@ with comment handling. This makes the no-comment case faster at the cost
 of the comment case, so if you are expecting comments make sure to set
 `ignore_comments` to True.
 
+## Untrusted input
+
+`json_tricks` does not limit how much data a gzip stream may expand to.
+This applies to a compressed document, and to each compact ndarray
+inside it. A small input can therefore produce a very large allocation
+(CWE-409). Deflate cannot exceed a ratio of 1032:1, so an input size
+limit is also a decompression limit, but a loose one. A 50MB upload can
+still reach about 51GB.
+
+Pass `max_decompressed_size` to `load` or `loads` to bound this (thanks
+to `lilu5458` for the report and the first fix). It is the number of
+decompressed bytes to accept from any one gzip stream. A compact ndarray
+is rejected on its declared size, before it is decompressed.
+
+``` python
+loads(untrusted_data, max_decompressed_size=64 * 1024 * 1024)
+```
+
+There is no default limit, because `json_tricks` cannot know how large
+your real data is. Pick the limit from what your application accepts.
+
+The limit bounds gzip expansion. It does not bound every allocation a
+document can ask for. A `dtype` with a large item size, for example,
+still produces a large array from a short document.
+
+Two related cases are always rejected, with no flag to disable them,
+because their size is not bounded by the size of the input:
+
+* An ndarray whose declared `shape` is not backed by the data that
+  follows it.
+* An ndarray with a negative dimension.
+
 ## Other features
 
 * Special floats like `NaN`, `Infinity` and
@@ -330,7 +362,8 @@ of the comment case, so if you are expecting comments make sure to set
   package in earlier versions. `IntEnum` needs
   [encode_intenums_inplace](https://json-tricks.readthedocs.io/en/latest/#json_tricks.utils.encode_intenums_inplace).
 * `json_tricks` allows for gzip compression using the
-  `compression=True` argument (off by default).
+  `compression=True` argument (off by default). When loading gzipped
+  data from an untrusted source, see [Untrusted input](#untrusted-input).
 * `json_tricks` can check for duplicate keys in maps by setting
   `allow_duplicates` to False. These are [kind of
   allowed](http://stackoverflow.com/questions/21832701/does-json-syntax-allow-duplicate-keys-in-an-object),

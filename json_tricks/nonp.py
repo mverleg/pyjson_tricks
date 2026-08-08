@@ -197,7 +197,7 @@ def dump(obj, fp, sort_keys=None, cls=None, obj_encoders=DEFAULT_ENCODERS, extra
 
 def loads(string, preserve_order=True, ignore_comments=None, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
 		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False,
-		properties=None, **jsonkwargs):
+		properties=None, max_decompressed_size=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -212,6 +212,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 	:param allow_duplicates: If set to False, an error will be raised when loading a json-map that contains duplicate keys.
 	:param parse_float: A function to parse strings to integers (e.g. Decimal). There is also `parse_int`.
 	:param conv_str_byte: Try to automatically convert between strings and bytes (assuming utf-8) (default False).
+	:param max_decompressed_size: Maximum number of decompressed bytes to accept from a gzip stream, or None (default) for no limit. It applies to the document itself and to each compact ndarray inside it. Set it when loading gzipped data from an untrusted source, since a small input can otherwise expand without bound (CWE-409).
 	:return: The string containing the json-encoded version of obj.
 
 	Other arguments are passed on to json_func.
@@ -221,7 +222,7 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 	if decompression is None:
 		decompression = isinstance(string, bytes) and string[:2] == b'\x1f\x8b'
 	if decompression:
-		string = gzip_decompress(string).decode(ENCODING)
+		string = gzip_decompress(string, max_size=max_decompressed_size).decode(ENCODING)
 	if not isinstance(string, str_type):
 		if conv_str_byte:
 			string = string.decode(ENCODING)
@@ -238,6 +239,8 @@ def loads(string, preserve_order=True, ignore_comments=None, decompression=None,
 	dict_default(properties, 'decompression', decompression)
 	dict_default(properties, 'cls_lookup_map', cls_lookup_map)
 	dict_default(properties, 'allow_duplicates', allow_duplicates)
+	# not dict_default: a reused properties dict must never keep an earlier call's limit
+	properties['max_decompressed_size'] = max_decompressed_size
 	hooks = tuple(extra_obj_pairs_hooks) + tuple(obj_pairs_hooks)
 	hook = TricksPairHook(ordered=preserve_order, obj_pairs_hooks=hooks, allow_duplicates=allow_duplicates, properties=properties)
 	if ignore_comments is None:
@@ -268,7 +271,7 @@ def _strip_loads(string, object_pairs_hook, ignore_comments_bool, **jsonkwargs):
 
 def load(fp, preserve_order=True, ignore_comments=None, decompression=None, obj_pairs_hooks=DEFAULT_HOOKS,
 		extra_obj_pairs_hooks=(), cls_lookup_map=None, allow_duplicates=True, conv_str_byte=False,
-		properties=None, **jsonkwargs):
+		properties=None, max_decompressed_size=None, **jsonkwargs):
 	"""
 	Convert a nested data structure to a json string.
 
@@ -295,6 +298,7 @@ def load(fp, preserve_order=True, ignore_comments=None, decompression=None, obj_
 			'opened  in binary mode; be sure to set file mode to something like "rb".').with_traceback(exc_info()[2])
 	return loads(string, preserve_order=preserve_order, ignore_comments=ignore_comments, decompression=decompression,
 		obj_pairs_hooks=obj_pairs_hooks, extra_obj_pairs_hooks=extra_obj_pairs_hooks, cls_lookup_map=cls_lookup_map,
-		allow_duplicates=allow_duplicates, conv_str_byte=conv_str_byte, properties=properties, **jsonkwargs)
+		allow_duplicates=allow_duplicates, conv_str_byte=conv_str_byte, properties=properties,
+		max_decompressed_size=max_decompressed_size, **jsonkwargs)
 
 
