@@ -284,6 +284,17 @@ def test_encode_enable_compact_suppress_endianness():
 	assert "endian" not in json
 
 
+def test_compact_non_native_byteorder():
+	for dtype in ('<i4', '>i4', '<f4', '>f4', '<f8', '>f8'):
+		data = array([[1, 256], [2, 512]], dtype=dtype)
+		for target, byteorder in ((None, '='), ('little', '<'), ('big', '>'), ('suppress', None)):
+			properties = dict(ndarray_compact=True, ndarray_store_byteorder=target)
+			back = loads(dumps(data, properties=properties))
+			assert_equal(back, data)
+			expected_dtype = data.dtype.newbyteorder(byteorder) if byteorder else data.dtype
+			assert back.dtype == expected_dtype
+
+
 def test_encode_compact_cutoff():
 	data = [array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]), array([pi, exp(1)])]
 	gz_json = dumps(data, compression=True, properties=dict(ndarray_compact=5, ndarray_store_byteorder='little'))

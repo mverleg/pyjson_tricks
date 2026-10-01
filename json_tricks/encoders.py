@@ -427,8 +427,9 @@ def _ndarray_to_bin_str(array, do_compress, store_endianness):
 
 	original_size = array.size * array.itemsize
 	header = 'b64:'
-	if store_endianness in ['little', 'big'] and store_endianness != sys.byteorder:
-		array = array.byteswap(inplace=False)
+	if store_endianness != 'suppress':
+		byteorder = '<' if (store_endianness or sys.byteorder) == 'little' else '>'
+		array = array.astype(array.dtype.newbyteorder(byteorder), copy=False)
 	data = array.data
 	if do_compress:
 		small = gzip_compress(data, compresslevel=9)
