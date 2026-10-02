@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 import sys
 from warnings import catch_warnings, simplefilter
 
-from pytest import warns
+from pytest import mark, warns
 from numpy import arange, ones, array, array_equal, finfo, iinfo, pi
 from numpy import int8, int16, int32, int64, uint8, uint16, uint32, uint64, \
 	float16, float32, float64, complex64, complex128, zeros, ndindex
@@ -284,15 +284,26 @@ def test_encode_enable_compact_suppress_endianness():
 	assert "endian" not in json
 
 
-def test_compact_non_native_byteorder():
-	for dtype in ('<i4', '>i4', '<f4', '>f4', '<f8', '>f8'):
-		data = array([[1, 256], [2, 512]], dtype=dtype)
-		for target, byteorder in ((None, '='), ('little', '<'), ('big', '>'), ('suppress', None)):
-			properties = dict(ndarray_compact=True, ndarray_store_byteorder=target)
-			back = loads(dumps(data, properties=properties))
-			assert_equal(back, data)
-			expected_dtype = data.dtype.newbyteorder(byteorder) if byteorder else data.dtype
-			assert back.dtype == expected_dtype
+@mark.parametrize('dtype, values', (
+	('i4', [[1, 256], [-2, -512]]),
+	('f4', [[1.5, 256.25], [-2.75, -512.5]]),
+	('f8', [[1.5, 256.25], [-2.75, -512.5]]),
+	('c8', [[1 + 2j, 256 - 3.5j], [-2.75 + 4j, -512 - 0.5j]]),
+	('c16', [[1 + 2j, 256 - 3.5j], [-2.75 + 4j, -512 - 0.5j]]),
+))
+@mark.parametrize('input_byteorder', ('<', '>'))
+@mark.parametrize('target, byteorder', ((None, '='), ('little', '<'), ('big', '>'), ('suppress', None)))
+def test_compact_non_native_byteorder(dtype, values, input_byteorder, target, byteorder):
+	data = array(values, dtype=input_byteorder + dtype)
+	original_bytes = data.tobytes()
+	original_dtype = data.dtype
+	properties = dict(ndarray_compact=True, ndarray_store_byteorder=target)
+	back = loads(dumps(data, properties=properties))
+	assert data.tobytes() == original_bytes
+	assert data.dtype == original_dtype
+	assert_equal(back, data)
+	expected_dtype = original_dtype.newbyteorder(byteorder) if byteorder else original_dtype
+	assert back.dtype == expected_dtype
 
 
 def test_encode_compact_cutoff():
